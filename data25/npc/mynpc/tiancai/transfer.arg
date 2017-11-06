@@ -1,0 +1,51 @@
+START_MSG:嗨！你想要传送到其他地方吗?\n\n那请你先熟读下列规则：\n如果你有携带会消失的物品，依照工会规定是不能帮你传送的。
+MenuHead:选择目的地：
+
+#20级绿龟
+{
+MenuStr:20级绿龟   (15-20级练级)
+FREE:LV>0
+WARPPOINT:10001,40,7
+}
+
+#30级海主人
+{
+MenuStr:30级海主人 (25-40级练级)
+FREE:LV>0
+WARPPOINT:31401,90,30
+}
+
+#50级猪
+{
+MenuStr:50级猪     (50-70级练级)
+FREE:LV>0
+WARPPOINT:31701,29,46
+}
+
+#80级石龟
+{
+MenuStr:80级石龟   (必须带采集证)
+FREE:LV>0
+WARPPOINT:11004,9,9
+}
+
+#波拉岛
+{
+MenuStr:120波拉岛1 (必带涛之圣石)
+FREE:LV>0
+WARPPOINT:500,212,344
+}
+
+#波拉岛
+{
+MenuStr:120波拉岛2 (避免人多关闭)
+FREE:LV>0
+WARPPOINT:500,214,360
+}
+
+#波拉岛
+{
+MenuStr:120波拉岛3 (避免人多关闭)
+FREE:LV>0
+WARPPOINT:500,222,308
+}

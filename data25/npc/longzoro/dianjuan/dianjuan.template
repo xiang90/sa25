@@ -1,0 +1,10 @@
+NPCTEMPLATE
+# vigorshop
+{
+templatename=vippoint_shop
+makeatnobody=1
+name=
+makeatnosee=1
+graphicname=SPR_chr02
+functionset=ItemVippointShop
+}

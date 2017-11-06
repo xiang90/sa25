@@ -1,0 +1,12 @@
+NomalMainMsg:欢迎光临。贩卖往斗技场的票。
+
+EventNo:-1
+TYPE:ACCEPT
+EVENT:LV>0
+AcceptMsg:【特别告示】\n\n\n竞技场已经开放免费入场！\n\n直接和边上那位对话即可入场！
+ThanksMsg:祝您旅途愉快！
+EventEnd
+
+
+DelItem:2521,2522,2523,2524,2597,2598,2600,2601,2602
+EventEnd

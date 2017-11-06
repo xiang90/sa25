@@ -1,0 +1,11 @@
+NPCCREATE
+{
+floorid=2006
+borncenter=15,12
+time=0
+createnum=1
+graphicname=101156
+name=现金兑换商城
+dir=4
+enemy=rmbshop|file:longzoro/rmb/rmb.arg
+}

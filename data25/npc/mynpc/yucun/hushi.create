@@ -1,0 +1,27 @@
+NPCCREATE
+
+#line 362
+{
+floorid=2000
+borncorner=60,81,60,81
+time=0
+createnum=1
+dir=4
+ignoreinvincible=1
+graphicname=16086
+name=玛丽娜丝的护士
+enemy=npcgen_healer|1
+}
+
+#line 364
+{
+floorid=2000
+borncorner=60,84,60,84
+time=0
+createnum=1
+dir=4
+ignoreinvincible=1
+graphicname=16094
+name=玛丽娜丝的药师
+enemy=npcgen_shop|file:genout/ss_2005_15_7
+}

@@ -1,0 +1,16 @@
+NPCCREATE
+
+
+
+#声望商店
+{
+floorid=2000
+borncorner=71,64,71,64
+time=0
+createnum=1
+dir=6
+ignoreinvincible=3
+graphicname=17006
+name=声望商店
+enemy=npcgen_shop|file:longzoro/shengwang/shengwang
+}
