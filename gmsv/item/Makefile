@@ -1,5 +1,5 @@
 INCFLAGS=-I. -I../include
-MYOPTIMIZE = -g -O2 -fomit-frame-pointer -march=pentium4
+MYOPTIMIZE = -g -O2 -fomit-frame-pointer
 CFLAGS=-Wall $(INCFLAGS) $(MYOPTIMIZE)
 
 PROG=libitem.a

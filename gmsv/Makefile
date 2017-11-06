@@ -12,8 +12,7 @@ export SHELL=/bin/sh
 # pthread 反骚日卅中及匹｝仇木毛反内仄化pthread 手反内允仇午
 
 INCFLAGS=-Iinclude
-#MYOPTIMIZE = -g -O2 -pipe -fomit-frame-pointer -malign-double -march=pentium4
-MYOPTIMIZE = -g -O2 -fomit-frame-pointer -march=pentium4
+MYOPTIMIZE = -g -O2 -fomit-frame-pointer
 CFLAGS=-Wall $(INCFLAGS) $(MYOPTIMIZE)
 PROG=gmsv
 
