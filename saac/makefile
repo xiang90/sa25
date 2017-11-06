@@ -10,7 +10,7 @@ CC = gcc
 #加入mysql资料库功能
 #CFLAGS=-I /usr/local/mysql/include/ -L /usr/local/lib/mysql/ -lmysqlclient -lz -Wall -O -g -I./
 #MYOPTIMIZE = -g -O2 -pipe -fomit-frame-pointer -malign-double -march=pentium4
-MYOPTIMIZE = -g -O2 -fomit-frame-pointer -march=pentium4
+MYOPTIMIZE = -g -O2 -fomit-frame-pointer
 CFLAGS=-Wall -I./ $(MYOPTIMIZE)
 
 TOP=../..
