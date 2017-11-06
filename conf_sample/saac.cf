@@ -1,0 +1,14 @@
+port	9300
+wkport	9500
+logdir	log
+lockdir	lock
+chardir	char
+pass	sa25_test
+wklogdir	wklog
+dbdir	db
+rotate_interval	604800
+maildir	mail
+familydir	family
+fmpointdir	fmpoint
+fmsmemodir	fmsmemo
+saacname	SA25
