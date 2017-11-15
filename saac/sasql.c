@@ -153,12 +153,11 @@ int sasql_query(char *nm, char *pas)
 		if (num_row > 0) {
 			mysql_row = mysql_fetch_row(mysql_result);
 			if (strcmp(pas, mysql_row[1]) == 0) {
-		        mysql_free_result(mysql_result);
+		        	mysql_free_result(mysql_result);
 				return 1;
 			} else {
-				printf
-				    ("\n用户%s密码错误！\n",nm);
-		        mysql_free_result(mysql_result);
+				printf("\n用户%s密码错误！\n",nm);
+		        	mysql_free_result(mysql_result);
 				return 2;
 			}
 		} 
