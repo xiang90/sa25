@@ -9,9 +9,6 @@ typedef enum
     OBJTYPE_CHARA,      /*  平乓仿弁正 CHAR_chara尺及奶件犯永弁旦   */
     OBJTYPE_ITEM,       /*  失奶  丞    ITEM_item 尺及奶件犯永弁旦  */
     OBJTYPE_GOLD,       /*  打□伙玉    云嗯及汹互index卞  匀化中月 */
-#ifdef _NPCSERVER_NEW
-	OBJTYPE_NPCSCHARA,
-#endif
 #ifdef _MAP_WARPPOINT
 	OBJTYPE_WARPPOINT,
 #endif
@@ -60,19 +57,8 @@ INLINE int OBJECT_getIndex( int index );
 INLINE int OBJECT_setIndex( int index, int newvalue );
 INLINE int OBJECT_getNum( void );
 
-#ifdef _NPCSERVER_NEW
-INLINE int OBJECT_getNpcIndex( int index );
-INLINE char* OBJECT_getName( int index );
-INLINE int OBJECT_getNpcImage( int index );
-INLINE int OBJECT_getNpcdir( int index );
-#endif
 INLINE int OBJECT_getchartype( int index );
 INLINE void OBJECT_setchartype( int index, int flg);
-
-#ifndef _SIMPLIFY_ITEMSTRING
-BOOL storeObjects( char* dirname );
-BOOL restoreObjects( char* dirname );
-#endif
 
 int searchObjectFromCharaIndex( int index );
 

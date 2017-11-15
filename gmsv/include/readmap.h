@@ -31,32 +31,32 @@ typedef enum
 {
     MAP_WALKABLE,           /*
                              *         ³¡ºÏ
-                             * “öº  Q            ¼û     0
-                             * “öº  M        ¼û   1
-                             * “öº  M        ¼û     2
+                             * “ö? Q            ¼û     0
+                             * “ö? M        ¼û   1
+                             * “ö? M        ¼û     2
                              */
     MAP_HAVEHEIGHT,         /*  ¸ß            ·Ç0           0   */
     MAP_DEFENCE,            /*  ’\        ¡¢ÊØ±¸Á¦¡¢0 ÒÔÏÂ    ’\        */
 
-    MAP_INTODAMAGE,         /*        Èë    Ê±  HP  ×ã  ‚   */
-    MAP_OUTOFDAMAGE,        /*          ³ö  Ê±  HP  ×ã  ‚   */
+    MAP_INTODAMAGE,         /*        Èë    Ê±  HP  ×ã  ?  */
+    MAP_OUTOFDAMAGE,        /*          ³ö  Ê±  HP  ×ã  ?  */
 
-    MAP_SETED_BATTLEMAP,    /*             Éè¶¨’  */
+    MAP_SETED_BATTLEMAP,    /*             Éè¶¨? */
 	MAP_BATTLEMAP,			/*               ·¬†A £±*/
 	MAP_BATTLEMAP2,			/*               ·¬†A £²*/
 	MAP_BATTLEMAP3,			/*               ·¬†A £³*/
 
-/* ÒÔÏÂ  £Ì£Ó£²  Ê¹        £Ó£Á    Ê¹      (‡  X      ’  @) */
+/* ÒÔÏÂ  £Ì£Ó£²  Ê¹        £Ó£Á    Ê¹      (? X      ? @) */
 
     MAP_INTODARKNESS,       /*  Èë    Ê±  °µ      */
-    MAP_INTOCONFUSION,      /*  Èë    Ê±  »ì…     */
+    MAP_INTOCONFUSION,      /*  Èë    Ê±  »ì?    */
 
     MAP_OUTOFPOISON,         /*  Èë    Ê±  ¶¾    */
     MAP_OUTOFPARALYSIS,      /*  Èë    Ê±            */
-    MAP_OUTOFSILENCE,        /*  Èë    Ê±  Éò“   */
+    MAP_OUTOFSILENCE,        /*  Èë    Ê±  Éò?  */
     MAP_OUTOFSTONE,          /*  Èë    Ê±  Ê¯    */
     MAP_OUTOFDARKNESS,       /*  Èë    Ê±  °µ      */
-    MAP_OUTOFCONFUSION,      /*  Èë    Ê±  »ì…     */
+    MAP_OUTOFCONFUSION,      /*  Èë    Ê±  »ì?    */
 
     MAP_DATAINT_NUM,
 }MAP_DATAINT;
@@ -72,7 +72,7 @@ typedef struct tagMAP_ImageData
 
 typedef enum
 {
-    MAP_KINDWALKABLE,           /*  “öº  F   1   Èë     */
+    MAP_KINDWALKABLE,           /*  “ö? F   1   Èë     */
 
     MAP_KINDNUM,
 }MAP_kind;
@@ -104,8 +104,6 @@ BOOL MAP_makeVariousMap(char* atile, char* aobj, int floor, int startx, int star
 BOOL MAP_makeWalkableMap( char* data,  int floor, int startx, int starty,int xsiz, int ysiz );
 BOOL MAP_IsThereSpecificFloorid( int floorid );
 BOOL MAP_IsValidCoordinate( int floorid, int x, int y );
-int MAP_attackSpecificPoint( int floor, int x, int y, int damage ,
-                             int charaindex );
 
 BOOL MAP_addNewObj( int floor, int x, int y, int objindex );
 BOOL MAP_removeObj( int floor, int x, int y, int objindex );
@@ -117,8 +115,8 @@ BOOL _MAP_objmove( char *file, int line, int objindex, int ofloor, int ox, int o
 char *MAP_getFloorName( int floor);
 BOOL MAP_setObjData( int ff ,int fx, int fy, int obj, int objhp );
 
-#ifdef _STATUS_WATERWORD //Ë®ÊÀ½ç×´Ì¬
-int MAP_getMapFloorType( int floor);
+#ifdef _MAKE_MAP
+int MAP_getFloorXY( int floor, int *x, int *y);
 #endif
 
 #ifdef _MAP_NOEXIT

@@ -22,10 +22,6 @@ void CHAR_recoveryStatus( int charaindex );
 BOOL CHAR_makeCADefaultString( int objindex,char* buf,int buflen, int act );
 BOOL CHAR_makeCAOPT1String( int objindex,char* buf,
                                         int buflen, int act,int opt1 );
-BOOL CHAR_makeCAOPT3String( int objindex,char* buf,
-                            int buflen, int act,int opt1,int opt2,int opt3 );
-#ifdef _STREET_VENDOR
-BOOL CHAR_makeCAOPTString(int objindex,char* buf,int buflen,int act,char *string);
-#endif
+BOOL CHAR_makeCAOPT3String( int objindex,char* buf,int buflen, int act,int opt1,int opt2,int opt3 );
 
 #endif 

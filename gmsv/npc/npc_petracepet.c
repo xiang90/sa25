@@ -38,6 +38,8 @@ enum
 	NPC_State_ShowWin,
 };
 
+int raceflag=0;
+
 BOOL NPC_PetRacePetInit( int meindex )
 {
 	char argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
@@ -207,16 +209,31 @@ static void NPC_PetRacePet_Walk(int meindex)
 			int floor = CHAR_getInt(masterindex, CHAR_FLOOR);
 			if (CHAR_getWorkInt(masterindex, CHAR_NPCWORKINT8) == 0)
 			{
+				CHAR_warpToSpecificPoint(meindex, 7005,42,44);
 				CHAR_setWorkInt(masterindex, CHAR_NPCWORKINT8, meindex);
 				CHAR_sendAction(meindex, 3, FALSE);
 				snprintf(tmpbuf, sizeof(tmpbuf), "首先到达目的地的是...%s",
 					CHAR_getChar(meindex, CHAR_NAME));
+				raceflag++;
 			}
 			else
 			{
-				CHAR_warpToSpecificPoint(meindex, 888, 7, 7);
-				snprintf(tmpbuf, sizeof(tmpbuf), "接着到达目的地的是...%s",
-					CHAR_getChar(meindex, CHAR_NAME));
+				if(raceflag == 1)
+				{
+					//将宠物送回到指定的坐标
+					CHAR_warpToSpecificPoint(meindex, 7005,43,47);
+					snprintf(tmpbuf, sizeof(tmpbuf), "接着到达目的地的是...%s",
+						CHAR_getChar(meindex, CHAR_NAME));
+					raceflag++;
+				}
+				else
+				{
+					//完成最后一个宠物的传送，初始化
+					CHAR_warpToSpecificPoint(meindex, 7005,45,44);
+					snprintf(tmpbuf, sizeof(tmpbuf), "最后到达目的地的是...%s",
+						CHAR_getChar(meindex, CHAR_NAME));
+					raceflag=0;
+				}
 			}
 			CHAR_setWorkInt(meindex, NPC_WORK_STATE, NPC_State_ShowWin);
 			CHAR_setInt(meindex, CHAR_LOOPINTERVAL, 500);

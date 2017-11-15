@@ -14,6 +14,11 @@
 #include "handletime.h"
 #include "family.h"
 #include "errno.h"
+#include "configfile.h"
+
+#ifdef _FM_POINT_PK
+extern struct  FM_POINTLIST fmpointlist;                   // 家族据点
+#endif
 
 #define FMWARPMAN_INIT_LOOPTIME		600	// 0.1秒
 #define FMWARPMAN_FREE_LOOPTIME		9000	// 1.5秒
@@ -188,57 +193,13 @@ void NPC_FMWarpManLoop(int meindex)
 	struct tm *tm2;
 	int fmpks_pos = CHAR_getWorkInt(meindex, NPC_WORK_ID) * MAX_SCHEDULE;
 	int floor = CHAR_getWorkInt(meindex, NPC_WORK_WARPFLOOR);
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-	int i;
-	int playernum = CHAR_getPlayerMaxNum();
-#endif
-	
 	// WON ADD 修正snprintf会导致当机的bug
 	if( (tm2=localtime((time_t *)&NowTime.tv_sec) ) == NULL ){
 		print("\n won ==> time err !! ");
 		return;
 	}
 	memcpy(&tm1, localtime((time_t *)&NowTime.tv_sec), sizeof(tm1));
-	
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-	{
-		static int next_time[5] = {10,20,30,40,50}, flag[5] = {0};
-		int now_time = time(NULL);
-		int j, ID = 0;
-		 
-		ID = CHAR_getWorkInt(meindex, NPC_WORK_ID) - MANORNUM ;
-		 
-		if( flag[ ID - 1 ] == 0 ){
-			next_time[ ID - 1 ] += now_time;
-			flag[ ID -1 ] = 1;
-		}
-		 
-		if( now_time > next_time[ID - 1] ){	
-			next_time[ID -1] = now_time + (60 * 5);
-			 
-			for( i=0; i<MAX_SCHEDULE; i++ ){
-				if( fmpks[ fmpks_pos + i ].flag == FMPKS_FLAG_SCHEDULED &&
-					CHAR_getWorkInt(meindex, NPC_WORK_MODEFLAG) == NPC_STATEFREE ){
-					 
-					char msg[128] = {0};
-					int pk_min = fmpks[fmpks_pos + i ].prepare_time;
-					 
-					sprintf(msg, "[%s] VS [%s] 於(%d:%d) 在场地 %d 开打", 				
-									fmpks[ fmpks_pos + i ].host_name,
-									fmpks[ fmpks_pos + i ].guest_name,
-									tm1.tm_hour + i, pk_min,  
-									CHAR_getWorkInt(meindex, NPC_WORK_ID) - 9 );
-					 
-					for( j=0; j< playernum; j++ ){
-						if( CHAR_CHECKINDEX( j ) != FALSE )	
-						CHAR_talkToCli( j, -1, msg, CHAR_COLORYELLOW);
-					}
-				}
-			} 
-		}
-	}
-#endif
-		
+
 	if (tm1.tm_min == 0)
    	CHAR_setWorkInt(meindex, NPC_WORK_TIMEFLAG, tm1.tm_min);
 	if (CHAR_getWorkInt(meindex, NPC_WORK_MODEFLAG) == NPC_STATEINIT)
@@ -284,51 +245,7 @@ void NPC_FMWarpManLoop(int meindex)
 				NPC_FMBATTLESET(floor, fmpks[fmpks_pos].host_index,
 					fmpks[fmpks_pos].guest_index, 1);
 				
-				print("\n won ==> set fmwaperman state busy !!");
-				
-				
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-				{
-					int num1 = 0, num2 = 0;
-					int winflag = 0;
-					int floor = CHAR_getWorkInt(meindex, NPC_WORK_WARPFLOOR);
-					
-					NPC_GetPKFMNum(floor, fmpks[fmpks_pos].host_index,
-						fmpks[fmpks_pos].guest_index, &num1, &num2);
-					
-					if( num2 < 20 ){
-						NPC_WarpFamily(floor, -1,
-							fmpks[fmpks_pos].guest_index,
-							CHAR_getInt(meindex, CHAR_FLOOR),
-							CHAR_getInt(meindex, CHAR_X),
-							CHAR_getInt(meindex, CHAR_Y));
-						NPC_talkToFloor( floor,  -1, fmpks[fmpks_pos].guest_index, "因未满二十人而离场" );
-#ifdef _DEATH_FAMILY_STRUCT		// WON ADD 家族战存放胜负资料
-						{
-							char out[256];
-							sprintf( out, "[%s](%d) 因未满二十人弃权",  fmpks[fmpks_pos].guest_name, num2 );
-							saacproto_FM_PK_STRUCT_send( acfd, out );
-						}
-#endif
-					}
-					
-					if( num1 < 20 ){
-						NPC_WarpFamily(floor, fmpks[fmpks_pos].host_index,
-							-1,
-							CHAR_getInt(meindex, CHAR_FLOOR),
-							CHAR_getInt(meindex, CHAR_X),
-							CHAR_getInt(meindex, CHAR_Y));
-						NPC_talkToFloor( floor,  fmpks[fmpks_pos].host_index, -1, "因未满二十人而离场" );
-#ifdef _DEATH_FAMILY_STRUCT		// WON ADD 家族战存放胜负资料
-						{
-							char out[256];
-							sprintf( out, "[%s](%d) 因未满二十人弃权",  fmpks[fmpks_pos].host_name/* .host_index*/, num1 );
-							saacproto_FM_PK_STRUCT_send( acfd, out );
-						}
-#endif		
-					}
-				}
-#endif
+//				print("\n won ==> set fmwaperman state busy !!");
 			}
 			else if (tm1.tm_min > CHAR_getWorkInt(meindex, NPC_WORK_TIMEFLAG))
 			{
@@ -349,7 +266,7 @@ void NPC_FMWarpManLoop(int meindex)
 		int floor = CHAR_getWorkInt(meindex, NPC_WORK_WARPFLOOR);
 		int meid = CHAR_getWorkInt(meindex, NPC_WORK_ID);
 		
-		print("\n won ==> check_winner : npc_meid(%d)", meid );
+//		print("\n won ==> check_winner : npc_meid(%d)", meid );
 		
 		NPC_GetPKFMNum(floor, fmpks[fmpks_pos].host_index,
 			fmpks[fmpks_pos].guest_index, &num1, &num2);
@@ -392,67 +309,6 @@ void NPC_FMWarpManLoop(int meindex)
 #ifdef _MANOR_PKRULE      
 			if(meid > MANORNUM){
 #endif
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-				{
-					int i, win_index = -1, loser_index = -1;
-					char *win_name, *loser_name, msg[256] = {0}, token[256] = {0};
-					struct tm tm1;
-					int n1 = 0, n2 = 0;
-					//				FILE *f;
-					
-					if(winflag == 1){
-						win_index = fmpks[fmpks_pos].host_index;
-						win_name = fmpks[fmpks_pos].host_name;
-						n1 = num1;
-						loser_index = fmpks[fmpks_pos].guest_index;
-						loser_name = fmpks[fmpks_pos].guest_name;
-						n2 = num2;
-					}else if(winflag == 2){
-						win_index = fmpks[fmpks_pos].guest_index;
-						win_name = fmpks[fmpks_pos].guest_name;
-						n1 = num2;
-						loser_index = fmpks[fmpks_pos].host_index;
-						loser_name = fmpks[fmpks_pos].host_name;
-						n2 = num1;
-					}else{
-						win_index = fmpks[fmpks_pos].host_index;
-						win_name = fmpks[fmpks_pos].host_name;
-						loser_index = fmpks[fmpks_pos].guest_index;
-						loser_name = fmpks[fmpks_pos].guest_name;					
-					}
-					
-					memcpy( &tm1, localtime( (time_t *)&NowTime.tv_sec), sizeof( tm1));
-					
-					if(winflag == 1 || winflag == 2){
-						sprintf( msg, "[%s](%d)人 胜 [%s](%d)人", win_name, n1, loser_name, n2 );
-						sprintf( token, "战况播报： %s", msg );
-					}else if( winflag == 3 ){				
-						sprintf( msg, "[%s] 平手 [%s]", win_name, loser_name );
-						sprintf( token, "战况播报： %s", msg );
-					}
-					
-#ifdef _DEATH_FAMILY_STRUCT		// WON ADD 家族战存放胜负资料
-					{
-						char out[256] = {0};
-						sprintf( out, "%d/%d/%d:%d %s", tm1.tm_mon+1, tm1.tm_mday, tm1.tm_hour, tm1.tm_min, msg );
-						saacproto_FM_PK_STRUCT_send( acfd, out );
-					}
-#endif
-					
-					for( i=0 ; i< playernum ; i++ ){
-						if( CHAR_CHECKINDEX( i ) == FALSE )	continue;
-						CHAR_talkToCli( i, -1, token, CHAR_COLORYELLOW);
-					}				
-					/*
-					if( (f = fopen( "d_fm_pk_log.txt", "a+" ) ) ){
-					fprintf( f, "%d/%d/%d:%d %s\n", tm1.tm_mon+1, tm1.tm_mday, tm1.tm_hour, tm1.tm_min, msg );
-					fclose( f );
-					}else{
-					print("\n open file (d_fm_pk_log.txt) Err !!");
-					}
-					*/
-				}
-#else
 				// 流浪家族pk 过声望
 				if (winflag == 1){	 		 
 					saacproto_ACFixFMPK_send(acfd,
@@ -471,17 +327,12 @@ void NPC_FMWarpManLoop(int meindex)
 						fmpks[fmpks_pos].host_index + 1,
 						fmpks[fmpks_pos].host_index);
 				}  
-#endif
-				
 #ifdef _MANOR_PKRULE      
 			}
 #endif
 			
 			{
 				if (meid > 0 && meid <= MANORNUM){// CoolFish 2002/2/25 Change MANOR -> MANORNUM
-#ifdef _NEW_MANOR_LAW
-					int i,iFmIndex1,iFmIndex2,iCharindex;
-#endif
 					fmpks[fmpks_pos + 1].flag = FMPKS_FLAG_MANOR_BATTLEEND;
 					if (winflag == 1){
 						char token[256];
@@ -503,47 +354,21 @@ void NPC_FMWarpManLoop(int meindex)
 							fmpks[fmpks_pos].guest_name,
 							fmpks[fmpks_pos].guest_index,
 							num2, token, "", "", 2);
-#ifdef _NEW_MANOR_LAW
-						// 原家族守住了庄园,家族成员可得到石币
-						iFmIndex1 = fmpks[fmpks_pos].host_index;
-						for(i=0;i<FAMILY_MAXMEMBER;i++){
-							iCharindex = familyMemberIndex[iFmIndex1][i];
-							// 若在线上才给钱
-							if(iCharindex >= 0 && CHAR_getCharUse(iCharindex)){
-								// 获得金钱 = 个人气势 * 5000
-								int iAddGold = ((float)CHAR_getInt(iCharindex,CHAR_MOMENTUM)/100.0f) * 5000.0f;
-								int iGold = CHAR_getInt(iCharindex,CHAR_BANKGOLD),iMaxGold;
-								// 先放入个人银行
-								if(iGold + iAddGold > CHAR_MAXBANKGOLDHAVE){
-									CHAR_setInt(iCharindex,CHAR_BANKGOLD,CHAR_MAXBANKGOLDHAVE);
-									// 个人银行放不下了,放到个人身上
-									iAddGold = iGold + iAddGold - CHAR_MAXBANKGOLDHAVE;
-									iGold = CHAR_getInt(iCharindex,CHAR_GOLD);
-									iMaxGold = CHAR_getMaxHaveGold(iCharindex);
-									if(iGold + iAddGold > iMaxGold) CHAR_setInt(iCharindex,CHAR_GOLD,iMaxGold);
-									else CHAR_setInt(iCharindex,CHAR_GOLD,iGold + iAddGold);
-									LogFMPKGetMomey(CHAR_getChar(iCharindex,CHAR_FMNAME),
-																	CHAR_getChar(iCharindex,CHAR_CDKEY),
-																	CHAR_getChar(iCharindex,CHAR_NAME),
-																	CHAR_getInt(iCharindex,CHAR_MOMENTUM),iAddGold,0);
-								}
-								else{
-									CHAR_setInt(iCharindex,CHAR_BANKGOLD,iGold + iAddGold);
-									LogFMPKGetMomey(CHAR_getChar(iCharindex,CHAR_FMNAME),
-																	CHAR_getChar(iCharindex,CHAR_CDKEY),
-																	CHAR_getChar(iCharindex,CHAR_NAME),
-																	CHAR_getInt(iCharindex,CHAR_MOMENTUM),iAddGold,1);
-								}
-								CHAR_talkToCli(iCharindex,-1,"辛苦了!守护住庄园的奖金已汇入你的个人银行",CHAR_COLORRED);
-							}
-						}
-#endif
 					} 
 					else if (winflag == 2){	
 						char token[256];
 						sprintf( token, " (%d:%d) %d/%d/%d",
 							tm1.tm_hour, tm1.tm_min,
 							tm1.tm_year+1900, tm1.tm_mon+1, tm1.tm_mday);
+#ifdef _FM_POINT_PK
+						int fmid;
+						char fmindex[4];
+						for (fmid=0; fmid<MANORNUM; fmid++){	// 10个庄园
+				       getStringFromIndexWithDelim(fmpointlist.pointlistarray[fmid], "|", 5, fmindex, sizeof(fmindex));
+				       if (fmpks[fmpks_pos].guest_index==atoi(fmindex)-1)
+				       	 break;
+				    }
+#endif
 						saacproto_ACFixFMPoint_send(acfd, 
 							fmpks[fmpks_pos].guest_name,
 							fmpks[fmpks_pos].guest_index + 1,
@@ -559,28 +384,21 @@ void NPC_FMWarpManLoop(int meindex)
 							fmpks[fmpks_pos].host_name,
 							fmpks[fmpks_pos].host_index,
 							num1, token, "", "", 2);
+#ifdef _FM_POINT_PK
+						if(fmid>=0 && fmid<MANORNUM){
+							saacproto_ACFixFMPoint_send(acfd, 
+							fmpks[fmpks_pos].host_name,
+							fmpks[fmpks_pos].host_index + 1,
+							fmpks[fmpks_pos].host_index,
+							fmpks[fmpks_pos].host_name,
+							fmpks[fmpks_pos].host_index + 1,
+							fmpks[fmpks_pos].host_index, fmid+1);
+						}
+#endif
 					}
 					CHAR_setWorkInt(meindex, NPC_WORK_MODEFLAG, NPC_STATEFREE);
 					CHAR_setInt(meindex, CHAR_LOOPINTERVAL, FMWARPMAN_FREE_LOOPTIME);
 					print("FMWarpMan State:%d\n", CHAR_getWorkInt(meindex, NPC_WORK_MODEFLAG));
-#ifdef _NEW_MANOR_LAW
-					// 双方的个人及家族气势都要归零
-					iFmIndex1 = fmpks[fmpks_pos].host_index;
-					iFmIndex2 = fmpks[fmpks_pos].guest_index;
-					for(i=0;i<FAMILY_MAXMEMBER;i++){
-						iCharindex = familyMemberIndex[iFmIndex1][i];
-						// 若有在线上则清除,不在线上的在登入游戏时清除
-						if(iCharindex >= 0 && CHAR_getCharUse(iCharindex)){
-							CHAR_setInt(iCharindex,CHAR_MOMENTUM,0);
-							CHAR_talkToCli(iCharindex,-1,"庄园战後个人及家族气势归零",CHAR_COLORRED);
-						}
-						iCharindex = familyMemberIndex[iFmIndex2][i];
-						if(iCharindex >= 0 && CHAR_getCharUse(iCharindex)){
-							CHAR_setInt(iCharindex,CHAR_MOMENTUM,0);
-							CHAR_talkToCli(iCharindex,-1,"庄园战後个人及家族气势归零",CHAR_COLORRED);
-						}
-					}
-#endif
 				}
 			}
 			if (winflag == 1)
@@ -590,7 +408,6 @@ void NPC_FMWarpManLoop(int meindex)
 			else if (winflag == 2)
 			{
 				CHAR_setWorkChar(meindex, NPC_WORK_WINFMNAME, fmpks[fmpks_pos].guest_name);
-				
 			}
 			NPC_WarpFamily(floor, fmpks[fmpks_pos].host_index,
 				fmpks[fmpks_pos].guest_index,
@@ -1155,9 +972,9 @@ void NPC_talkToFloor(int floor, int index1, int index2, char *data)
 		charindex = familyMemberIndex[index1][i];
 		if (CHAR_getCharUse(charindex))
 		{
-			print("charname:%s fmname:%s\n", 
-				CHAR_getChar(charindex, CHAR_NAME),
-				CHAR_getChar(charindex, CHAR_FMNAME));
+//			print("charname:%s fmname:%s\n", 
+//				CHAR_getChar(charindex, CHAR_NAME),
+//				CHAR_getChar(charindex, CHAR_FMNAME));
 			if (CHAR_getInt(charindex, CHAR_FLOOR) == floor)
 				CHAR_talkToCli(charindex, -1, data, CHAR_COLORYELLOW);
 		}
@@ -1166,9 +983,9 @@ void NPC_talkToFloor(int floor, int index1, int index2, char *data)
 		charindex = familyMemberIndex[index2][i];
 		if (CHAR_getCharUse(charindex))
 		{
-			print("charname:%s fmname:%s\n", 
-				CHAR_getChar(i, CHAR_NAME),
-				CHAR_getChar(i, CHAR_FMNAME));
+//			print("charname:%s fmname:%s\n", 
+//				CHAR_getChar(i, CHAR_NAME),
+//				CHAR_getChar(i, CHAR_FMNAME));
 			if (CHAR_getInt(charindex, CHAR_FLOOR) == floor)
 				CHAR_talkToCli(charindex, -1, data, CHAR_COLORRED);
 		}

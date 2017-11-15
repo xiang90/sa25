@@ -308,7 +308,7 @@ int PETSKILL_NoGuard(
 
 
 // Terry add 2001/11/05
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
 int PETSKILL_AttackMagic(
 	int charaindex,
 	int toindex,
@@ -388,15 +388,6 @@ int PETSKILL_Barrier(
 );
 #endif
 
-#ifdef _SKILL_NOCAST  //vincent宠技:沉默
-int PETSKILL_Nocast(
-	int charaindex,
-	int toindex,
-	int array,
-	char *data
-);
-#endif
-
 #ifdef _SKILL_ROAR //vincent宠技:大吼
 int PETSKILL_Roar(
 	int charaindex,
@@ -409,10 +400,6 @@ int PETSKILL_Roar(
 #ifdef _PSKILL_FALLGROUND
 int PETSKILL_FallGround( int charaindex, int toNo, int array, char *data );
 #endif
-#ifdef _PETSKILL_EXPLODE
-int PETSKILL_Explode( int charaindex, int toNo, int array, char *data );
-#endif
-
 #ifdef _PRO_BATTLEENEMYSKILL
 int ENEMYSKILL_ReLife( int enemyindex, int toNo, int array, char *data );
 int ENEMYSKILL_ReHP( int enemyindex, int toNo, int array, char *data );
@@ -448,10 +435,6 @@ int PETSKILL_Lighttakeed( int charaindex, int toNo, int array, char *data );
 
 #ifdef _BATTLE_ATTCRAZED
 int PETSKILL_AttackCrazed( int charaindex, int toNo, int array, char *data );
-#endif
-
-#ifdef _SHOOTCHESTNUT	// Syu ADD 宠技：丢栗子
-int PETSKILL_AttackShoot( int charaindex, int toNo, int array, char *data );
 #endif
 
 #ifdef _Skill_MPDAMAGE
@@ -498,10 +481,6 @@ int PETSKILL_Regret( int charaindex, int toNo, int array, char *data );
 int PETSKILL_Gyrate( int charaindex, int toNo, int array, char *data );
 #endif
 
-#ifdef _PETSKILL_ACUPUNCTURE //针刺外皮
-int PETSKILL_Acupuncture( int charaindex, int toNo, int array, char *data );
-#endif
-
 #ifdef _PETSKILL_RETRACE
 int PETSKILL_Retrace( int charaindex, int toNo, int array, char *data );
 #endif
@@ -532,11 +511,6 @@ int PETSKILL_ShowMercy(int charaindex, int toNo, int array, char* data);
 
 #ifdef _PETSKILL_COMBINED
 int PETSKILL_Combined(int charaindex, int toNo, int array, char* data);
-#endif
-
-#ifdef _PETSKILL_LER
-int PETSKILL_BatFly(int charaindex, int toNo, int array, char* data);					// 雷尔技 - 群蝠四窜
-int PETSKILL_DivideAttack(int charaindex, int toNo, int array, char* data);		// 雷尔技 - 分身地裂
 #endif
 
 #ifdef _PETSKILL_BATTLE_MODEL

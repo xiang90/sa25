@@ -186,7 +186,7 @@ static void NPC_PetRaceMaster_selectWindow(int meindex, int toindex, int num, in
 #ifdef _DROPSTAKENEW
 			sprintf(token, 
 				"\n竞速场规则："
-				"\n参加竞速的宠物总共有叁只，您可以依照宠物"
+				"\n参加竞速的宠物总共有三只，您可以依照宠物"
 				"\n的状况或个人喜好下注，请将兑换得到的彩券"
 				"\n放置於欲下注的号码前方。当竞速结束时，主"
 				"\n持人将会自动帮您计算积分。"
@@ -194,7 +194,7 @@ static void NPC_PetRaceMaster_selectWindow(int meindex, int toindex, int num, in
 				"\n卷及积分将无法取回唷！");
 #else
 			sprintf(token, 
-				"\n竞速场规则：参加竞速的宠物共有叁只，您可"
+				"\n竞速场规则：参加竞速的宠物共有三只，您可"
 				"\n以依照宠物状况或个人喜好下注，每个宠物有"
 				"\n自己的赔率。请将石币丢置於欲下注的号码前"
 				"\n方。当竞速结束时，主持人会自动地将金额放"

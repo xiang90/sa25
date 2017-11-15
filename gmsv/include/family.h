@@ -9,7 +9,7 @@
 
 #define FAMILY_MAXNUM			1000	// 家族数量
 #ifdef _FMVER21
-#define FAMILY_MAXMEMBER		100	// 家族人数
+#define FAMILY_MAXMEMBER		200	// 家族人数
 #define FAMILY_MAXCHANNELMEMBER		50	// 频道人数
 #else
 #define FAMILY_MAXMEMBER		50	// 家族人数
@@ -17,13 +17,13 @@
 #endif
 #define FAMILY_MAXCHANNEL 		5	// 家族频道
 
-#define CHAR_MAXNAME			20
+#define CHAR_MAXNAME			32
 #define CHAR_MAXID			20
 #define MINFMLEVLEFORPOINT      	3       // 3 申请庄园最低等级
 #define FMLEADERLV			30	// 族长等级
 
 #ifdef _FAMILY_MANORNUM_CHANGE
-#define FAMILY_FMPKFLOOR		14	// 家族ＰＫ图层
+#define FAMILY_FMPKFLOOR		15	// 家族ＰＫ图层
 #else
 #define FAMILY_FMPKFLOOR		9	// 家族ＰＫ图层
 #define FMPOINTNUM			4       // 有据点家族的最大数量
@@ -39,9 +39,6 @@ enum
     FM_TOP_SYNTHESIZE,       // DPTOP 合成
     FM_TOP_DEALFOOD,         // DPTOP 料理
     FM_TOP_PK,               // DPTOP ＰＫ
-#ifdef _NEW_MANOR_LAW
-		FM_TOP_MOMENTUM = 8,		 // DPTOP 气势
-#endif
     FM_TOP_NUM,              // DPTOP 数量
 };
 
@@ -58,10 +55,6 @@ enum
 	FM_FIX_FMSYNTHESIZE,
 	FM_FIX_FMDEALFOOD,
 	FM_FIX_FMLEADERCHANGE,
-#ifdef _NEW_MANOR_LAW
-	FM_FIX_FMMOMENTUM,
-	FM_FIX_FAME,
-#endif
 };
 
 /*
@@ -86,9 +79,6 @@ void ACShowFMMemo(int result, int index, int num, int dataindex, char *data);
 #ifdef _PERSONAL_FAME   // Arminius: 家族个人声望
 void ACFMCharLogin(int fd, int ret, int index, int floor, int fmdp,
 	int joinflag, int fmsetupflag, int flag, int charindex, int charfame
-	#ifdef _NEW_MANOR_LAW
-	,int momentum
-	#endif
 	);
 #else
 void ACFMCharLogin(int fd, int ret, int index, int floor, int fmdp,
@@ -119,10 +109,6 @@ void FAMILY_LeaderFunc( int fd, int meindex, char* message );
 #ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收	
 void GS_ASK_TAX(void);
 void FAMILY_FIX_TAX( int fd, int index, char* message);
-#endif
-
-#ifdef _CK_ONLINE_PLAYER_COUNT    // WON ADD 计算线上人数
-void GS_SEND_PLAYER_COUNT(void);
 #endif
 
 void SetFMPetVarInit(int meindex);
@@ -168,11 +154,6 @@ struct FMS_DPTOP
 #ifdef _FMVER21    
     int  fmtopdp[FAMILY_MAXNUM];          // 家族综合声望
 #endif    
-#ifdef _NEW_MANOR_LAW
-		int	fmMomentum[FAMILY_MAXNUM];		// 家族气势
-		char	momentum_topmemo[30][96];			// 家族气势 top
-		int	momentum_topid[FAMILY_MAXNUM];	// 家族气势 top id 索引
-#endif
     int  adv_num;                // 冒险
     char adv_topmemo[30][96];    
     int  feed_num;               // 伺育
@@ -188,15 +169,6 @@ struct FMS_DPTOP
 struct FM_POINTLIST
 {
   char pointlistarray[FAMILY_MAXHOME][1024];	// Arminius: 32->1024
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收	
-	//andy_fix
-	//int fm_tax[4];
-	int fm_tax[FAMILY_MAXHOME];
-#endif
-#ifdef _NEW_MANOR_LAW
-	int fm_momentum[FAMILY_MAXHOME];	// 记录挑战时期开始时的守庄家族气势值
-	BOOL fm_inwar[FAMILY_MAXHOME];		// 此庄园是否进行庄园排程中
-#endif
 };
 // 家族PK图层
 struct FM_PKFLOOR
@@ -205,58 +177,10 @@ struct FM_PKFLOOR
 };
 // End
 
-#ifdef _NEW_MANOR_LAW
-typedef struct _ManorSchedule_t{
-	int iFmIndex[10];						// 排入挑战排程的家族索引
-	int iFmMomentum[10];				// 家族气势
-	int iSort[10];							// 排名用
-	char szMemo[10][256];				// 记录: 家族名称|约战时间|家族气势
-	char szFmName[10][32];			// 家族名称
-	struct tm tm1[10];							// 记录挑战时间
-}ManorSchedule_t;
-
-extern ManorSchedule_t ManorSchedule[MANORNUM];
-#endif
-
-#define MAXFAMILYLIST 120000
+#define MAXFAMILYLIST 64*1024
 extern char    familyListBuf[MAXFAMILYLIST];
 
 void JoinMemberIndex( int charaindex, int fmindexi);
-
-
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-
-
-#define fm_pk_max 200
-
-typedef struct _fm_pk_struct
-{
-	int fm_index[fm_pk_max];
-	int fm_win[fm_pk_max];
-	int fm_lose[fm_pk_max];
-	int fm_score[fm_pk_max];
-	char fm_name[fm_pk_max][30];
-}FM_PK_STRUCT;
-
-
-enum{
-	FM_INDEX =0,
-	FM_WIN,
-	FM_LOSE,
-	FM_SCORE,
-	FM_NAME,
-};
-
-
-void setInt_fm_pk_struct( int index, int type, int num );
-void setChar_fm_pk_struct( int index, int type, char *msg );
-int getInt_fm_pk_struct( int index, int type );
-char *getChar_fm_pk_struct( int index, int type );
-int get_fm_leader_index( int fm1 );
-
-
-#endif
-
 
 
 #endif

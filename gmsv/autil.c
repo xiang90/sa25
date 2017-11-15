@@ -16,12 +16,11 @@
 #include "common.h"
 #endif
 
-
 // Nuke 0701 fix
 char *MesgSlice[SLICE_MAX];
 int SliceCount;
 
-char PersonalKey[4096];
+char PersonalKey[1024*4];
 
 // -------------------------------------------------------------------
 // Initialize utilities
@@ -95,16 +94,8 @@ void util_EncodeMessage(char *dst, char *src)
 
   int rn = rand() % 99;
   int t1, t2;
-  char t3[65500], tz[65500];
-
-
-
-  // encode seed
-#ifdef _BACK_VERSION
-  util_swapint(&t1, &rn, "3421");
-#else
+	char t3[1024*64], tz[1024*64];
   util_swapint(&t1, &rn, "2413");
-#endif
   t2 = t1 ^ 0xffffffff;
   util_256to64(tz, (char *) &t2, sizeof(int), DEFAULTTABLE);
 
@@ -127,9 +118,8 @@ void util_DecodeMessage(char *dst, char *src)
 
   int rn;
   int *t1, t2;
-  char t3[4096], t4[4096];	// This buffer is enough for an integer.
-  char tz[65500];
-
+  char t3[1024*4], t4[1024*4];	// This buffer is enough for an integer.
+  char tz[1024*64];
   if (src[strlen(src)-1]=='\n') src[strlen(src)-1]='\0';
   util_xorstring(tz, src);
 
@@ -139,11 +129,7 @@ void util_DecodeMessage(char *dst, char *src)
   util_64to256(t3, t4, DEFAULTTABLE);
   t1 = (int *) t3;
   t2 = *t1 ^ 0xffffffff;
-#ifdef _BACK_VERSION
-  util_swapint(&rn, &t2, "4312");
-#else
   util_swapint(&rn, &t2, "3142");
-#endif
 
   util_shrstring(dst, tz + INTCODESIZE, rn);
 }
@@ -158,18 +144,15 @@ void util_DecodeMessage(char *dst, char *src)
 // ret: 1=success  0=failed (function not complete)
 int util_GetFunctionFromSlice(int *func, int *fieldcount)
 {
-  char t1[16384];
+  char t1[1024*16];
   int i;
 
 //  if (strcmp(MesgSlice[0], DEFAULTFUNCBEGIN)!=0) util_DiscardMessage();
   
   strcpy(t1, MesgSlice[1]);
   // Robin adjust
-#ifdef _SA_VERSION_25
   *func=atoi(t1);
-#else
-  *func=atoi(t1)-13;
-#endif
+//  *func=atoi(t1)-13;
   for (i=0; i<SLICE_MAX; i++)
     if (strcmp(MesgSlice[i], DEFAULTFUNCEND)==0) {
       *fieldcount=i-2;	// - "&" - "#" - "func" 3 fields
@@ -183,44 +166,20 @@ void util_DiscardMessage(void)
 {
   SliceCount=0;
 }
-
-#ifdef _CHECK_BATTLE_IO
-extern int InBattleLoop;
-extern int battle_write;
-extern int other_write;
-extern int battle_write_cnt;
-extern int other_write_cnt;
-#endif
-
 void _util_SendMesg(char *file, int line, int fd, int func, char *buffer)
 {
-  //char t1[16384], t2[16384];
-	char t1[1024*64], t2[1024*64];
+//  char t1[16384], t2[16384];
+	char t1[1024*32], t2[1024*32];
 
   // WON ADD
   if( fd < 0 ){
 	print("\n SendMesg fd err %s:%d!! ==> func(%d)\n", file, line, func);
 	return;
   }
-
   // Robin adjust
-#ifdef _SA_VERSION_25
   sprintf(t1, "&;%d%s;#;", func, buffer);
-#else
-  sprintf(t1, "&;%d%s;#;", func+23, buffer);
-#endif
-
+//  sprintf(t1, "&;%d%s;#;", func+23, buffer);
   util_EncodeMessage(t2, t1);
-#ifdef _CHECK_BATTLE_IO
-  if( InBattleLoop) {
-	  battle_write_cnt++;
-	  battle_write += strlen( buffer);
-  }
-  else {
-	  other_write += strlen( buffer);
-	  other_write_cnt++;
-  }
-#endif
 #ifdef __STONEAGE
   lssproto_Send(fd, t2);
 #endif
@@ -437,16 +396,12 @@ void util_swapint(int *dst, int *src, char *rule)
 void util_xorstring(char *dst, char *src)
 {
 	int i;
-	if (strlen(src)>65500) return;
-
-DebugPoint=100000;
+	if (strlen(src)>1024*64) return;
 
 	for (i=0; i<strlen(src); i++){
-DebugPoint=100000+i;
 	  dst[i]=src[i]^255;
 	}
 	dst[i]='\0';
-DebugPoint=1000;
 }
 
 // -------------------------------------------------------------------
@@ -487,18 +442,14 @@ void util_shlstring(char *dst, char *src, int offs)
 int util_deint(int sliceno, int *value)
 {
   int *t1, t2;
-  char t3[4096];	// This buffer is enough for an integer.
+  char t3[1024*4];	// This buffer is enough for an integer.
 
   if (strlen(PersonalKey)==0) strcpy(PersonalKey, _DEFAULT_PKEY);
 
   util_shl_64to256(t3, MesgSlice[sliceno], DEFAULTTABLE, PersonalKey);
   t1 = (int *) t3;
   t2 = *t1 ^ 0xffffffff;
-#ifdef _BACK_VERSION
-  util_swapint(value, &t2, "3421");
-#else
   util_swapint(value, &t2, "2413");
-#endif
 
   return *value;
 }
@@ -506,15 +457,10 @@ int util_deint(int sliceno, int *value)
 int util_mkint(char *buffer, int value)
 {
   int t1, t2; 
-  char t3[4096];
+  char t3[1024*4];
 
   if (strlen(PersonalKey)==0) strcpy(PersonalKey, _DEFAULT_PKEY);
-
-#ifdef _BACK_VERSION
-  util_swapint(&t1, &value, "4312");
-#else
   util_swapint(&t1, &value, "3142");
-#endif
   t2 = t1 ^ 0xffffffff;
   util_256to64_shr(t3, (char *) &t2, sizeof(int), DEFAULTTABLE, PersonalKey);
   strcat(buffer, ";");

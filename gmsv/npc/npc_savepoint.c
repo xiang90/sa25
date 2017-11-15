@@ -132,12 +132,24 @@ void NPC_SavePointTalked( int meindex , int talkerindex , char *msg ,
 	    	time(&new_t);
 	    	new_t-=initTime;
 		
-		dd=(int) new_t / 86400; new_t=new_t % 86400;
+				dd=(int) new_t / 86400; new_t=new_t % 86400;
     		hh=(int) new_t / 3600;  new_t=new_t % 3600;
 	        mm=(int) new_t / 60;    new_t=new_t % 60;
 	        ss=(int) new_t;
-		
-		if (dd>0) {
+#ifdef _SAVE_GAME_ID
+					if (dd>0) {
+	        	snprintf( timeMsg, sizeof( timeMsg ) ,
+        			  "本星球%s已经启动了 %d 日 %d 小时 %d 分 %d 秒。",getGameserverID(),dd,hh,mm,ss);
+                } else if (hh>0) {
+ 	                snprintf( timeMsg, sizeof( timeMsg ) ,
+      		                  "本星球%s已经启动了 %d 小时 %d 分 %d 秒。",getGameserverID(),hh,mm,ss);
+                } else {
+                        snprintf( timeMsg, sizeof( timeMsg ) ,
+                                  "本星球%s已经启动了 %d 分 %d 秒。",getGameserverID(),mm,ss);
+                }
+                strcat(buf2,timeMsg);
+#else
+					if (dd>0) {
 	        	snprintf( timeMsg, sizeof( timeMsg ) ,
         			  "本星球已经启动了 %d 日 %d 小时 %d 分 %d 秒。",dd,hh,mm,ss);
                 } else if (hh>0) {
@@ -148,17 +160,27 @@ void NPC_SavePointTalked( int meindex , int talkerindex , char *msg ,
                                   "本星球已经启动了 %d 分 %d 秒。",mm,ss);
                 }
                 strcat(buf2,timeMsg);
-	    
-	    }
+#endif
+			}
 	    {
 	        char temp[1024];
 	        //char *answer;// CoolFish: Rem 2001/4/18
 		extern unsigned int StateTable[];
 		// Robin 03/20 万能的天神，请赐给我灌水的力量!!!!
-	        sprintf(temp,"目前线上人数为 %d 人。",abs(StateTable[LOGIN] * 1.66));
-	        strcat(buf2,temp);
-	    }
 
+#ifdef _PLAYER_NUM
+					srand(time(0));
+					if(getPlayerNum()>0)
+						sprintf(temp,"目前线上人数为 %d 人。",abs(StateTable[LOGIN])+getPlayerNum()+rand()%10);
+					else
+						sprintf(temp,"目前线上人数为 %d 人。",abs(StateTable[LOGIN]));
+#else
+					sprintf(temp,"目前线上人数为 %d 人。",abs(StateTable[LOGIN]));
+#endif	
+	       
+	        strcat(buf2,temp);
+
+	    }
 	    CHAR_talkToCli( talkerindex , meindex , buf2 , CHAR_COLORWHITE );
 
 	}
@@ -169,14 +191,12 @@ void NPC_SavePointTalked( int meindex , int talkerindex , char *msg ,
 
 
 /*-----------------------------------------
- * 弁仿奶失件玄井日忒匀化五凶凛卞裟太请今木月［
  *
 -------------------------------------------*/
 void NPC_SavePointWindowTalked( int meindex, int talkerindex, 
 								int seqno, int select, char *data)
 {
 
-	/*--       及引歹曰卞中卅中午五反蔽   --*/
 	if( NPC_Util_CharDistance( talkerindex, meindex ) > 2) {
 		return;
 	}
@@ -194,7 +214,6 @@ void NPC_SavePointWindowTalked( int meindex, int talkerindex,
 
 
 /*
- *--失奶  丞及民尼永弁分仃毛垫丹
  */
 BOOL NPC_AndReduce(int meindex,int talker,char *buf,int flg)
 {
@@ -210,7 +229,6 @@ BOOL NPC_AndReduce(int meindex,int talker,char *buf,int flg)
 		while(getStringFromIndexWithDelim(buf,"&",j,buf2,sizeof(buf2))!=FALSE)
 		{
 			j++;
-			/*--  ←  互丐木壬｝公及失奶  丞反  醒隙烂仄化月午蜕丹啦  --*/
 			if(strstr( buf2, "*") != NULL){
 				getStringFromIndexWithDelim(buf2,"*",1,buf3,sizeof(buf3));
 				itemNo = atoi(buf3);
@@ -235,7 +253,6 @@ BOOL NPC_AndReduce(int meindex,int talker,char *buf,int flg)
 		}
 
 	}else{
-		/*--  ←  互丐木壬｝公及失奶  丞反  醒隙烂仄化月午蜕丹啦  --*/
 		if(strstr( buf, "*") != NULL){
 			getStringFromIndexWithDelim(buf,"*",1,buf3,sizeof(buf3));
 			itemNo = atoi(buf3);
@@ -276,7 +293,6 @@ BOOL NPC_AndReduceDelete(int meindex,int talker,char *buf,int flg)
 		while(getStringFromIndexWithDelim(buf,"&",j,buf2,sizeof(buf2))!=FALSE)
 		{
 			j++;
-			/*--  ←  互丐木壬｝公及失奶  丞反  醒隙烂仄化月午蜕丹啦  --*/
 			if(strstr( buf2, "*") != NULL){
 				getStringFromIndexWithDelim(buf2,"*",1,buf3,sizeof(buf3));
 				itemNo = atoi(buf3);
@@ -299,7 +315,6 @@ BOOL NPC_AndReduceDelete(int meindex,int talker,char *buf,int flg)
 		}
 
 	}else{
-		/*--  ←  互丐木壬｝公及失奶  丞反  醒隙烂仄化月午蜕丹啦  --*/
 		if(strstr( buf, "*") != NULL){
 			getStringFromIndexWithDelim(buf,"*",1,buf3,sizeof(buf3));
 			itemNo = atoi(buf3);
@@ -341,13 +356,11 @@ BOOL NPC_UsedCheck(int meindex,int talker,int flg)
 	int checkflg=0;
 				
 	
-	/*--涩烂白央奶伙毛  心  心--*/
 	if(NPC_Util_GetArgStr( meindex, argstr, sizeof(argstr))==NULL){
 		print("NPC_savePoint.c UseCheck: GetArgStrErr");
 		return FALSE;
 	}
 
-	/*--  邰卅失奶  丞毛手匀化中月井及民尼永弁-*/
 	if(NPC_Util_GetStrFromStrWithDelim(argstr,"GetItem",buf,sizeof( buf) )!=NULL)
 	{
 		i=1;
@@ -374,12 +387,10 @@ BOOL NPC_UsedCheck(int meindex,int talker,int flg)
 
 	if(flg==1){
 		if(checkflg==1){
-			/*--仇仇匹绰轮及质  --*/
 			if(NPC_AndReduceDelete(meindex,talker,buf2,0)==FALSE){
 				return FALSE;
 			}
 		}else{
-			/*--仇仇匹绰轮及质  --*/
 			if(NPC_AndReduceDelete(meindex,talker,buf2,1)==FALSE){
 				return FALSE;
 			}
@@ -404,7 +415,6 @@ void NPC_MessageDisp(int meindex,int talker,int MesNo)
    	char argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
 	char buf[32];
 
-	/*--涩烂白央奶伙毛  心  心--*/
 	if(NPC_Util_GetArgStr( meindex, argstr, sizeof(argstr))==NULL){
 		print("NPC_savePoint.c UseCheck: GetArgStrErr");
 		return ;
@@ -502,7 +512,6 @@ BOOL NPC_SavePointItemDelete(int meindex,int talker,int itemNo,int kosuu)
 }
 
 
-/*--失奶  丞毛民尼永弁--*/
 BOOL NPC_SavePointItemCheck(int meindex,int talker,int itemno,int kosuu)
 {
 	int i;
@@ -530,7 +539,6 @@ BOOL NPC_SavePointItemCheck(int meindex,int talker,int itemno,int kosuu)
 
 
 /*
- * 申永玄白仿弘毛  化月分仃及质  
  */
 void  NPC_SetFlg(int talker,int shiftbit)
 {
@@ -544,7 +552,6 @@ void  NPC_SetFlg(int talker,int shiftbit)
 }
 
 /*
- * 申永玄白仿弘互  匀化月井毛譬屯月
  */
 BOOL NPC_CheckFlg(int point,int shiftbit)
 {

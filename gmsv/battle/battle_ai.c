@@ -513,8 +513,8 @@ static int BATTLE_ai_normal( int turn, int charaindex,
 				result->command = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLECOM1 );
 				return TRUE;
 			}else{
-				print( "此项技能尚未设定(%s):(%d)\n",
-					CHAR_getUseName( charaindex), mode - B_AI_WAZAMODE0 );
+//				print( "此项技能尚未设定(%s):(%d)\n",
+//					CHAR_getUseName( charaindex), mode - B_AI_WAZAMODE0 );
 				return FALSE;
 			}
 		}else

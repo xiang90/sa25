@@ -12,9 +12,6 @@
 #include "battle.h"
 #include "petmail.h"
 #include "log.h"
-#ifdef _MARKET_TRADE
-#include "item_trade.h"
-#endif
 #include "function.h"
 /*
  * 矢永玄质  卞楮允月末□旦
@@ -151,10 +148,6 @@ static int _PET_dropPet( int charaindex, int havepetindex, int tofl, int tox, in
 		x = tox;
 		y = toy;
 	}
-#ifdef _MARKET_TRADE
-	if( MAP_TRADEPETDROP( charaindex, petindex, floor, x, y) == TRUE )
-		return TRUE;
-#endif
     objindex = PET_dropPetAbsolute( petindex,floor,x,y, FALSE );
     if( objindex == -1 ) return FALSE;
 
@@ -174,8 +167,8 @@ static int _PET_dropPet( int charaindex, int havepetindex, int tofl, int tox, in
 	CHAR_sendCToArroundCharacter( objindex);
 
     if( CHAR_getInt( charaindex, CHAR_WHICHTYPE) == CHAR_TYPEPLAYER) {
-		snprintf( szPet, sizeof( szPet ), "K%d", havepetindex );
-		CHAR_sendStatusString( charaindex, szPet );
+			snprintf( szPet, sizeof( szPet ), "K%d", havepetindex );
+			CHAR_sendStatusString( charaindex, szPet );
     }
     return TRUE;
 }
@@ -308,22 +301,6 @@ int PET_initCharOneArray( Char *ch)
 					sizeof( ch->charfunctable[CHAR_LOOPFUNC]), "PETMAIL_Loop");
 
 	}
-#ifdef _USER_CHARLOOPS
-	if( ch->data[CHAR_FUSIONBEIT] == 1 &&
-		ch->data[CHAR_FUSIONRAISE] > 0 ) {
-		//andy_log
-//		print("init CHAR_LOOPFUNCTEMP1:%s \n", "PET_CheckIncubateLoop");
-
-		strcpysafe( ch->charfunctable[CHAR_LOOPFUNCTEMP1].string,
-				sizeof( ch->charfunctable[CHAR_LOOPFUNCTEMP1]), "PET_CheckIncubateLoop");
-		ch->data[CHAR_LOOPINTERVAL] = 60000;
-
-		ch->functable[CHAR_LOOPFUNCTEMP1]
-            = getFunctionPointerFromName( "PET_CheckIncubateLoop");
-
-//		CHAR_constructFunctable( petindex);
-	}
-#endif
     return( CHAR_initCharOneArray( ch));
 }
 
@@ -441,8 +418,8 @@ int PET_dropPetFollow( int charaindex, int havepetindex, int tofl, int tox, int 
     if( CHAR_CHECKINDEX( petindex) == FALSE ) return FALSE;
 
 	if (CHAR_getInt(petindex, CHAR_PETFAMILY) == 1){
-    	CHAR_talkToCli(charaindex, -1, "家族守护兽无法丢出！", CHAR_COLORYELLOW);
-    	return	FALSE;
+     	CHAR_talkToCli(charaindex, -1, "家族守护兽无法丢出！", CHAR_COLORYELLOW);
+    	return	FALSE;  
     }
     if (CHAR_getInt(charaindex, CHAR_RIDEPET) == havepetindex){
     	CHAR_talkToCli(charaindex, -1, "骑乘中的宠物无法跟随！", CHAR_COLORYELLOW);
@@ -481,11 +458,11 @@ int PET_dropPetFollow( int charaindex, int havepetindex, int tofl, int tox, int 
 		y = toy;
 	}
 
-    objindex = PET_dropPetAbsolute( petindex,floor,x,y, FALSE );
-    if( objindex == -1 ) return FALSE;
-    
-    CHAR_setWorkInt( petindex,CHAR_WORKOBJINDEX,objindex );
-    CHAR_setCharPet( charaindex, havepetindex, -1);
+  objindex = PET_dropPetAbsolute( petindex,floor,x,y, FALSE );
+  if( objindex == -1 ) return FALSE;
+  
+  CHAR_setWorkInt( petindex,CHAR_WORKOBJINDEX,objindex );
+  CHAR_setCharPet( charaindex, havepetindex, -1);
 	CHAR_setInt( petindex, CHAR_FLOOR, floor);
 	CHAR_setInt( petindex, CHAR_X, x);
 	CHAR_setInt( petindex, CHAR_Y, y);
@@ -499,8 +476,8 @@ int PET_dropPetFollow( int charaindex, int havepetindex, int tofl, int tox, int 
 	}
 	CHAR_sendCToArroundCharacter( objindex);
     if( CHAR_getInt( charaindex, CHAR_WHICHTYPE) == CHAR_TYPEPLAYER) {
-		snprintf( szPet, sizeof( szPet ), "K%d", havepetindex );
-		CHAR_sendStatusString( charaindex, szPet );
+			snprintf( szPet, sizeof( szPet ), "K%d", havepetindex );
+			CHAR_sendStatusString( charaindex, szPet );
     }
 
 	CHAR_setWorkInt( charaindex, CHAR_WORKPETFOLLOW, petindex);
@@ -549,7 +526,7 @@ void PET_showEditBaseMsg( int charaindex, int toindex, int itemindex, int *work)
 
 	for( i=0; i<4; i++)	{
 		int type = ITEM_getInt( itemindex, (ITEM_MODIFYATTACK + i));
-		print("   [%d]%d+%d ", i, work[i], type);
+//		print(" 喂[%d]%d+%d ", i, work[i], type);
 		work[i] += type;
 		strcpy( buf1,"\0");
 		if( work[i] > maxnums )	{
@@ -575,29 +552,6 @@ void PET_showEditBaseMsg( int charaindex, int toindex, int itemindex, int *work)
 	}
 }
 
-#ifdef _PET_EVOLUTION
-BOOL PET_getBaseAndSkill( int charaindex, int baseindex, int *base, int *skill, int flg)
-{
-	int i;
-	if( !CHAR_CHECKINDEX( baseindex)) return FALSE;
-	if( base != NULL )	{
-		int levelup = CHAR_getInt( baseindex, CHAR_ALLOCPOINT);
-		base[0] = ((levelup>>24) & 0xFF);
-		base[1]   = ((levelup>>16) & 0xFF);
-		base[2]   = ((levelup>> 8) & 0xFF);
-		base[3]   = ((levelup>> 0) & 0xFF);
-	}
-
-	if( skill != NULL )	{
-		for( i=0; i<CHAR_MAXPETSKILLHAVE; i++)	{
-			skill[i] = CHAR_getPetSkill( baseindex, i);
-		}
-	}
-
-	return TRUE;
-}
-
-#endif
 BOOL CHAR_DelPetForIndex( int charaindex, int petindex)
 {
 	int i;

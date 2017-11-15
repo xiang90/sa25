@@ -66,13 +66,11 @@ static FunctionNameSet  functionSet[]={
       "","","","",
       "","", "","",""},
 
-	/*   及谛 */
     { "TownPeople" ,"TownPeopleInit","","",
       "","","","",
       "", "TownPeopleTalked" ,"","",
       "","","","",""},
 
-	/* 赢   */
     { "Oldman","OldmanInit","","",
       "","","","",
       "","OldmanTalked","","",
@@ -103,19 +101,16 @@ static FunctionNameSet  functionSet[]={
       "","PetMakerTalked","","",
       "","", "","",""},    
     
-	/* 贿曰   */
     { "StoryTeller","StoryTellerInit","","",
       "","","","",
       "","StoryTellerTalked","","",
       "","", "","",""},
 
-	/* 尕  遣盒 */
     { "RoomAdminNew","RoomAdminNewInit","","",
       "","","","RoomAdminNewLoop",
       "","RoomAdminNewTalked","","",
       "","", "","",""},
 
-	/* 鳗蜕   */
     {"Dengon",
      "DengonInit", "", "", "", "", "", "", "", "",
      "", "", "", "DengonLooked", "", "","DengonWindowTalked"},
@@ -125,7 +120,6 @@ static FunctionNameSet  functionSet[]={
      "FmDengonInit", "", "", "", "", "", "", "", "",
      "", "", "", "FmDengonLooked", "", "","FmDengonWindowTalked"},
 
-	/*煽沓馨笛失奶  丞宁岳*/
     { "ItemCompo" , "ItemCompoInit", "", "",
       "", "", "", "",
       "" ,"ItemCompoTalked","",""
@@ -143,7 +137,6 @@ static FunctionNameSet  functionSet[]={
       "","ActionTalked","","",
       "","", "","",""},
 
-	/*   迕它奴件玉它NPC */
     { "Windowman","WindowmanInit","","",
       "","","","",
       "","WindowmanTalked","","",
@@ -161,21 +154,15 @@ static FunctionNameSet  functionSet[]={
       "","","","",
       "","ItemShopTalked","","",
       "","", "","","ItemShopWindowTalked"},
-
     {"Sysinfo",
      "SysinfoInit", "", "",
      "", "", "", "SysinfoLoop",
      "", "SysinfoTalked","", "",
      "", "", "", "",""},
 
-	/* Duel仿件平件弘  憎NPC */
     { "Duelranking","DuelrankingInit","","",
       "","","",
-#ifdef _DEATH_CONTEND
-	  "Duelrankingloop",
-#else
-	  "",
-#endif
+	    "",
       "","","","",
       "","DuelrankingLooked", "","","DuelrankingWindowTalked"},
 
@@ -249,7 +236,6 @@ static FunctionNameSet  functionSet[]={
       "","AirTalked","","",
       "","", "","",""},
 	
-	/*         楝 */
     { "Charm","CharmInit","","",
       "","","","",
       "","CharmTalked","","",
@@ -261,7 +247,6 @@ static FunctionNameSet  functionSet[]={
       "","QuizTalked","","",
       "","", "","","QuizWindowTalked"},
 
-	/* 失奶  丞  曰盒今氏  */
     { "PoolItemShop","PoolItemShopInit","","",
       "","","","PoolItemShopLoop",
       "","PoolItemShopTalked","","",
@@ -337,16 +322,6 @@ static FunctionNameSet  functionSet[]={
       "","","","",
       "","FmLetterTalked","","",
       "","FmLetterLooked", "","","FmLetterWindowTalked"}
-    // Terry 2001/08/30
-    // 石器服务员 StoneSreviceMan
-#ifdef _SERVICE    
-    ,{
-      "StoneServiceMan","StoneServiceManInit","","","","","",
-      "StoneServiceManLoop","",
-      "StoneServiceManTalked","","","","","","",
-      "StoneServiceManWindowTalked"
-    }
-#endif
 #ifdef _GAMBLE_BANK
 	,{
       "NPC_GambleBank","GambleBankInit","","","","","",
@@ -382,37 +357,27 @@ static FunctionNameSet  functionSet[]={
 	}
 #endif
 
-#ifdef _NPC_SELLSTH
-	/* SellsthMan  */
-    ,{ "SellsthMan","SellsthManInit","","",
-      "","","","SellsthManLoop",
-      "","SellsthManTalked","","",
-      "","", "","","SellsthManWindowTalked"
+#ifdef _VIP_SHOP
+	/* VipShop  */
+    ,{ "VipShop","VipShopInit","","",
+      "","","","VipShopLoop",
+      "","VipShopTalked","","",
+      "","", "","","VipShopWindowTalked"
+	}
+	
+    ,{ "VipPoint","VipPointInit","","",
+      "","","","VipPointLoop",
+      "","VipPointTalked","","",
+      "","", "","","VipPointWindowTalked"
 	}
 #endif
 
-#ifdef _NPC_MAKEPAIR
-    ,{ "MakePair","MakePairManInit","","",
-      "","","","MakePairManLoop",
-      "","MakePairManTalked","","",
-      "","", "","","MakePairManWindowTalked"
-	}
-#endif
-
-#ifdef _NPC_FUSION
-	,{ "PetFusion","PetFusionManInit","","",
-      "","","","PetFusionManLoop",
-      "","PetFusionManTalked","","",
-      "","", "","","PetFusionManWindowTalked"
-	}
-#endif
-
-#ifdef _PAUCTION_MAN
-	/* PauctionMan  */
-    ,{ "PauctionMan","PauctionManInit","","",
-      "","","","PauctionManLoop",
-      "","PauctionManTalked","","",
-      "","", "","","PauctionManWindowTalked"
+#ifdef _AUTO_PK
+	/* VipShop  */
+    ,{ "AutoPk","AutoPkInit","","",
+      "","","","",
+      "","AutoPkTalked","","",
+      "","", "","","AutoPkWindowTalked"
 	}
 #endif
 
@@ -459,56 +424,11 @@ static FunctionNameSet  functionSet[]={
     }
 #endif
 
-#ifdef _MARKET_TRADE
-	,{
-      "NPC_MTradeNpcMan","MapTradeManInit","","","","","",
-      "MapTradeManLoop","",
-      "MapTradeManTalked","","","","","","",
-      "MapTradeManWindowTalked"
-    }
-#endif
-
-#ifdef _BLACK_MARKET	   
-    ,{
-		"BlackMarket",
-		"BlackMarketInit","","","","","","","","BlackMarketTalked","","",
-        "","", "","","BlackMarketWindowTalked"
-	}
-#endif
-
 #ifdef _ALLDOMAN   // (不可开) Syu ADD 排行榜NPC
 	,{
 		"Alldoman","AlldomanInit","","",
       "","","","","","AlldomanTalked","","","","","","",
 	  "AlldomanWindowTalked"}
-#endif
-
-#ifdef _NPC_WELFARE
-	,{ "Welfare","WelfareInit","","",
-      "","","","",
-      "","WelfareTalked","","",
-      "","", "","","WelfareWindowTalked"}
-#endif
-
-#ifdef _NPC_VERYWELFARE
-	,{ "VeryWelfare","VeryWelfareInit","","",
-      "","","","",
-      "","VeryWelfareTalked","","",
-      "","", "","","VeryWelfareWindowTalked"}
-#endif
-
-#ifdef _NPC_WELFARE_2				// WON ADD 职业NPC-2
-	,{ "Welfare2","WelfareInit2","","",
-      "","","","",
-      "","WelfareTalked2","","",
-      "","", "","","WelfareWindowTalked2"}
-#endif
-
-#ifdef _RACEMAN
-    ,{"Raceman","RacemanInit", "", "",
-		"", "", "", "",
-		"", "RacemanTalked", "", "",
-		"", "", "", "","RacemanWindowTalked"},
 #endif
 
 };
@@ -651,12 +571,9 @@ static INLINE int NPC_CHECKTEMPLATECHARINDEX(int index)
 
 
 /*------------------------------------------------------------
- * NPC_Template毛赓渝祭允月［
  * 娄醒
  *  filenum    int      白央奶伙醒
  * 忒曰袄
- *  岳      TRUE(1)
- *  撩      FALSE(0)
  ------------------------------------------------------------*/
 BOOL NPC_initTemplateArray( int templatenum )
 {
@@ -669,9 +586,7 @@ BOOL NPC_initTemplateArray( int templatenum )
 }
 
 /*------------------------------------------------------------
- * 犯白巧伙玄及NPC  件皿伊□玄毛医  允月［
  * 娄醒
- *  temp    NPC_Template*     件皿伊□玄及禾奶件正□
  * 忒曰袄
  *  卅仄
  ------------------------------------------------------------*/
@@ -739,7 +654,6 @@ void NPC_templateallocitemdata( NPC_Template* one )
     int     itemnum = one->intdata[NPC_TEMPLATEITEMNUM];
     if( itemnum > 8 ) itemnum = 8;
     else if( itemnum <= 0 ) itemnum = 0;
-    /*  袄及  凳    */
     one->intdata[NPC_TEMPLATEITEMNUM] = itemnum;
     one->haveitem = allocateMemory( sizeof( NPC_haveItem ) * itemnum );
 
@@ -749,10 +663,7 @@ void NPC_templateallocitemdata( NPC_Template* one )
 /*------------------------------------------------------------
  * NPC_getRandomValue 午及娄醒及询晶岭及凶户及楮醒
  * 娄醒
- *  string      char*         侬  
- *  unuse       int*        银歹卅中［
  * 忒曰袄
- *  仿件母丞及  斓及袄  汔及涩烂反｝2    及娄醒卞忡绣允月［
  ------------------------------------------------------------*/
 static int NPC_seekGraphicNumberFromString( char* string, int* unuse )
 {
@@ -760,12 +671,8 @@ static int NPC_seekGraphicNumberFromString( char* string, int* unuse )
 
 }
 /*------------------------------------------------------------
- * 仿件母丞袄毛  戈
  * 娄醒
- *  string      char*         侬  
- *  randomvalue int*        仿件母丞及  五今
  * 忒曰袄
- *  仿件母丞及  斓及袄  汔及涩烂反｝2    及娄醒卞忡绣允月［
  ------------------------------------------------------------*/
 static int NPC_getRandomValue( char*  string,int* randomwidth )
 {
@@ -790,13 +697,8 @@ static int NPC_getRandomValue( char*  string,int* randomwidth )
 
 
 /*------------------------------------------------------------
- * NPCTemplate 白央奶伙毛夫午勾  戈［
  * 娄醒
- *  filename   char*       涩烂白央奶伙毛  心铵户月玄永皿犯奴伊弁玄伉
  * 忒曰袄
- *  岳      TRUE(1)
- *  分户(仇木动晓白央奶伙毛  氏匹反中仃卅中)
- *  撩      FALSE(0)
  ------------------------------------------------------------*/
 BOOL    NPC_readTemplateFile( char* filename )
 {
@@ -811,8 +713,8 @@ BOOL    NPC_readTemplateFile( char* filename )
     int     i;
 
     if( NPC_template_readindex >= NPC_templatenum ){
-        print("Template Exceed configured buffer\n" );
-        print("configured template number is %d\n", NPC_templatenum);
+        print("模块超过配置数目\n" );
+        print("配置模块数目 %d\n", NPC_templatenum);
         return FALSE;
     }
 
@@ -827,7 +729,7 @@ BOOL    NPC_readTemplateFile( char* filename )
     ret = fgets( line, sizeof( line ), f );
     if( ret == NULL )goto FCLOSERETURNFALSE;
     if( strcmp( NPC_TEMPLATEFILEMAGIC, line ) != 0 ){
-        print( "This file is not a template file.\n" );
+        print( "这不是模块文件.\n" );
         goto FCLOSERETURNFALSE ;
     }
     linenum = 1;
@@ -839,7 +741,7 @@ BOOL    NPC_readTemplateFile( char* filename )
         switch( line[0] ){
         case '{':
             if( start == ON ){
-                fprint( "Find {. But already START state. %s:%d\n",
+                fprint( "Find {. 已经开始声明. %s:%d\n",
                         filename, linenum);
                 goto FCLOSERETURNFALSE;
 
@@ -851,7 +753,7 @@ BOOL    NPC_readTemplateFile( char* filename )
                 int err=FALSE;
                 if( strcmp(temp.chardata[NPC_TEMPLATENAME].string ,"")
                     == 0 ){
-                    fprint( "There is no name %s:%d\n",
+                    fprint( "这些没有名字 %s:%d\n",
                             filename, linenum );
                     err  = TRUE;
                 }else if( temp.intdata[NPC_TEMPLATETYPE] == -1 ){
@@ -873,8 +775,8 @@ BOOL    NPC_readTemplateFile( char* filename )
                             &temp, sizeof( NPC_Template ) );
                     NPC_template_readindex++;
                     if( NPC_template_readindex >= NPC_templatenum ){
-                        print("Template Exceed configured buffer\n" );
-                        print("configured template number is %d\n",
+                        print("模块超过配置数目\n" );
+                        print("配置模块数目是 %d\n",
                               NPC_templatenum);
                         goto FCLOSERETURNFALSE;
                     }
@@ -883,7 +785,7 @@ BOOL    NPC_readTemplateFile( char* filename )
                 itmreadindex=0;
                 start=OFF;
             }else{
-                fprint( "Unresolved '}' at %s:%d\n",filename,linenum);
+                fprint( "未解决 '}' at %s:%d\n",filename,linenum);
                 goto FCLOSERETURNFALSE;
             }
             break;
@@ -1054,7 +956,7 @@ BOOL    NPC_readTemplateFile( char* filename )
                     }
                 }
             }
-            fprint("%s:%d There is no such entry: %s\n" , filename,
+            fprint("%s:%d There is no such entry %s\n" , filename,
                    linenum, firstToken );
         NEXT:
             break;
@@ -1078,31 +980,31 @@ BOOL NPC_readNPCTemplateFiles( char* topdirectory ,int templatesize)
     filenames = (STRING64 *)allocateMemory( sizeof( STRING64 ) *
                                                (int)getFilesearchnum( ) );
 	if( filenames == NULL ){
-	    print( "Reading NPC Create files... Memory Error\n" );
+	    print( "读取NPC创建文件... 内存出错\n" );
 		return FALSE;
 	}
     filenum = rgetFileName( topdirectory ,filenames ,getFilesearchnum( ) );
     if( filenum == -1 ){
-        fprint("Can't get file names recursively from %s\n",topdirectory);
+        fprint("无法从 %s 递归获取文件名\n",topdirectory);
 	    freeMemory( filenames );
         return FALSE;
     }
 	if( filenum >= getFilesearchnum( ) ){
-		print( "filessearchnum  failure %d\n", getFilesearchnum( ) );
+		print( "文件搜索数目失败 %d\n", getFilesearchnum( ) );
 		while( 1 );
 	}else{
-		print( "Searched File = %d\n", filenum );
+		print( "搜索到文件 = %d\n", filenum );
 	}
     if( !NPC_initTemplateArray( templatesize ) ){
-        fprint( "initTemplateArray Error\n" );
+        fprint( "开启模块数组错误\n" );
 	    freeMemory( filenames );
         return FALSE;
     }
-    print( "Reading NPC template files....   " );
+    print( "读取文件模块数组错误...." );
     for( i = 0 ; i < filenum ; i ++ )
         if( NPC_IsNPCTemplateFile( filenames[i].string ))
             NPC_readTemplateFile( filenames[i].string );
-    print( "There is %d valid template\n" , NPC_template_readindex );
+    print( "正确模块 %d ...\n" , NPC_template_readindex );
     NPC_templatenum=NPC_template_readindex;
     freeMemory( filenames );
     return TRUE;
@@ -1111,9 +1013,7 @@ BOOL NPC_readNPCTemplateFiles( char* topdirectory ,int templatesize)
 
 
 /*------------------------------------------------------------
- *   侬  卞覆杀允月 template 及 index 毛忒允［
  * 娄醒
- *  templatename        char*         件皿伊□玄及  蟆
  * 忒曰袄
  *  -1  及凛巨仿□
  ------------------------------------------------------------*/

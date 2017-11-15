@@ -79,7 +79,7 @@ void NPC_PetMakerTalked( int meindex , int talker , char *msg ,int color )
         return;
     }    
     else if( num>=CHAR_MAXPETHAVE ){
-        sprintf(tmpbuf, "抱歉～没多馀的空间可放置宠物。");
+        sprintf(tmpbuf, "抱歉～没多余的空间可放置宠物。");
         CHAR_talkToCli( talker, meindex,
                         tmpbuf,CHAR_COLORWHITE);
         return;    

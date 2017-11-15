@@ -115,8 +115,7 @@ void NPC_PetSkillShopWindowTalked( int meindex, int talkerindex,
 	getStringFromIndexWithDelim(data,"|",4,buf,sizeof(buf));
 	cost=atoi(buf);
 
-	if( NPC_Util_GetStrFromStrWithDelim( argstr, "pet_skill", 
-									msg, sizeof( msg)) != NULL){
+	if( NPC_Util_GetStrFromStrWithDelim( argstr, "pet_skill", msg, sizeof( msg)) != NULL){
 		getStringFromIndexWithDelim(msg,",",skill,buf,sizeof(buf));
 		skillID=atoi(buf);
 	}
@@ -192,8 +191,7 @@ BOOL NPC_PetSkillMakeStr(int meindex,int toindex,int select)
 		return FALSE;
 	}
 
-	if( NPC_Util_GetStrFromStrWithDelim( argstr, "main_msg", 
-									msg, sizeof( msg)) == NULL){
+	if( NPC_Util_GetStrFromStrWithDelim( argstr, "main_msg", msg, sizeof( msg)) == NULL){
 		print("mainERR");
 		return FALSE;
 	}
@@ -206,8 +204,7 @@ BOOL NPC_PetSkillMakeStr(int meindex,int toindex,int select)
 	}
 
 		
-	if( NPC_Util_GetStrFromStrWithDelim( argstr, "pet_skill", 
-									msg, sizeof( msg) ) != NULL){
+	if( NPC_Util_GetStrFromStrWithDelim( argstr, "pet_skill", msg, sizeof( msg) ) != NULL){
 		int skillarray;
 		int skillID;
 		int cost;
@@ -225,11 +222,10 @@ BOOL NPC_PetSkillMakeStr(int meindex,int toindex,int select)
 			if( PETSKILL_getInt( skillarray, PETSKILL_ILLEGAL) == 1) continue;
 			cost = PETSKILL_getInt(skillarray,PETSKILL_COST);
 			cost = (int)cost*rate;
-			sprintf(token2,"|%s|%d|%s",
-				PETSKILL_getChar(skillarray, PETSKILL_NAME),
-				cost,
-				PETSKILL_getChar(skillarray, PETSKILL_COMMENT)
-			);
+
+			sprintf(token2,"|%s|%d|%s|0",	PETSKILL_getChar(skillarray, PETSKILL_NAME), 
+															cost, PETSKILL_getChar(skillarray, PETSKILL_COMMENT));
+
 			strcat(token,token2);
 			}
 		}

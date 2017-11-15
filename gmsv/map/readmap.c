@@ -102,7 +102,7 @@ BOOL MAP_readMapConfFile( char* filename )
 
     file = fopen( filename , "r" );
     if( file == NULL ){
-        fprint( "Can't open %s\n", filename );
+        fprint( "无法打开文件 %s\n", filename );
         return FALSE;
     }
     while( fgets( line , sizeof( line ) , file ) ){
@@ -125,13 +125,14 @@ BOOL MAP_readMapConfFile( char* filename )
     MAP_imagedatanum = maximagenumber + 1;
     MAP_imagedata=allocateMemory(sizeof(MAP_ImageData)*MAP_imagedatanum);
     if( MAP_imagedata == NULL ){
-        fprint("Can't Allocate for map data. size=%d\n",MAP_imagedatanum);
+        fprint("无法分配地图数据大小=%d\n",MAP_imagedatanum);
         return FALSE;
     }
+    
     for( i = 0; i <arraysizeof( MAP_imgfilt) ; i ++ )
         MAP_imgfilt[i] = -1;
     if( fseek( file, 0 , SEEK_SET ) != 0 ){
-        fprint( "Can't fseek to SEEK_SET %s\n" , strerror( errno ));
+        fprint( "无法查找 SEEK_SET %s\n" , strerror( errno ));
         return FALSE;
     }
     while( fgets( line , sizeof( line ) , file ) ){
@@ -203,12 +204,6 @@ BOOL MAP_readMapConfFile( char* filename )
     return TRUE;
 }
 
-
-
-
-
-
-
 #if 1
 BOOL MAP_readBattleMapConfFile( char* filename )
 {
@@ -221,7 +216,7 @@ BOOL MAP_readBattleMapConfFile( char* filename )
 
     file = fopen( filename , "r" );
     if( file == NULL ){
-        fprint( "Can't open %s\n", filename );
+        fprint( "无法打开 %s\n", filename );
         return FALSE;
     }
 
@@ -243,12 +238,12 @@ BOOL MAP_readBattleMapConfFile( char* filename )
 			iRet = sscanf( line+1, "%d %d %d", &iPre[0], &iPre[1], &iPre[2] );
 			BattleMapNo[0] = BattleMapNo[1] = BattleMapNo[2] = iPre[0];
 			if( iRet < 1 ){
-				print( "!!!!!ERROR 无法读取战斗地图(%s)( line %d )\n", filename, linenum );
+				print( "!!!!!错误 无法读取战斗地图(%s)( line %d )\n", filename, linenum );
 			}
 			for( i = 0; i < iRet; i ++ ){
 				BattleMapNo[i] = iPre[i];
 				if( BattleMapNo[i] < 0 ){
-					print( "!!!!!ERROR 战斗地图号码为负值 (%s)( line %d )\n", filename, linenum );
+					print( "!!!!!错误 战斗地图号码为负值 (%s)( line %d )\n", filename, linenum );
 				}
 			}
 
@@ -259,7 +254,7 @@ BOOL MAP_readBattleMapConfFile( char* filename )
 			continue;
 		}
 		if( iWork < 0 ){
-			print( "!!!!!ERROR 金钱号码为负值 (%s)( line %d )\n", filename, linenum );
+			print( "!!!!!错误 金钱号码为负值 (%s)( line %d )\n", filename, linenum );
 			continue;
 		}
 		iFirst = iWork;
@@ -271,7 +266,7 @@ BOOL MAP_readBattleMapConfFile( char* filename )
 				iLast = iWork;
 			}
 			if( iWork < 0 ){
-				print( "!!!!!ERROR 金钱号码为负值 (%s)( line %d )\n", filename, linenum );
+				print( "!!!!!错误 金钱号码为负值 (%s)( line %d )\n", filename, linenum );
 				continue;
 			}
 		}else{
@@ -280,7 +275,7 @@ BOOL MAP_readBattleMapConfFile( char* filename )
 
 		for( i = iFirst; i <= iLast; i ++ ){
 			if( MAP_getImageInt( i, MAP_SETED_BATTLEMAP ) > 0 ){
-				print( "!!!!!Warning 相同金钱重复设定了两次(%s)( line %d )(%d)(%d & %d)\n",
+				print( "!!!!!错误 相同金钱重复设定了两次(%s)( line %d )(%d)(%d & %d)\n",
 					filename, linenum, i,
 					MAP_getImageInt( i, MAP_BATTLEMAP ),
 					BattleMapNo[0] );
@@ -302,7 +297,7 @@ BOOL MAP_readBattleMapConfFile( char* filename )
 	for( j = 0; j < arraysizeof( MAP_imgfilt ); j ++ ){
 		if( MAP_imgfilt[j] == -1 )continue;
 		if( MAP_getImageInt( j, MAP_SETED_BATTLEMAP ) == 0 ){
-			print( "!!!!!Error 金钱(%d)尚未设定 (%s)\n", j, filename );
+			print( "!!!!!错误 金钱(%d)尚未设定 (%s)\n", j, filename );
 		}
 	}
     return TRUE;
@@ -355,7 +350,7 @@ BOOL MAP_initMapArray( int num )
     if( MAP_map == NULL )return FALSE;
 
     MAP_mapnum_index = 0;
-
+    
     return TRUE;
 }
 
@@ -424,7 +419,7 @@ static BOOL MAP_readMapOne( char*   filename )
     struct  stat    filestat;       /*  民尼永弁迕卞银丹    */
     BOOL    invaliddata=FALSE;
     if( MAP_mapnum_index >= MAP_mapnum ){
-        fprint( "There is no space left on MapArray.\n" );
+        fprint( "这里没有足够空间装载地图数组.\n" );
         return FALSE;
     }
     mapindex=MAP_mapnum_index;
@@ -474,19 +469,19 @@ static BOOL MAP_readMapOne( char*   filename )
     ysiz = ntohs( data[0] );
     tile = allocateMemory( sizeof( short ) * xsiz * ysiz );
     if( tile == NULL ){
-        fprint( "Can't Allocate Memory for tile name:%s xsiz:%d ysiz:%d\n", filename, xsiz, ysiz);
+        fprint( "无法分配内存给地图名称:%s xsiz:%d ysiz:%d\n", filename, xsiz, ysiz);
         goto FREEOBJHP;
     }
 
     obj = allocateMemory( sizeof( short ) * xsiz * ysiz );
     if( obj == NULL ){
-        fprint( "Can't Allocate Memory for object\n");
+        fprint( "无法分配内存给对象\n");
         goto FREETILE;
     }
 
     olink = allocateMemory( sizeof(MAP_Objlink*)  * xsiz * ysiz );
     if( olink == NULL ){
-        fprint( "Can't Allocate Memory for link\n");
+        fprint( "无法分配内存给链接\n");
         goto FREEOBJ;
     }
 
@@ -495,12 +490,12 @@ static BOOL MAP_readMapOne( char*   filename )
         errorprint;
         goto FREELINK;
     }
-    for( i  = 0 ; i < xsiz * ysiz ; i ++ )
-        tile[i] = ntohs( tile[i] );
+//    for( i  = 0 ; i < xsiz * ysiz ; i ++ )
+//        tile[i] = ntohs( tile[i] );
     for( i = 0 ; i < xsiz * ysiz ; i ++ ){
+    		tile[i] = ntohs( tile[i] );
         if( !IsValidImagenumber( tile[i] ) ){
-            fprint(
-                "Invalid tile imagenumber floor:%d x:%d y:%d number:%d\n",
+            fprint("地图的图片有问题:%d x:%d y:%d 数量:%d\n",
                 id, i % xsiz, (int)(i / xsiz) , tile[i]);
             invaliddata = TRUE;
         }
@@ -510,26 +505,28 @@ static BOOL MAP_readMapOne( char*   filename )
         errorprint;
         goto FREELINK;
     }
-    for( i  = 0 ; i < xsiz * ysiz ; i ++ )
-        obj[i] = ntohs( obj[i] );
+//    for( i  = 0 ; i < xsiz * ysiz ; i ++ )
+//        obj[i] = ntohs( obj[i] );
     for( i = 0 ; i < xsiz * ysiz ; i ++ ){
+    		obj[i] = ntohs( obj[i] );
         if( !IsValidImagenumber( obj[i] ) ){
             fprint(
-                "Invalid obj imagenumber floor:%d x:%d y:%d number:%d\n",
+                "地图的图片有问题:%d x:%d y:%d 数量:%d\n",
                 id, i % xsiz, (int)(i / xsiz) , obj[i]);
             invaliddata = TRUE;
         }
     }
     if( invaliddata )goto FREELINK;
-    if( ftell(f) != filestat.st_size)
-        fprintf(stderr,"size of file(%s) is strange. realsize:%"
+/*    if( ftell(f) != filestat.st_size)
+        fprintf(stderr,"文件大小不正确(%s). 目标文件大小:%"
 #ifdef linux
                 "l"
 #elif __FreeBSD__
                 "ll"
 #endif
-                "d readsize:%ld\n",
+                "d 实际大小:%ld\n",
                 filename, filestat.st_size,ftell(f));
+*/
 
     for( i=0 ; i< xsiz*ysiz ; i ++ )
         olink[i] = NULL;
@@ -564,7 +561,7 @@ static BOOL MAP_readMapOne( char*   filename )
 			// Nuke 1204: Bug fix
 			fclose(fp);
 		}else	{
-			print("\n **ERROR** Can not find map_noexit.txt !!!");
+			print("\n **错误** 找不到 map_noexit.txt 文件!!!");
 		}
 	}
 #endif
@@ -620,8 +617,8 @@ BOOL CHECKFLOORID( id)
 }
 #endif
 
-//#define MAX_MAP_FILES 1200 // 地图目录最大档案数
-#define MAX_MAP_FILES 2000 // 地图目录最大档案数
+#define MAX_MAP_FILES 1300 // 地图目录最大档案数
+//#define MAX_MAP_FILES 2000 // 地图目录最大档案数
 
 BOOL MAP_readMapDir( char*  dirname )
 {
@@ -633,7 +630,7 @@ BOOL MAP_readMapDir( char*  dirname )
 
     filenum = rgetFileName( dirname, filenames, arraysizeof(filenames) );
     if( filenum == -1 ){
-        fprint( "Can't get filenames under %s directory\n" , dirname );
+        fprint( "无法在目录下获取文件 %s \n" , dirname );
         return FALSE;
     }
 
@@ -642,19 +639,19 @@ BOOL MAP_readMapDir( char*  dirname )
         if( MAP_IsMapFile( filenames[i].string ) )
             mapfilenum++;
 
-    print( "Find %d maps\n" , mapfilenum );
+    print( "找到 %d 地图\n" , mapfilenum );
     if( mapfilenum == 0 )return FALSE;
     if( !MAP_initMapArray( mapfilenum ) ){
-        fprint( "initMapArray Error\n" );
+        fprint( "开启地图数组错误\n" );
         return FALSE;
     }
 
     for( i = 0 ; i < filenum ; i ++ )
         if( MAP_IsMapFile( filenames[i].string ) ){
             MAP_readMapOne( filenames[i].string );
-            print(".");
+//            print(".");
         }
-    print( "Valid map file is %d\n",MAP_mapnum_index );
+    print( "正确地图文件 %d...",MAP_mapnum_index );
     if( MAP_mapnum_index == 0 ){
         MAP_endMapArray();
         return FALSE;
@@ -1146,7 +1143,6 @@ int MAP_attackSpecificPoint( int floor, int x, int y, int damage ,
 #endif
     return 3;
 }
-
 BOOL MAP_appendTailObj( int floor, int x, int y, int objindex )
 {
     int     mapindex;
@@ -1196,12 +1192,12 @@ BOOL MAP_removeObj( int floor, int x, int y, int objindex )
 
     mapindex = MAP_getfloorIndex( floor );
     if( mapindex == -1 ) {
-    	print( "%s:%d:err\n", __FILE__, __LINE__);
+    	print( "%s:%d:错误\n", __FILE__, __LINE__);
     	return FALSE;
 	}
     xsiz = MAP_map[mapindex].xsiz;
     if( 0 > x || x >= xsiz || 0 >y || y >= MAP_map[mapindex].ysiz ) {
-    	print( "%s:%d:err fl[%d] x:[%d] y:[%d]\n", __FILE__, __LINE__, floor, x, y);
+    	print( "%s:%d:错误 地图号[%d] x:[%d] y:[%d]\n", __FILE__, __LINE__, floor, x, y);
         return FALSE;
 	}
     dataindex = y*xsiz+x;
@@ -1218,7 +1214,7 @@ BOOL MAP_removeObj( int floor, int x, int y, int objindex )
         last = c;
         c = c->next;
     }
-    print( "%s:%d:err\n", __FILE__, __LINE__);
+    print( "%s:%d:错误\n", __FILE__, __LINE__);
     return FALSE;
 }
 
@@ -1237,7 +1233,7 @@ BOOL _MAP_objmove( char *file, int line, int objindex, int ofloor, int ox, int o
 
     oldmapindex = MAP_getfloorIndex( ofloor );
     if( oldmapindex == -1 ) {
-    	print( "%s:%d:err fl[%d] x:[%d] y:[%d]\n", __FILE__, __LINE__,
+    	print( "%s:%d:错误 地图号[%d] x:[%d] y:[%d]\n", __FILE__, __LINE__,
 		    				 ofloor, ox, oy);
     	return FALSE;
 	}
@@ -1245,7 +1241,7 @@ BOOL _MAP_objmove( char *file, int line, int objindex, int ofloor, int ox, int o
     if( 0 > ox || ox >= oldxsiz
         || 0 >oy || oy >= MAP_map[oldmapindex].ysiz )
 	{
-    	print( "%s:%d:err fl[%d] x:[%d] y:[%d]\n", __FILE__, __LINE__,
+    	print( "%s:%d:错误 地图号[%d] x:[%d] y:[%d]\n", __FILE__, __LINE__,
 		    				 ofloor, ox, oy);
         return FALSE;
 	}
@@ -1266,7 +1262,7 @@ BOOL _MAP_objmove( char *file, int line, int objindex, int ofloor, int ox, int o
         c = c->next;
     }
     if( !pointer ) {
-    	print( "\n%s:%d:err( %d,%d,%d )->(%d,%d,%d)\n", __FILE__, __LINE__,
+    	print( "\n%s:%d:错误( %d,%d,%d )->(%d,%d,%d)\n", __FILE__, __LINE__,
 			ofloor, ox, oy, nfloor, nx, ny );
     	return FALSE;
 	}
@@ -1281,7 +1277,7 @@ BOOL _MAP_objmove( char *file, int line, int objindex, int ofloor, int ox, int o
         }else{
             newmapindex = MAP_getfloorIndex( nfloor );
             if( newmapindex == -1 ) {
-		    	print( "%s:%d:err fl[%d] x:[%d] y:[%d]\n", __FILE__, __LINE__,
+		    	print( "%s:%d:错误 地图号[%d] x:[%d] y:[%d]\n", __FILE__, __LINE__,
 		    				 nfloor, nx, ny);
             	return FALSE;
 			}
@@ -1290,7 +1286,7 @@ BOOL _MAP_objmove( char *file, int line, int objindex, int ofloor, int ox, int o
         if( 0 > nx || nx >= newxsiz
             || 0 >ny || ny >= MAP_map[newmapindex].ysiz )
 		{
-	    	print( "%s:%d:err fl[%d] x:[%d] y:[%d]\n", __FILE__, __LINE__,
+	    	print( "%s:%d:错误 地图号[%d] x:[%d] y:[%d]\n", __FILE__, __LINE__,
 	    				 nfloor, nx, ny);
             return FALSE;
 		}
@@ -1313,7 +1309,7 @@ BOOL _MAP_objmove( char *file, int line, int objindex, int ofloor, int ox, int o
         && MAP_appendTailObj( nfloor, nx ,ny, objindex ) )
         return TRUE;
 #endif
-    print( "%s:%d:err\n", __FILE__, __LINE__);
+    print( "%s:%d:错误\n", __FILE__, __LINE__);
     return FALSE;
 }
 
@@ -1372,6 +1368,21 @@ char *MAP_getFloorName( int floor)
     return MAP_map[floorindex].string;
 }
 
+#ifdef _MAKE_MAP
+int MAP_getFloorXY( int floor, int *x, int *y)
+{
+    int     floorindex;
+    floorindex = MAP_getfloorIndex( floor );
+    if( floorindex == -1 ) {
+    	print( "%s:%d:err\n", __FILE__, __LINE__);
+    	return FALSE;
+    }
+    *x=MAP_map[floorindex].xsiz;
+    *y=MAP_map[floorindex].ysiz;
+    return TRUE;
+}
+#endif
+
 BOOL MAP_setObjData( int ff ,int fx, int fy, int obj, int objhp )
 {
     int     floorindex,xsiz;
@@ -1429,25 +1440,8 @@ void MAP_sendAroundMapdata( int fl, int fromx, int fromy)
 			}
 		}
 	}else {
-		print( "mapdata err %s:%d \n" , __FILE__, __LINE__);
+		print( "地图数据错误 %s:%d \n" , __FILE__, __LINE__);
 	}
 }
-
-#ifdef _STATUS_WATERWORD //水世界状态
-int MAP_getMapFloorType( int floor)
-{
-	int i=0;
-	int WaterWord[]={8101,8015,8029,8028,8027,817,8007,8100,151,160,161,-1};
-	while( WaterWord[i] != -1 ){
-		if( floor == WaterWord[i] ){
-			return 1;
-		}
-		i++;
-	}
-	return 0;
-}
-#endif
-
-
 
 

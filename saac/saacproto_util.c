@@ -344,15 +344,11 @@ char*  saacproto_escapeString( char*a )
 		if( a[i] == '\0' ){
 			saacproto.escapework[c++] = '\0';
 			break;
-		}
-/* 
-		else if( ( char )0x80 <= a[i] && a[i] <= ( char )0xFF ){
+		} else if( ( char )0x80 <= a[i] && a[i] <= ( char )0xFF ){
 			// for 2 Byte Word
 			saacproto.escapework[c++] = a[i++];
 			saacproto.escapework[c++] = a[i];
-		}
-*/ 
-		else if( a[i] == '\\' ){
+		} else if( a[i] == '\\' ){
 			saacproto.escapework[c++] = '\\';
 			saacproto.escapework[c++] = '\\';
 		} else if( a[i] == ' ' ){
@@ -378,15 +374,11 @@ char* saacproto_descapeString( char*a )
 		if( a[i] == '\0' ){
 			saacproto.escapework[c++]='\0';
 			break;
-		}
-/* 
-		else if( (char)0x80 <= a[i] && a[i] <= (char)0xFF ){
+		} else if( (char)0x80 <= a[i] && a[i] <= (char)0xFF ){
 			// for 2 Byte Word
 			saacproto.escapework[c++] = a[i++];
 			saacproto.escapework[c++] = a[i];
-		}
-*/ 
-		else if( a[i] == '\\' ){
+		} else if( a[i] == '\\' ){
 			if( a[i+1] == 'S' ){     /* space */
 				saacproto.escapework[c++] = ' ';
 			} else if( a[i+1] == 'n' ){
@@ -1467,131 +1459,3 @@ char *saacproto_cnv10to62( int a, char *out, int outlen )
 	*(out+j) = '\0';
     return( out);
 }
-#ifdef _NEW_PLAYERGOLD
-nNEWPlayerList *NEWPlayerList;
-void NEWPLAYER_FreeGoldInit()
-{
-	NEWPlayerList = ( nNEWPlayerList *)calloc( 1, MAXNEWPLAYERLIST * sizeof( struct _tagNEWPlayerList));
-	if( NEWPlayerList == NULL ) return;
-	resetNEWPlayerList();
-	LoadNEWPlayerListFile( "newuser.txt");
-}
-
-void resetNEWPlayerList()
-{
-	int i;
-	for( i=0; i<MAXNEWPLAYERLIST; i++)	{
-		memset( NEWPlayerList[i].name, 0, sizeof( NEWPlayerList[i].name));
-		NEWPlayerList[i].use = 0;
-	}
-}
-
-int LoadNEWPlayerListAdd( char *filename)
-{
-	int i, listmenu = 0;
-	char file[256];
-	FILE *fp;
-	sprintf( file, "./%s", filename);
-	fp = fopen( file, "r");
-	if( fp == NULL ){
-		log("load file:%s error !!\n", file);
-		return -1;
-	}
-	for( i=0; i<MAXNEWPLAYERLIST; i++){
-		char buf[256];
-		if( NEWPlayerList[i].use != 0 ) continue;
-		if( fscanf( fp, "%s", buf) == EOF ) break;
-		buf[strlen(buf)+1] = 0;
-		memcpy( NEWPlayerList[i].name, buf, strlen(buf)+1);
-		NEWPlayerList[i].use = 1;
-		listmenu ++;
-	}
-	fclose( fp);
-	remove( file);
-	backupNEWPlayerListFile( "newuser.txt", "newuser.bak");
-	log( "listmenu:%d\n", listmenu);
-	return listmenu;
-}
-
-void backupNEWPlayerListFile( char *filename, char *refilename)
-{
-	int     i;
-	char file[256];
-	FILE *fp;
-	sprintf( file, "./%s", filename);
-	remove( file);
-	fp = fopen( file, "a");
-	if( fp == NULL ){
-		log("create file:%s error !!\n", file);
-		return;
-	}
-	for( i=0; i<MAXNEWPLAYERLIST; i++){
-		if( NEWPlayerList[i].use != 1 ) continue;
-		fprintf( fp, "%s\n", NEWPlayerList[i].name );
-	}
-	fclose( fp);
-
-	log("backup file:%s..\n", file);
-
-}
-
-void LoadNEWPlayerListFile( char *filename)
-{
-	int     i;
-	char file[256];
-	FILE *fp;
-	sprintf( file, "./%s", filename);
-	fp = fopen( file, "r");
-	if( fp == NULL ){
-		log("load file:%s error !!\n", file);
-		return;
-	}
-	for( i=0; i<MAXNEWPLAYERLIST; i++){
-		char buf[256];
-		if( fscanf( fp, "%s", buf) == EOF ) break;
-		buf[strlen(buf)+1] = 0;
-		memcpy( NEWPlayerList[i].name, buf, strlen(buf)+1);
-		NEWPlayerList[i].use = 1;
-	}
-	fclose( fp);
-}
-
-int DelNEWPlayerfromFile( char *CdKey, char *UserName, int RunType)
-{
-	int     i;
-
-	for( i=0; i<MAXNEWPLAYERLIST; i++){
-		if( NEWPlayerList[i].use != 1 ) continue;
-		if( !strcmp( NEWPlayerList[i].name, CdKey) ){
-			NEWPlayerList[i].use = 0;
-			log( "ANDY User [%s]-%s..del from NEWPlayerList !\n", CdKey, UserName);
-			return NEW_DELOK;
-		}
-	}
-	if( i>=MAXNEWPLAYERLIST ){
-		log( "ANDY err Not Fuond CdKey:%s In NEWPlayerList!\n", CdKey);
-		return NEW_DELERR;
-	}
-	return NEW_ERR;
-}
-
-int AddNEWPlayertoFile( char *CdKey, char *UserName, int Strlens)
-{
-	int     i;
-
-	for( i=0; i<MAXNEWPLAYERLIST; i++){
-		if( NEWPlayerList[i].use == 1 ) continue;
-		memset( NEWPlayerList[i].name, 0, sizeof( NEWPlayerList[i].name));
-		memcpy( NEWPlayerList[i].name, CdKey, (Strlens>sizeof(NEWPlayerList[i].name))?sizeof(NEWPlayerList[i].name):Strlens);
-		NEWPlayerList[i].use = 1;
-		return NEW_ADDOK;
-	}
-	if( i>=MAXNEWPLAYERLIST ){
-		log( "ANDY err NEWPlayerList Be Full !\n");
-		return NEW_LISTFULL;
-	}
-	return NEW_ADDERR;
-}
-
-#endif
-/* end of generated code */

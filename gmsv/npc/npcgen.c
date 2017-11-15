@@ -30,16 +30,9 @@ int one_loop_born = 1;	/* ㄠ伙□皿匹  嫖戏心请允醒 oneloop_born */
 /*------------------------------------------------------------
  * 衬毛丹心分允桦赭毛瑁烂允月
  * 娄醒
- *  cr      NPC_Create*         甄  及汔互瑁匀化中月NPC_Create及禾奶件正
  *  nobody  int                 1 及凛反簿手中卅中凛卞勾仁月
  *                                          (簿井中化手综月)
- *                              0 及凛反簿手中卅中凛反综日卅中［
  *                                          (簿井中凶凛及心综月)
- *  nosee   int                 1 及凛反皿伊奶乩□及骰钗及  匹手综月［
- *                              0 及凛反皿伊奶乩□及骰钗及陆匹综月［
- *  point   NPC_searchPoint*    请蜇今六月桦赭毛医  允月
- *  isflying    BOOL              氏匹中月井升丹井［  氏匹中月卅日 TRUE 匹
- *                                  请蜇匏  氏及及穴永皿午及癫曰  烂
  *                                  毛仄卅仁卅月
  * 忒曰袄
  *  综木月凛反  TRUE
@@ -97,7 +90,6 @@ static BOOL NPC_searchCreatePoint( NPC_Create* cr,int  nobody,int nosee,
         if( width == 0 ){
             return FALSE;
         }else{
-            /*  甄  瑁户藉切卅及匹  */
             crx = startpoint%width + x;
             cry = startpoint/width + y;
         }
@@ -184,7 +176,6 @@ static NPC_Correspondfunction   correspondfunction[]={
  * 楮醒戊疋□允月
  * 娄醒
  *  ch      Char*           平乓仿犯□正
- *  temp    NPC_template*     件皿伊□玄及禾奶件正□
  * 忒曰袄
  *  卅仄
  ------------------------------------------------------------*/

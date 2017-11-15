@@ -42,8 +42,7 @@ int EVENT_main( int charaindex,int event, int x, int y)
 	int fl = CHAR_getInt( charaindex, CHAR_FLOOR);
 	if( !EVENT_CHECKEVENTINDEX( event)) return FALSE;
 
-	for( object = MAP_getTopObj(fl,x,y) ; object ;
-		 object = NEXT_OBJECT(object) ){
+	for( object = MAP_getTopObj(fl,x,y) ; object ; object = NEXT_OBJECT(object) ){
 		int o = GET_OBJINDEX(object);
 		if( OBJECT_getType(o) == OBJTYPE_CHARA ){
 			int	etype;
@@ -67,13 +66,16 @@ int EVENT_main( int charaindex,int event, int x, int y)
 			if( OBJECT_getchartype( o) != event ) continue;
 			MAPPOINT_MapWarpHandle( charaindex, OBJECT_getIndex( o), fl, x, y );
 			found = TRUE;
+			rc = TRUE;
 			break;
 		}
 #endif
 	}
+/*
 	if( !found ) {
-		//print( "not found eventobject : cind [%d] event [%d] fl[%d] x[%d] y[%d]\n", charaindex, event, fl,x,y);
+		print( "not found eventobject : cind [%d] event [%d] fl[%d] x[%d] y[%d]\n", charaindex, event, fl,x,y);
 	}
+*/
 	return rc;
 }
 

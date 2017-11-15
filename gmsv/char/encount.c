@@ -2,9 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#ifdef _REDHAT_V9
-#include <errno.h>
-#endif
 
 #include "common.h"
 #include "util.h"
@@ -80,7 +77,7 @@ BOOL ENCOUNT_initEncount( char* filename )
     }
 
     if( fseek( f, 0, SEEK_SET ) == -1 ){
-        fprint( "Seek Error\n" );
+        fprint( "寻找错误\n" );
         fclose(f);
         return FALSE;
     }
@@ -88,7 +85,7 @@ BOOL ENCOUNT_initEncount( char* filename )
     ENCOUNT_table = allocateMemory( sizeof(struct tagENCOUNT_Table)
                                    * ENCOUNT_encountnum );
     if( ENCOUNT_table == NULL ){
-        fprint( "Can't allocate Memory %d\n" ,
+        fprint( "无法分配内存 %d\n" ,
                 sizeof(ENCOUNT_table)*ENCOUNT_encountnum);
         fclose( f );
         return FALSE;
@@ -177,7 +174,7 @@ BOOL ENCOUNT_initEncount( char* filename )
         ret = getStringFromIndexWithDelim( line,",",1,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         ENCOUNT_table[encount_readlen].index = atoi(token);
@@ -186,7 +183,7 @@ BOOL ENCOUNT_initEncount( char* filename )
         ret = getStringFromIndexWithDelim( line,",",2,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         ENCOUNT_table[encount_readlen].floor = atoi(token);
@@ -195,7 +192,7 @@ BOOL ENCOUNT_initEncount( char* filename )
         ret = getStringFromIndexWithDelim( line,",",3,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         x1 = atoi(token);
@@ -204,7 +201,7 @@ BOOL ENCOUNT_initEncount( char* filename )
         ret = getStringFromIndexWithDelim( line,",",4,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         y1= atoi(token);
@@ -213,7 +210,7 @@ BOOL ENCOUNT_initEncount( char* filename )
         ret = getStringFromIndexWithDelim( line,",",5,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         
@@ -223,7 +220,7 @@ BOOL ENCOUNT_initEncount( char* filename )
         ret = getStringFromIndexWithDelim( line,",",6,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         y2= atoi(token);
@@ -237,7 +234,7 @@ BOOL ENCOUNT_initEncount( char* filename )
         ret = getStringFromIndexWithDelim( line,",",7,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         ENCOUNT_table[encount_readlen].encountprob_min = atoi(token);
@@ -246,7 +243,7 @@ BOOL ENCOUNT_initEncount( char* filename )
         ret = getStringFromIndexWithDelim( line,",",8,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         ENCOUNT_table[encount_readlen].encountprob_max = atoi(token);
@@ -265,14 +262,14 @@ BOOL ENCOUNT_initEncount( char* filename )
         ret = getStringFromIndexWithDelim( line,",",9,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         {
             int maxnum = atoi( token);
             /* 醒及恳癫岭及民尼永弁 */
             if( maxnum < 1 || maxnum > ENCOUNT_ENEMYMAXCREATENUM ) {
-                fprint("createnum error file:%s line:%d\n",filename,linenum);
+                fprint("文件语法错误:%s 第%d行\n",filename,linenum);
                 continue;
             }
             ENCOUNT_table[encount_readlen].enemymaxnum = maxnum;
@@ -281,7 +278,7 @@ BOOL ENCOUNT_initEncount( char* filename )
         ret = getStringFromIndexWithDelim( line,",",10,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         ENCOUNT_table[encount_readlen].zorder = atoi(token);
@@ -295,7 +292,7 @@ BOOL ENCOUNT_initEncount( char* filename )
                 ret = getStringFromIndexWithDelim( line,",",i,token,
                                                    sizeof(token));
                 if( ret==FALSE ){
-                    fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+                    fprint("文件语法错误:%s 第%d行\n",filename,linenum);
                     continue;
                 }
                 if( strlen( token) != 0 ) {
@@ -314,7 +311,7 @@ BOOL ENCOUNT_initEncount( char* filename )
             if( checkRedundancy( ENCOUNT_table[encount_readlen].groupid, 
             			arraysizeof( ENCOUNT_table[encount_readlen].groupid)))
             {
-            	fprint( "error:团队重复file:%s line:%d\n", 
+            	fprint( "文件语法错误:%s 第%d行\n", 
             				filename,linenum);
             	continue;
             }
@@ -325,7 +322,7 @@ BOOL ENCOUNT_initEncount( char* filename )
         ret = getStringFromIndexWithDelim( line,",",31,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         ENCOUNT_table[encount_readlen].event_now = atoi(token);
@@ -333,7 +330,7 @@ BOOL ENCOUNT_initEncount( char* filename )
         ret = getStringFromIndexWithDelim( line,",",32,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         ENCOUNT_table[encount_readlen].event_end = atoi(token);
@@ -341,7 +338,7 @@ BOOL ENCOUNT_initEncount( char* filename )
         ret = getStringFromIndexWithDelim( line,",",33,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         ENCOUNT_table[encount_readlen].enemy_group = atoi(token);
@@ -354,25 +351,8 @@ BOOL ENCOUNT_initEncount( char* filename )
 
     ENCOUNT_encountnum = encount_readlen;
 
-    print( "Valid encount field Num is %d..", ENCOUNT_encountnum );
+    print( "有效的遇敌坐标数是 %d..", ENCOUNT_encountnum );
 
-#if 0
-
-    {
-        int i;
-        for( i=0; i <ENCOUNT_encountnum ; i++ )
-            print( "encount idx[%d] fl[%d] prob_min[%d] prob_max[%d] e_max[%d] x[%d] wth[%d] y[%d] hgt[%d] \n",
-                   ENCOUNT_table[i].index,
-                   ENCOUNT_table[i].floor,
-                   ENCOUNT_table[i].encountprob_min,
-                   ENCOUNT_table[i].encountprob_max,
-                   ENCOUNT_table[i].enemymaxnum,
-                   ENCOUNT_table[i].rect.x,
-                   ENCOUNT_table[i].rect.width,
-                   ENCOUNT_table[i].rect.y,
-                   ENCOUNT_table[i].rect.height);
-    }
-#endif
     return TRUE;
 }
 /*------------------------------------------------------------------------

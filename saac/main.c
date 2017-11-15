@@ -1,19 +1,27 @@
 #define _MAIN_C_
+
 #include "main.h"
 #include "util.h"
 #include "mail.h"
 #include "db.h"
 #include "saacproto_util.h"
 #include "saacproto_serv.h"
-#ifdef _UNIVERSE_CHATROOM
-#include "chatroom.h"
-#endif
 // CoolFish: Family 2001/5/9
 #include "acfamily.h"
 #include "version.h"
-#ifdef _DEATH_CONTEND
-#include "deathcontend.h"
+#ifdef _SEND_EFFECT				  // WON ADD 送下雪、下雨等特效 
+#include "recv.h"
 #endif
+
+#include "char.h"
+
+#ifdef _SASQL
+#include "sasql.h"
+#endif
+
+#include <stdio.h> 
+#include <time.h> 
+
 #include <signal.h>
 #include <sys/types.h>
 #include <time.h>
@@ -34,37 +42,11 @@
 #include <time.h>
 #include <fcntl.h>
 #include <netinet/tcp.h>
-#include "saacproto_work.h"
-#ifdef _OACSTRUCT_TCP
-#include "saacproto_oac.h"
-#endif
-#ifdef _PAUCTION_MAN
-#include "auction.h"
-#endif
+
 #include "lock.h"
 #define BACKLOGNUM 5
 
-#ifdef _FIX_WORKS
-#include "saacproto_work.h"
 int worksockfd;
-#endif
-
-#ifdef _LOCK_SERVER
-#include "saacproto_lserver.h"
-#endif
-
-#ifdef _SEND_EFFECT				  // WON ADD 送下雪、下雨等特效 
-#include "recv.h"
-#endif
-
-#include "defend.h"
-#include "char.h"
-
-#ifdef _SASQL
-#include "sasql.h"
-#endif
-
-#ifndef _FIX_WORKS
 
 struct membuf
 {
@@ -84,27 +66,32 @@ struct connection
     struct sockaddr_in remoteaddr;
     int closed_by_remote;
 };
-#else
-#endif
 
 struct membuf *mb;
 int mbsize;
 int mbuse ;
 
+int cpuuse;
+
+
 int mainsockfd;             /* accept 及  域娄醒卞中木月 */
 struct sockaddr_in localaddr;       /* bind 允月失玉伊旦 */
+    
+
 struct connection *con;        /* 戊生弁扑亦件     */
+
 static int mb_finder=0;              /* mb及坞五毛腹绸允月凶户及
                                腹绸玄永皿及匏  筏盛迕 */
 // WON FIX
-char tmpbuf[65536];
+//char tmpbuf[65536];
+char tmpbuf[1024*32];
 //char tmpbuf[65536*3];         /* read迕 */
 
 struct timeval select_timeout;
-time_t sys_time =0; // Robin add
-extern gmsv gs[MAXCONNECTION];
 
-static void initWorkerPort(void);
+time_t sys_time =0; // Robin add
+
+extern gmsv gs[MAXCONNECTION];
 
 int tcpstruct_init( char *addr, int port, int timeout_ms, int mem_use, int deb);
 int tcpstruct_accept1( void );
@@ -116,7 +103,6 @@ int tcpstruct_readline_chop( int ti , char *buf, int len );
 int tcpstruct_write( int ti , char *buf , int len );
 int tcpstruct_countmbuse( void );
 int tcpstruct_connect( char *addr , int port );
-#ifndef _FIX_WORKS
 void set_nodelay( int sock );
 
 
@@ -134,13 +120,13 @@ void set_nodelay( int sock );
 #define TCPSTRUCT_ETOOLONG -12    /* 垫互卅互允亢 */
 #define TCPSTRUCT_EMBFULL -13     /* mb 互中匀天中  */
 #define TCPSTRUCT_ECLOSEAGAIN -14 /* close 互2荚今木凶 */
-#endif
 
 
-int port = -1;               /* 必□丞扔□田□互涛粮仄化仁月禾□玄 */
-#ifdef _DYNAMIC_PORT
-int wkport = -1;
-#endif
+int port;               /* 必□丞扔□田□互涛粮仄化仁月禾□玄 */
+int Total_Charlist;
+int Expired_mail;
+int Del_Family_or_Member;
+int Write_Family;
 
 // Nuke start
 char *chartime()
@@ -153,26 +139,20 @@ char *chartime()
     return(buf);
 }
 
+static int initRankTable( void );
+
 /*
   sigaction白弁
  */
 void sighandle( int a )
 {
-    if (a==SIGUSR1) log("sigusr1 signal!\n");
-
-/*
-	if (a==SIGUSR2) {
-		sigusr2( a);
-		log("sigusr2 signal!\n");
-		return;
-	}
-*/
-
-    log(" got a signal! aborting...\n" );
-    exit(1);
+  if (a==SIGUSR1) log("sigusr1信号!\n");
+  log("得到一个信号! 异常中断......\n" );
+  writeFamily(familydir);
+  writeFMPoint(fmpointdir);
+  writeFMSMemo(fmsmemodir);
+  exit(1);
 }
-
-//void sigusr2(int a);
 
 // Arminius 7.20 memory unlock
 void sigusr1(int a)
@@ -207,45 +187,10 @@ void sigusr1(int a)
       sprintf(key, "echo \"%s\" > ./sigusr1.result", buf);
       system(key);
     break;
-#ifdef _CK_ONLINE_PLAYER_COUNT    // WON ADD 计算线上人数
-	case 'W':	
-      PlayerCount();
-	break;
-#endif
-
 #ifdef _SEND_EFFECT		   // WON ADD 送下雪、下雨等特效
 	case 'E':	
-		log("\n AC send to GS weather effect !!");
+		log("\nAC 向 GS 发送下雪特效!!\n");
 	    SendEffect(&key[1]);
-	break;
-#endif
-
-#ifdef _BAD_PLAYER            // WON ADD 送坏玩家去关
-	case 'B':
-		log("\n AC send bad player to jail ");
-		BadPlayer();
-	break;
-#endif
-
-#ifdef _RECAL_BACKUP_PLAYER			// WON 回溯功能
-	case 'U':
-		log("\n send Backup_player_data");
-		// 得到备份人物资料
-		send_backup_player_data();
-	break;
-#endif
-	
-#ifdef _GM_BROADCAST					// WON ADD 客服公告系统
-	case 'G':
-		log("\n won test 1 ==> _GM_BROADCAST" );
-		broadcast(key);
-	break;
-#endif
-
-#ifdef _KILLDEADWORKER	// 将所有Worker初始化
-	case 'K':
-		log("\nKILL ALL WORKER!!!!!\n");
-		initWorkerPort();
 	break;
 #endif
 
@@ -256,7 +201,7 @@ void sigusr1(int a)
 				log("\n gs[%d] fd:%d name:%s ", i, gs[i].fd, gs[i].name );
 	break;
 
-    }
+  }
 	log(" sigusr1_over_1 ");
 	fclose(f);
 	log(" sigusr1_over_2 ");
@@ -269,288 +214,52 @@ static int netWrite( int ti , char *buf , int len)
     return tcpstruct_write( ti , buf, len );
 }
 
-#ifndef _FIX_WORKS
-typedef enum
-{
-    WKSTAT_IDLE = 0,            /* 窒手仄化卅中橇谪 */
-    WKSTAT_WAITING = 2          /* 伐□市井日及忒蚕毛引匀化月橇谪 */
-} WKSTAT;
-
-struct worker
-{
-    int use;
-    int port;
-    int ti;
-    int request_ti;
-    WKSTAT status;
-    time_t last_query;
-    void (*callback)( int ti , int result , char *cparam0 , char *cparam1,
-                      char *cparam2 , char *cparam3, char *cparam4, 
-                      int iparam1 , int iparam2 );
-#define CPARAMNUM 5
-    char cparam[CPARAMNUM][CHARDATASIZE];
-#define IPARAMNUM 3    
-    int iparam[IPARAMNUM];
-};
-
-struct worker wk[MAXWK];
-#endif
-#ifndef _FIX_WORKS
-static void addWorkerPort( int port )
-{
-    int i;
-    for(i=0;i<MAXWK;i++){
-        if( wk[i].use == 0 ){
-            wk[i].use = 1;
-            wk[i].port = port;
-            wk[i].ti = -1;
-            return;
-        }
-    }
-    exit(1);
-}
-#endif
-
-int worker_finder = 0;
-
-static void initWorkerPort( void )
-{
-    int i;
-    bzero( &wk , sizeof( wk ));
-    for(i=0;i<MAXWK;i++){
-#ifdef _FIX_WORKS
-		wk[i].use = 0;
-		wk[i].status = WKSTAT_IDLE;
-		if( wk[i].fd < 0 )
-			close( wk[i].fd);
-		wk[i].fd = -1;
-		wk[i].last_query = -1;
-#else
-        wk[i].status = WKSTAT_IDLE;
-#endif
-    }
-	worker_finder = 0;
-}
-
-static void connectToWorker( void )
-{
-#ifndef _FIX_WORKS
-    int i;
-    for(i=0;i<MAXWK;i++){
-        if( wk[i].use ){
-            int ti = tcpstruct_connect( "127.0.0.1" , wk[i].port );
-            if( ti >= 0 ){
-                wk[i].ti = ti;
-            } else {
-                exit(1);
-            }
-        }
-    }
-#endif
-}
-
-static int countWorker( void );
-
-// Nuke
-int addWorkerTask( char *id , char *pas , char *flag,
-                   void (*callbk)( int ti , int result ,
-                                   char *cp0 , char *cp1 , char *cp2 ,
-                                   char *cp3 , char *cp4, int i0 , int i1) ,
-                   int ti , 
-                   char *cparam0 , char *cparam1 ,
-                   char *cparam2 , char *cparam3 , char *cparam4 , 
-                   int iparam0 , int iparam1)
-{
-
-    int i;
-    // Spock +1 2000/11/2
-    char *process = cparam3;
-    for(i=0;i<MAXWK;i++){
-        int n;
-        worker_finder ++;
-        if( worker_finder >= MAXWK ) worker_finder = 0;
-        n = worker_finder;
-        if( wk[n].use && wk[n].status == WKSTAT_IDLE ){
-            char s[256];
-
-			log(" use_wk:%d ", n);
-
-            // Nuke
-            {
-            	int i;
-            	for (i=0;id[i];i++) if (id[i]==' ') return -1;
-            }
-
-	    // Spock 2000/11/2
-            snprintf( s , sizeof( s ) , "%s %s %s %s\n", id , pas , flag , process);
-	    // Spock end
-#ifdef _FIX_WORKS
-			if( cWork_write( wk[n].ti, s, strlen(s)) <= 0 )	{
-#else
-            if( tcpstruct_write( wk[n].ti , s , strlen(s)) != strlen(s) ){
-#endif
-                return -1;
-            } else {
-            }
-
-            snprintf( wk[n].cparam[0] , CHARDATASIZE , "%s", cparam0 );
-            snprintf( wk[n].cparam[1] , CHARDATASIZE , "%s", cparam1 );
-            snprintf( wk[n].cparam[2] , CHARDATASIZE , "%s", cparam2 );
-            snprintf( wk[n].cparam[3] , CHARDATASIZE , "%s", cparam3 );
-            snprintf( wk[n].cparam[4] , CHARDATASIZE , "%s", cparam4 );
-            wk[n].iparam[0] = iparam0;
-            wk[n].iparam[1] = iparam1;
-            wk[n].status = WKSTAT_WAITING;
-            wk[n].callback = callbk;
-            wk[n].request_ti = ti ;
-            wk[n].last_query = time(NULL);
-			
-			return 0;
-        }
-    }
-    log( "worker too busy or no worker is alive. alive workers:%d\n", countWorker() );
-    return -1;
-}
-
-static int countWorker( void )
-{
-    int i,c=0;
-    for(i=0;i<MAXWK;i++){
-        if( wk[i].use )c++;
-    }
-    return c;
-}
-
-#ifndef _FIX_WORKS
-static void checkWorkerClosed( int ti )
-{
-    int i;
-    for(i=0;i<MAXWK;i++){
-        if( wk[i].ti == ti ){
-            wk[i].use = 0;
-            wk[i].ti = -1;
-        }
-    }
-}
-#endif
-static void doWorker( int ti , char *m )
-{
-    int i;
-    int res=-1;
-
-    char deadline[128];
-
-#ifdef _TIMEOUTKICK
-	log(" doWorker:%s ", m);
-	// Nuke 20040519: Protect from error from worker
-	if (m) 
-	{
-		char *p1,*p2;
-		p1=strtok(m," ");
-		p2=strtok(0," ");
-		
-		if (p1)
-			res = atoi( p1 );
-		else
-			res=-1;
-		
-		if (p2)
-			strcpy( deadline, p2 ); // 取得 deadline
-		else {
-			strcpy( deadline, "0" );
-			log("\n worker回传错误:%d:%s ", ti, p1);
-		}
-	}
-	else
-	{
-		res=-1;
-		strcpy( deadline, "0" );
-	}
-#else
-	if (m) {
-		char *p1;
-		p1 = strtok (m, " ");
-		
-		if (p1)
-			res = atoi (p1);
-		else
-			res = -1;
-	} else
-		res = -1;
-#endif
-
-#ifdef _NO_DOUBLECHECK
-	res =0;
-#endif
-    for( i=0; i<MAXWK; i++){
-        if( wk[i].use && wk[i].ti == ti ){
-            if( wk[i].status == WKSTAT_WAITING ){
-					if( wk[i].callback ){
-
-#ifdef _TIMEOUTKICK
-						strcpy( wk[i].cparam[4] ,deadline);
-#endif
-						// Robin log
-						//log(" wk[%d] c0:%s c1:%s c2:%s c3:%s c4:%s i0:%d i1:%d ",
-						//		wk[i].request_ti, wk[i].cparam[0], wk[i].cparam[1],
-						//		wk[i].cparam[2], wk[i].cparam[3], wk[i].cparam[4],
-						//		wk[i].iparam[0], wk[i].iparam[1]);
-
-						wk[i].callback( wk[i].request_ti , res,
-										wk[i].cparam[0] ,
-										wk[i].cparam[1] ,
-										wk[i].cparam[2] ,
-										wk[i].cparam[3] ,
-										wk[i].cparam[4] ,
-										wk[i].iparam[0] ,
-										wk[i].iparam[1] );
-					} else {
-						log( "doWorker: bug! callback is not initialized\n");
-					}
-				wk[i].status = WKSTAT_IDLE;
-            }
-        }
-    }
-}
-
-static int isWorker( int ti )
-{
-#ifndef _FIX_WORKS
-    int i;
-    for(i=0;i<MAXWK;i++){
-        if( wk[i].use && wk[i].ti == ti )return 1;
-    }
-#endif
-    return 0;
-}
-
 gmsv gs[MAXCONNECTION];
-
+#ifdef _VIP
+int login_game_server( int ti , char *svname , char *svpas , int checkvip,
+               char *result , int resultlen ,
+               char *retdata , int retdatalen )
+#else
 int login_game_server( int ti , char *svname , char *svpas ,
                char *result , int resultlen ,
                char *retdata , int retdatalen )
+#endif
 {
-    if( strcmp( svpas , svpass ) == 0 ){
-        log( "SERVER PASSWD OK for %s\n" , svname );
+#ifndef _VIP
+		char buff[50];
+		sprintf(buff,"longzoro-%s-%d",svpass,123);
+    if( strcmp( svpas , buff ) == 0 ){
+#else
+		if( strcmp( svpas , svpass ) == 0 ){
+#endif
+        log( "服务器密码正确 %s\n" , svname );
     } else {
-        log( "SERVER PASSWD NG for %s\n" , svname );
-        snprintf( result , resultlen , FAILED );
-        snprintf( retdata , retdatalen , "bad passwd" );
+        log( "服务器密码错误 %s\n" , svname );
+        snprintf( result , resultlen , "失败" );
+        snprintf( retdata , retdatalen , "密码错误" );
         return 0;
     }
+#ifdef _VIP
+    if(0)//checkvip==0 || checkvip!=123456 * 2)
+    {
+    	snprintf( result , resultlen , "failed" );
+      snprintf( retdata , retdatalen , "duplicate login" );
+      return 0;
+    }
+#endif
     {
         int i;
         for(i=0;i<MAXCONNECTION;i++){
             if( gs[i].use &&
                 strcmp( gs[i].name , svname ) == 0 ){
-                snprintf( result, resultlen, FAILED );
+                snprintf( result, resultlen, "failed" );
                 snprintf( retdata , retdatalen, "duplicate login" );
                 return 0;
             } 
         }
     }
     snprintf( gs[ti].name , sizeof(gs[ti].name), "%s" , svname );
-	gs[ti].fd = ti;
+	  gs[ti].fd = ti;
     snprintf( result , resultlen ,SUCCESSFUL );
     snprintf( retdata , retdatalen , "Nothing special" );
     DeleteMemLockServer(svname);	// Arminius 7.31 unlock server
@@ -580,8 +289,8 @@ static int readConfig( char *path )
     if( fp == NULL ){ return -2; }
 
     while( fgets( buf , sizeof( buf ) , fp )){
-        char command[1024];
-        char param[2048];
+        char command[128];
+        char param[128];
         chop(buf);
         
         easyGetTokenFromString( buf , 1 , command , sizeof( command ));
@@ -589,108 +298,131 @@ static int readConfig( char *path )
 
         if( strcmp( command , "port" ) == 0 ){
             port = atoi( param );
-        } 
-#ifdef _DYNAMIC_PORT
-		else if (strcmp( command, "wkport" ) == 0) {
-			wkport = atoi (param);
-		}
-#endif
-		else if( strcmp( command , "logdir" ) == 0 ){
+        		log( "端口:%d\n",port );
+        } else if( strcmp( command , "logdir" ) == 0 ){
             snprintf( logdir , sizeof( logdir) , param );
-        } else if( strcmp( command , "lockdir" ) == 0 ){
-            snprintf( lockdir , sizeof( lockdir) , param );
+            log( "日志目录:%s\n",logdir );
         } else if( strcmp( command , "chardir" ) == 0 ){
             snprintf( chardir , sizeof( chardir) , param );
+            log( "档案目录:%s\n",chardir );
 #ifdef _SLEEP_CHAR
-			snprintf( sleepchardir , sizeof( sleepchardir), "%s_sleep", chardir);
+						snprintf( sleepchardir , sizeof( sleepchardir), "%s_sleep", chardir);
+						log( "睡眠目录:%s\n",sleepchardir );
 #endif
         } else if( strcmp( command , "pass" ) == 0 ){
-            snprintf( svpass , sizeof( svpass ) , param );
-        } else if( strcmp( command , "wklogdir" ) == 0 ){
-            snprintf( wklogdir , sizeof( wklogdir) , param );
+        		snprintf( svpass , sizeof( svpass ) , param);
+            log( "密码:%s\n",param );
         } else if( strcmp( command , "dbdir" ) == 0 ){
-            snprintf( dbdir , sizeof( dbdir) , param );            
+            snprintf( dbdir , sizeof( dbdir) , param );    
+            log( "数据目录:%s\n",dbdir );        
         } else if( strcmp( command, "rotate_interval" ) == 0 ){
             log_rotate_interval = atoi( param );
+            log( "日志循环间隔:%d\n",log_rotate_interval ); 
         } else if( strcmp( command, "maildir" ) == 0 ){
             snprintf( maildir, sizeof( maildir ), param );
-#ifdef	__FAMILY
+            log( "邮件目录:%s\n",maildir );
+#ifdef	_FAMILY
         // CoolFish: Family 2001/5/9
         } else if( strcmp( command, "familydir" ) == 0 ){
             snprintf( familydir, sizeof( familydir ), param );
+            log( "家族目录:%s\n",familydir );
         } else if( strcmp( command, "fmpointdir" ) == 0 ){
             snprintf( fmpointdir, sizeof( fmpointdir ), param );
+            log( "庄园表列:%s\n",fmpointdir );
         } else if( strcmp( command, "fmsmemodir" ) == 0 ){
             snprintf( fmsmemodir, sizeof( fmsmemodir ), param );
+            log( "家族备份:%s\n",fmsmemodir );
 #endif
-#ifdef _LOCK_SERVER
-        } else if( strcmp( command, "SANAME" ) == 0 ){
-            snprintf( SaName, sizeof( SaName ), param );
-        } else if( strcmp( command, "LSADDRESS" ) == 0 ){
-            snprintf( LSADDRESS, sizeof( LSADDRESS ), param );
-        } else if( strcmp( command, "LSPORT" ) == 0 ){//TESTNAME
-			LSPORT = atoi( param);
-		} else if( strcmp( command, "TESTNAME" ) == 0 ){
-            snprintf( TESTNAME, sizeof( TESTNAME ), param );
-#endif
-
-#ifdef _OACSTRUCT_TCP
-		} else if( strcmp( command, "OACBIND" ) == 0 ){
-            OACbindtype = atoi( param );
-#endif
-
-        } else if( strcmp( command, "saacname" ) == 0 ){ // 星系名
-			snprintf( saacname, sizeof( saacname ), param );
-		}
+			  } else if( strcmp( command , "Total_Charlist" ) == 0 ){
+        	Total_Charlist = atoi( param );
+        	log( "更新人物点数间隔:%d秒\n",Total_Charlist );
+        } else if( strcmp( command , "Expired_mail" ) == 0 ){
+        	Expired_mail = atoi( param );
+        	log( "更新过期邮件间隔:%d秒\n",Expired_mail );
+        } else if( strcmp( command , "Del_Family_or_Member" ) == 0 ){
+        	Del_Family_or_Member = atoi( param );
+        	log( "删除家族成员间隔:%d秒\n",Del_Family_or_Member );
+        } else if( strcmp( command , "Write_Family" ) == 0 ){
+        	Write_Family = atoi( param );
+        	log( "更新家族信息间隔:%d秒\n",Write_Family );
+				} else if( strcmp( command , "SameIpMun" ) == 0 ){
+        	sameipmun = atoi( param );
+        	if(sameipmun>0){
+        		log( "同IP允许同时登陆:%d次\n",sameipmun );
+        	}else{
+        		log( "同IP允许同时登陆:无限制\n" );
+        	}
+				}
     }
 
     fclose(fp);
     return 0;
 }
 
+
 static void parseOpts( int argc, char **argv )
 {
     int c , option_index;
 
-    while(1){
+		while(1){
         static struct option long_options[] = {
-            {"wkport" , 1 , 0 , 'w'},
+            {"nice" , 1 , 0 , 'n'},
             {"help" , 0 , 0 , 'h' },
-            {0,0,0,0}
+            {"userinfo",0 , 0 , 'i'},
+            {"lockuser",0 , 0 , 'l'}
         };
-        c = getopt_long( argc , argv , "w:h" , long_options , &option_index );
+        c = getopt_long( argc , argv , "n:hil" , long_options , &option_index );
         if( c == -1 )break;
         switch( c ){
         case 'h':
             fprintf( stderr ,
-                     "Usage: saac [-h] [-w port] [-w port] ... \n"
-                     "-h : show this help\n"
-                     "-w port : add a worker process' port\n"
-                     "Copyright 1999 Kengo Nakajima "
-                     "( Japan System Supply )\n");
+                     "使用方法: saac [-h] [-w port] [-w port] ... \n"
+                     "-h : 显示saac的帮助\n"
+                     "-w port : 添加一个工作站进程端口\n"
+                     "Copyright 2006 龙zoro工作室 "
+                     "( Longzoro System Supply )\n");
             exit(0);
             break;
-        case 'w':
-			wknum ++;
-#ifndef _FIX_WORKS
-			log( "add worker port %d\n", atoi ( optarg ));
-            addWorkerPort( atoi( optarg ));
+        case 'i':
+#ifdef _SASQL
+        		sasql_init();
+        		sasql_craete_userinfo();
+        		sasql_close();
 #endif
+						exit(0);
             break;
+        case 'l':
+#ifdef _SASQL
+        		sasql_init();
+        		sasql_craete_lock();
+        		sasql_close();
+#endif
+        		exit(0);
+            break;
+        case 'n':
+        		nice(atoi( optarg ));
+        		break;
         default:
-            log( "cannot understand option %c\n" , c );
+            log( "不能读懂选项 %c\n" , c );
             exit(0);
         }
     }
 }
-double
-time_diff(struct timeval subtrahend,
-          struct timeval subtractor);
+double time_diff(struct timeval subtrahend,  struct timeval subtractor);
+
+
 int main( int argc , char **argv )
 {
-
+		parseOpts( argc, argv );
+		
     // Nuke +1 1012: Loop counter
-    int counter = 0;
+    int counter1 = 0;
+    
+    int counter2 = 0;
+    
+    int counter3 = 0;
+    
+    int counter4 = 0;
 
     signal(SIGUSR1, sigusr1);
 
@@ -698,120 +430,55 @@ int main( int argc , char **argv )
 
     Lock_Init();	// Arminius 7.17 memory lock
 
-#ifdef _SASQL
-	sasql_init();
-#endif
-
-#ifdef _UNLOCKPOOL
-	init_UnlockPool();
-#endif
-
-#ifdef _LOCK_SERVER
-	LServerInit();
-#endif
-#ifdef _PAUCTION_MAN
-	IAData_Init();
-#endif
-#ifdef _NEW_PLAYERGOLD
-	NEWPLAYER_FreeGoldInit();
-#endif
-#ifdef _UNIVERSE_CHATROOM
-	CHATROOM_Init();
-#endif
-	UNlockM_Init();
-    initWorkerPort();
-    parseOpts( argc, argv );
-    if(readConfig( "saac.cf" )<0){
-        log( "cannot read acserv.cf in current directory.\n" );
+		UNlockM_Init();
+    
+    if(readConfig( "acserv.cf" )<0){
+        log( "无法在当前目录里读取 acserv.cf .\n" );
         exit(1);
     }
-#ifdef _DEATH_CONTEND
-	if( PKLIST_InitPkTeamList( 2000 ) == -1 ) exit(1);
 
-	if( PKLIST_LoadUserfromFile( "pklist", "user1.txt" ) != -1 ){
-		PKLIST_CutStartUserfromFile( "pklist", "d.txt" );
-	}
-
-	if( PKLIST_LoadPkTeamListfromFile( "pklist", "pk_list_team.txt" ) == - 1 ) exit(1);
-	
-
-	PKLIST_alteUserfromFile( "pklist", "alteuser.txt");
-	PKLIST_CheckRepeatBattleHistory();
-	PKLIST_Sort_PKListSort();
-	
-
-	PKLIST_CheckAllUser();
-	PKLIST_BackupPkTeamListfromFile( "pklist", "pk_list_team.txt" );
-#endif
-
-
-
-    log( "read db\n" );
+#ifdef _SASQL
+    sasql_init();
+#endif	
+    log( "读取数据目录\n" );
     dbRead( dbdir );
-#ifdef _DEFEND_NEWUSERS
-	DEFEND_InitList();
-#endif
-#ifdef	__FAMILY
-    log("read familys memo\n");
+#ifdef	_FAMILY
+    log("读取 家族庄园\n");
     readFMSMemo(fmsmemodir);
-    log("read family point\n");
+    log("读取 家族留言\n");
     readFMPoint(fmpointdir);
-    log("read family\n");
+    log("读取 家族目录\n");
     readFamily(familydir);
 #endif
-    log( "prepare chardir\n" );
+    log( "准备 档案目录\n" );
     prepareDirectories( chardir );
-    log( "prepare logdir\n" );
+    log( "准备 日志目录\n" );
     prepareDirectories( logdir );
-    log( "prepare lockdir\n");
-    prepareDirectories( lockdir );
-    log( "prepare maildir\n" );
+    log( "准备 邮件目录\n" );
     prepareDirectories( maildir );
 
 #ifdef _SLEEP_CHAR
     prepareDirectories( sleepchardir );
-    log( "prepare sleepchardir\n" );
+    log( "准备 睡眠档案目录\n" );
 #endif
 
     /* 凶引匀化月丢□伙毛  心仇戈 */
     if( readMail(maildir) < 0 ){
-        log( "cannot initialize mail array\n" );
+        log( "不能初始化邮件\n" );
         exit(1);
-  
-	}
+		}
 
     /* TCPSTRUCT 毛赓渝祭 */
     {
         int tcpr;
         if( ( tcpr = tcpstruct_init( NULL , port , 0 ,
-		CHARDATASIZE * 16 * MAXCONNECTION , 1 /* DEBUG */ ) ) < 0 ){
-            log( "cannot init tcpstruct: %d\n", tcpr );
+						CHARDATASIZE * 16 * MAXCONNECTION , 1 /* DEBUG */ ) ) < 0 ){
+            log( "不能开启TCP: %d\n", tcpr );
             return 1;
         }
     }
     saacproto_InitServer( netWrite , CHARDATASIZE );
-    connectToWorker();
 
-#ifdef _OACSTRUCT_TCP
-	{
-		int ret;
-		if( (ret=OAC_InitTcpIp( OACbindtype, NULL, 0)) != OK ){
-			log( "_InitTcpIp err: %d\n", ret );
-			return 1;
-		}
-	}
-#endif
-
-#ifdef _LOCK_SERVER
-	if( connectToLServer( LSADDRESS, LSPORT) == FALSE )	{
-		log("%s", "LOGIN LServer FAIL!!\n");
-			return 1;
-	}else	{
-		log("%s", "connect LServer ok!!");
-		usleep( 100*10000);
-		LServer_SALogin_send();
-	}
-#endif
     {
         struct sigaction s,os;
         
@@ -831,65 +498,52 @@ int main( int argc , char **argv )
         sigaction( SIGPIPE, &s, &os );
 
     }
-  
-#ifdef _BAD_PLAYER            // WON ADD 送坏玩家去关       
-	log("\n BadPlayer init !!");
-	BadPlayer();
-#endif	
-  
+
 #ifdef _AC_SEND_FM_PK		 // WON ADD 庄园对战列表储存在AC
-#ifdef _ACFMPK_LIST
-	FMPK_LoadList();
-#else
 	load_fm_pk_list();
 #endif
-#endif
 
+#ifdef _ACFMPK_LIST
+	FMPK_LoadList();
+#endif
 #ifdef _ALLDOMAN
 	LOAD_herolist();  // Syu ADD 排行榜NPC
 #endif
 
-#ifdef _ANGEL_SUMMON
-	initMissionTable();
+#ifdef _VIP
+		log( "\n服务端版本: <%s 会员版>\n" , SERVER_VERSION );
+#else
+		log( "\n服务端版本: <%s 普通版>\n" , SERVER_VERSION );
 #endif
-
-#ifdef _RACEMAN
-	initRankTable();
-#endif
-    log( "start loop\n" );
+		log( "\n服务端编译完成时间:%s %s by 龙zoro工作室\n" , __DATE__ , __TIME__ );
+		
+    log( "\n开始工作...\n" );
 
     signal(SIGUSR1,sigusr1);	// Arminius 7.20 memory lock
-#ifdef _CHANGEGALAXY
-	signal(SIGUSR2, sighandle);	// Robin 2003/10/27 星系移民
-#endif
+	int itime=0;
 	while(1){
-        int newti,i;
-        static time_t main_loop_time;
+		itime++;
+		if(itime>cpuuse){
+			itime=0;
+			usleep(1);
+		}
+    int newti,i;
+    static time_t main_loop_time;
 		
-#if 1
 		sys_time = time(NULL);
 
 		if( main_loop_time != sys_time){
-#else
-		if( main_loop_time != time(NULL)){
-#endif
             main_loop_time = time(NULL);
-            counter++;
+            counter1++;
+            counter2++;
+            counter3++;
+            counter4++;
 			//andy add 2002/06/20
 			UNlockM_UnlockPlayer();
 
-#ifdef _TIMEOUTKICK
-			checkWGSPoint();
-#endif
-#ifdef _ANGEL_SUMMON
-			checkMissionTimelimit();
-#endif
-#ifdef _UNLOCKPOOL
-			UnlockPoolProc();
-#endif
-
             // Nuke *1 1012
-            if( ( counter % 300 ) == 0 ){
+            if( counter1 > Total_Charlist ){
+            		counter1=0;
                 char *c = ctime( &main_loop_time );
                 if( c ){
                     struct timeval st,et;
@@ -898,164 +552,61 @@ int main( int argc , char **argv )
                     dbFlush(dbdir);
                     gettimeofday( &et,NULL);
                     log( "Flushed db(%fsec)\n", time_diff(et,st) );
-                    log( "total charlist OK:%d NG:%d\n",
+                    log( "档案表列总数:%d NG:%d\n",
                          total_ok_charlist, total_ng_charlist );
                 }
             }
             // Nuke **1 1012
-            if( ( counter % 600 ) == 0 ){
+            //if( ( counter % 600 ) == 0 ){
+            if( counter2 > Expired_mail ){
+            		counter2=0;
                 struct timeval st,et;
                 gettimeofday( &st,NULL);
                 expireMail();
                 gettimeofday( &et,NULL);
-                log( "Expired mail(%fsec)\n", time_diff(et,st) );
+                log( "过期邮件(%fsec)\n", time_diff(et,st) );
             }
-#ifdef _NEW_PLAYERGOLD
-			if( ( counter % 300 ) == 0 ){
-				backupNEWPlayerListFile( "newuser.txt", "newuser.bak");
-			}
-#endif
-#ifdef	__FAMILY
-
-#ifndef _DEATH_FAMILY_LOGIN_CHECK   // WON ADD 家族战登入检查
-			if ((counter % /*10800*/600) == 0)	// 3hr( -> 1min)
-            {
-            	struct timeval st, et;
-            	time_t t1;
-            	gettimeofday(&st, NULL);
-            	time(&t1);
-            	delovertimeFMMem(t1);
-            	gettimeofday(&et, NULL);
-            	log("Del Family or Member (%fsec)\n", time_diff(et, st));
-            }
-#endif
-
-
-            if ((counter % 300) == 0) // 300( -> 60)
-            {
-            	struct timeval st, et;
-            	gettimeofday(&st, NULL);
-            	writeFamily(familydir);
-            	writeFMPoint(fmpointdir);
-            	writeFMSMemo(fmsmemodir);
-            	gettimeofday(&et, NULL);
-            	log("Write Family (%fsec)\n", time_diff(et, st));
-            }
+#ifdef	_FAMILY
+            //if ((counter % 300) == 0) // 300( -> 60)
+      if( counter4 > Write_Family ) // 300( -> 60)
+      {
+      	  counter4=0;
+         	struct timeval st, et;
+         	gettimeofday(&st, NULL);
+         	writeFamily(familydir);
+         	writeFMPoint(fmpointdir);
+         	writeFMSMemo(fmsmemodir);
+         	gettimeofday(&et, NULL);
+         	log("记录家族(%fsec)\n", time_diff(et, st));
+      }
 #endif
         }
-
-#ifdef _OACSTRUCT_TCP
-		OAC_select();
-		OAC_ReadMessLine();
-#endif
-
-        newti = tcpstruct_accept1();
-        if( newti >= 0 ){
-			log( "accept! ti: %d\n" , newti );
+    newti = tcpstruct_accept1();
+    if( newti >= 0 ){
+			log( "同意: %d\n" , newti );
 			gs[newti].use = 1;
-        }
+    }
 
-#ifdef _LOCK_SERVER
-		{
-			int mlen;
-			char buf[4096];
-			if( CHECK_LS_BEUSE() == TRUE )	{
-				TcpIp_LS_accept();
-
-			}
-			//Show_LS_MEMBufferList();
-
-			mlen = MMGet_LsReadBuflist( buf, sizeof( buf));
-			if( mlen > 0 )	{
-				if( lockproto_SaacDispatchMessage( buf) < 0 )	{
-					log( "LS Mess error :%s", buf);
-				}
-			}
-			CHECK_LSTYPE();
-#ifdef _TEST_LOCKSERVER
-			TEST_TOLOCKSERVER();
-#endif
-		}
-#endif
-
-#ifdef _FIX_WORKS
-		{
-			int wkti=-1;
-			int tis[BACKLOGNUM];
-			newti = tcpstruct_work_accept( tis , 1);
-			if( newti == 1 )	{
-				log( "accept WORK ti: %d\n" , newti );
-			}
-
-
-			for( i=0; i<MAXWORKCONNECTION; i++){
-//				char buf6[CHARDATASIZE*16];
-				char buf6[256];
-
-				if( MEMBuffer_getWkLineReadBuffer( i, buf6, sizeof(buf6), WK_R) <= 0 ){
-					continue;
-				}
-				wkti = i;
-//#ifndef _TIMEOUTKICK
-				{
-					int j;
-					for( j=0;; j++)	{
-						if( buf6[j] == '\n' ) buf6[j]= 0;
-						if( buf6[j] == 0 )break;
-					}
-				} 
-//#endif
-				doWorker( wkti, buf6 );
-			}
-		}
-#endif
         for(i=0;i<MAXCONNECTION;i++){
-            char buf[CHARDATASIZE*16];
+//        	char buf[CHARDATASIZE * 16;
+            char buf[CHARDATASIZE];
             int l;
             l = tcpstruct_readline_chop( i , buf , sizeof( buf )- 1);
-			if( isWorker( i ) ){
-#ifndef _FIX_WORKS
-                if( l > 0 ){
-                    doWorker( i , buf );
-                } else if( l == TCPSTRUCT_ETOOLONG || l < 0 ){
-                    checkWorkerClosed( i );
-                    tcpstruct_close( i );
-                } else if( l == 0 ){
-                    ;
-                }
-#endif
-            } else {
+						{
                 if( !gs[i].use )continue;
                 if( l > 0 ){
-					char debugfun[256];
+									char debugfun[256];
                     buf[l]=0;
                     if( saacproto_ServerDispatchMessage( i , buf, debugfun)<0){
                         // Nuke start
                         tcpstruct_close(i);// avoid the shutdown the gmsv ttom
-                        log( "GMSV(%s) Message error:%s\n", gs[i].name, debugfun);
+                        log( "GMSV(%s) 消息:%s\n", gs[i].name, debugfun);
                     }
                 } else if( l == TCPSTRUCT_ETOOLONG ){
-                    log( "TOOLONG ti:%d servername:%s\n", i , gs[i].name );
-
-#ifdef _AC_UNLOCK_GS_PLAYER     // WON ADD 自动UNLOCK
-					DeleteMemLockServer(gs[i].name);
-					log("\n gs_name(%s) logout! Unlock player!\n", gs[i].name );
-#endif
+                    log( "很长:%d 服务器名::%s\n", i , gs[i].name );
                     logout_game_server( i );
                 } else if( l < 0 ){
-                    log( "CLOSE ti:%d servername:%s\n", i , gs[i].name );
-#ifdef _UNIVERSE_CHATROOM
-					CHATROOM_GSClosedHandle( i);
-#endif
-#ifdef _AC_UNLOCK_GS_PLAYER     // WON ADD 自动UNLOCK
-					DeleteMemLockServer(gs[i].name);
-					log("\n s_name(%s) logout! Unlock player!\n", gs[i].name );
-#endif
-
-
-#ifdef _WORKER_AUTO_LOGOUT     // WON ADD GS断线自动送LOGOUT给WORKER
-					Worker_auto_logout( i, gs[i].name );
-#endif
+                    log( "关闭:%d 服务器名:%s\n", i , gs[i].name );
                     logout_game_server(i);
                 } else if( l == 0 ){
                     ;
@@ -1069,7 +620,7 @@ int main( int argc , char **argv )
             gettimeofday( &now , NULL );
             dif = time_diff( now, tv_loop_store );
             if( dif > 0.5 ){ // CoolFish 0.1 -> 0.5 2001/5/19
-                log( "Sl:%f" , dif );
+                //log( "Sl:%f" , dif );
             }
             tv_loop_store = now;
         }
@@ -1077,52 +628,7 @@ int main( int argc , char **argv )
         /* 伐□市□及正奶丞失它玄毛譬屯月［
            正奶丞失它玄仄凶日夫弘毛分仄化伐□市□毛诮仄化仄引丹［
            匹必□丞扔□田□卞  蔽读卞反骚襞允月           */
-        {
-            int i;
-            time_t thre = time(NULL) - WKTIMEOUT;            
-            for(i =0;i<MAXWK;i++){
-                if( !wk[i].use )continue;
-                if( wk[i].last_query &&
-                    wk[i].status == WKSTAT_WAITING &&
-                    wk[i].last_query < thre ){
-                    // Nuke start--
-                    log( "worker %d timeout! closing...\n", i );
-#ifdef _FIX_WORKS
-					Work_close( wk[i].ti );
-					wk[i].use = 0;
-					wk[i].fd = -1;
-					wk[i].status = WKSTAT_IDLE;
-#else
-                    tcpstruct_close( wk[i].ti );
-#endif
-                    log( "worker %d timeout! uhmmm...\n", i);
-
-                    if( wk[i].callback ){
-						// Robin log
-						//log(" wk[%d] c0:%s c1:%s c2:%s c3:%s c4:%s i0:%d i1:%d ",
-						//		wk[i].request_ti, wk[i].cparam[0], wk[i].cparam[1],
-						//		wk[i].cparam[2], wk[i].cparam[3], wk[i].cparam[4],
-						//		wk[i].iparam[0], wk[i].iparam[1]);
-
-                        wk[i].callback( wk[i].request_ti , -1,
-                                        wk[i].cparam[0] ,
-                                        wk[i].cparam[1] ,
-                                        wk[i].cparam[2] ,
-                                        wk[i].cparam[3] ,
-                                        wk[i].cparam[4] ,
-                                        wk[i].iparam[0] ,
-                                        wk[i].iparam[1] );
-                        wk[i].use = 0;
-                    }
-                }
-            }
-        }
     }
-    
-#ifdef _SASQL
-	sasql_close();
-#endif
-
     return 0;       
 }
 double
@@ -1208,28 +714,6 @@ int tcpstruct_init( char *addr , int p , int timeout_ms , int mem_use , int db )
     /* listen */
     if( listen( mainsockfd , BACKLOGNUM )<0) return TCPSTRUCT_ELISTEN;
 
-#ifdef _FIX_WORKS	//for work
-	MEMBuffer_Init();
-	if( SetWorkConnectionInit( 1) <= 0 )
-		return TCPSTRUCT_WORKERROR;
-
-	worksockfd = socket( AF_INET , SOCK_STREAM ,  0 );
-	log( "workInit: %d...\n" , worksockfd);
-	if( worksockfd < 0 ) return TCPSTRUCT_ESOCK;
-    bzero( &localaddr ,sizeof( localaddr ));
-    localaddr.sin_family = AF_INET;
-#ifdef _DYNAMIC_PORT
-	if (wkport == -1)
-		wkport = FORWORKPORT;
-	localaddr.sin_port = htons (wkport);
-#else
-    localaddr.sin_port = htons( FORWORKPORT );
-#endif
-    localaddr.sin_addr.s_addr = /*htonl( INADDR_ANY );*/inet_addr( "127.0.0.1" );
-    if( bind( worksockfd , (struct sockaddr*) &localaddr ,
-              sizeof( localaddr )) < 0 ) return TCPSTRUCT_WORKEBIND;
-    if( listen( worksockfd , BACKLOGNUM )<0) return TCPSTRUCT_ELISTEN;
-#endif
     return OK;
 }
 
@@ -1250,106 +734,108 @@ int tcpstruct_accept1( void )
 
 int tcpstruct_accept( int *tis , int ticount )
 {
-    int i;
-    int sret;
-    int accepted = 0;
-    struct timeval t;
-    fd_set rfds, wfds , efds;  
-    FD_ZERO( & rfds );
-    FD_ZERO( & wfds );
-    FD_ZERO( & efds );    
-
-    for(i=0;i<MAXCONNECTION;i++){
-        if( con[i].use &&
-            con[i].fd >= 0 && con[i].closed_by_remote ==0 ){
-            FD_SET( con[i].fd , & rfds );
-            FD_SET( con[i].fd , & wfds );
-            FD_SET( con[i].fd , & efds );
-        }
-    }
+  int i;
+  int sret = 0;
+  int accepted = 0;
+  struct timeval t;
+  fd_set rfds, wfds , efds;  
+  FD_ZERO( & rfds );
+  FD_ZERO( & wfds );
+  FD_ZERO( & efds );    
+  
+  for(i=0;i<MAXCONNECTION;i++){
+   if( con[i].use &&
+      con[i].fd >= 0 && con[i].closed_by_remote ==0 ){
+      FD_SET( con[i].fd , & rfds );
+      FD_SET( con[i].fd , & wfds );
+      FD_SET( con[i].fd , & efds );
     
-    t = select_timeout;
-    sret = select( 1024, & rfds , (fd_set*)NULL, & efds , &t);
-	if( sret > 0 ) {
-		for(i=0;i< MAXCONNECTION;i++){
-			if( ( con[i].fd >= 0 ) && FD_ISSET( con[i].fd , &rfds ) ){
-				int fr = getFreeMem( );
-				int rr , readsize ;
-				if( fr <= 0 ) continue;
-				if( fr > sizeof(tmpbuf ) ){
-					readsize = sizeof( tmpbuf);
-				} else {
-					readsize = fr;
-				}
-				rr = read( con[i].fd , tmpbuf , readsize );
-				if( rr <= 0 ){
-					con[i].closed_by_remote = 1;
-				} else {
-					appendReadBuffer( i , tmpbuf , rr );
+          
+	    t = select_timeout;
+	    sret = select( con[i].fd+1, & rfds , (fd_set*)NULL, (fd_set*)NULL , &t);
+			if( sret > 0 ) {
+				if( ( con[i].fd >= 0 ) && FD_ISSET( con[i].fd , &rfds ) ){
+					int fr = getFreeMem( );
+					int rr , readsize ;
+					if( fr <= 0 ) continue;
+					if( fr > sizeof(tmpbuf ) ){
+						readsize = sizeof( tmpbuf);
+					} else {
+						readsize = fr;
+					}
+					rr = read( con[i].fd , tmpbuf , readsize );
+					if( rr <= 0 ){
+						con[i].closed_by_remote = 1;
+					} else {
+						appendReadBuffer( i , tmpbuf , rr );
+#ifdef _DEBUG
+						printf("读取内容:%s\n",tmpbuf);
+#endif
+					}
 				}
 			}
-		}
-    }    
-    /* write */
-    t = select_timeout;    
-    sret = select( 1024, (fd_set*)NULL, &wfds, & efds , &t);
-	if( sret > 0 ) {
-		for(i=0;i<MAXCONNECTION;i++){
-			if( ( con[i].fd >= 0 ) && FD_ISSET( con[i].fd , &wfds )){
-				char send_buf[4096];
-				int l , rr;
-				memset( send_buf, 0, sizeof( send_buf));
-				l = consumeMemBufList( con[i].mbtop_wi ,send_buf, sizeof(send_buf),0 , 1 );
-				rr = write( con[i].fd , send_buf , l );
-				if( rr < 0 ){
-					con[i].closed_by_remote = 1;
-				} else {
-					consumeMemBufList( con[i].mbtop_wi , send_buf, l, 1 , 0 );
+	
+	    t = select_timeout;    
+	    sret = select( con[i].fd+1, (fd_set*)NULL, &wfds, (fd_set*)NULL , &t);
+			if( sret > 0 ) {
+				if( ( con[i].fd >= 0 ) && FD_ISSET( con[i].fd , &wfds )){
+					char send_buf[4096];
+					memset( send_buf, 0, sizeof( send_buf));
+					int l = consumeMemBufList( con[i].mbtop_wi ,send_buf, sizeof(send_buf),0 , 1 );
+					if(l>0){
+						int rr = write( con[i].fd , send_buf , l );
+						if( rr < 0 ){
+							con[i].closed_by_remote = 1;
+						} else {
+#ifdef _DEBUG
+							printf("发送内容:%s\n",send_buf);
+#endif
+							consumeMemBufList( con[i].mbtop_wi , send_buf, l, 1 , 0 );
+						}
+					}
 				}
 			}
 		}
 	}
 
-    for( i=0; i<ticount; i++){
-        int asret;
-        struct timeval t;
-        t.tv_sec =0;
-        t.tv_usec =0;
-        FD_ZERO( & rfds );
-        FD_ZERO( & wfds );
-        FD_ZERO( & efds );
-
-        FD_SET( mainsockfd , & rfds );
-        FD_SET( mainsockfd , & wfds );
-        FD_SET( mainsockfd , & efds );
-        asret = select( 1024, &rfds , &wfds , &efds, &t );
+  for( i=0; i<ticount; i++){
+    int asret;
+    struct timeval t;
+    t.tv_sec =0;
+    t.tv_usec =0;
+    FD_ZERO( & rfds );
+    FD_ZERO( & wfds );
+	  FD_ZERO( & efds );
+	  FD_SET( mainsockfd , & rfds );
+    FD_SET( mainsockfd , & wfds );
+    FD_SET( mainsockfd , & efds );
+    asret = select( mainsockfd+1, &rfds , &wfds , (fd_set*)NULL, &t );
 		// Nuke 20040610: add asret>0 to avoid signal interrupt in select
-        if( (asret>0) && FD_ISSET( mainsockfd , & rfds )){
-            struct sockaddr_in c;
-            int len , newsockfd;
-            int newcon;
-            bzero( &c , sizeof( c ));
-            len = sizeof( c );
-            fprintf( stderr, "i can accept " );
-            newcon = findregBlankCon( );
-            if( newcon < 0 ) continue;
-            newsockfd = accept( mainsockfd, (struct sockaddr*)&c , &len );
-            log( "accept: %d\n" , newsockfd );
-            if( newsockfd < 0 ){
-                unregMemBuf( newcon );
-                continue;
-            }
-            set_nodelay( newsockfd );
-            con[newcon].fd = newsockfd;
-            memcpy( &con[newcon].remoteaddr , &c ,sizeof(c));
-            tis[accepted] = newcon;
-            accepted ++;
+    if( (asret>0) && FD_ISSET( mainsockfd , & rfds )){
+      struct sockaddr_in c;
+      int len , newsockfd;
+      int newcon;
+      bzero( &c , sizeof( c ));
+      len = sizeof( c );
+      fprintf( stderr, "i can accept " );
+      newcon = findregBlankCon( );
+      if( newcon < 0 ) continue;
+        newsockfd = accept( mainsockfd, (struct sockaddr*)&c , &len );
+        log( "同意: %d\n" , newsockfd );
+        if( newsockfd < 0 ){
+          unregMemBuf( newcon );
+          continue;
         }
-    }
+        set_nodelay( newsockfd );
+        con[newcon].fd = newsockfd;
+        memcpy( &con[newcon].remoteaddr , &c ,sizeof(c));
+        tis[accepted] = newcon;
+        accepted ++;
+     }
+   }
 
-    return accepted;
+   return accepted;
 }
-
 
 int tcpstruct_close( int ti )
 {
@@ -1475,7 +961,7 @@ int tcpstruct_connect( char *addr , int port )
     set_nodelay( s );
     newti = findregBlankCon( );
     if( newti < 0 ){
-        fprintf( stderr , "connection FULL: newti:%d\n", newti );
+        fprintf( stderr , "连接失败: newti:%d\n", newti );
         return TCPSTRUCT_ECFULL;
     }
     con[newti].fd = s;
@@ -1746,18 +1232,28 @@ void checkGSUCheck( char *id )
     if(!id[0])	return;
 	memset( gname, 0,  sizeof( gname) );
 	if( LockNode_getGname( (getHash(id) & 0xff), id, gname) <= 0 ){
-		log("Can't find gname from id:%x/%s err !!\n", getHash( id), id);
+		log("无法从游戏中找到账号:%x/%s !!\n", getHash( id), id);
 		return;
 	}
 	log("\n");
     for(i=0; i < MAXCONNECTION; i++ ){
         if( gs[i].name[0] && strcmp( gs[i].name , gname )==0){
-            log("sending UCheck[%s] to %d.%x/%s fd:%d !!\n", id, i, getHash( id), gname, gs[i].fd);
-			saacproto_ACUCheck_send( gs[i].fd , id );
-			return;
+          log("发送解锁检查[%s] 到 %d.%x/%s 服务器:%d !!\n", id, i, getHash( id), gname, gs[i].fd);
+					saacproto_ACUCheck_send( gs[i].fd , id );
+					return;
         }
     }
-	log("Can't find gname:%s sending err !!\n", gname);
+//	log("Can't find gname:%s sending err !!\n", gname);
+
+	int ret = -1;
+		if( !isLocked( id) ) {
+			log( "删除内存信息: 用户:%x/%s 没有锁定!!\n", getHash(id), id);
+		}
+		if( DeleteMemLock( getHash(id) & 0xff, id, &ret) ) {
+
+		} else {
+			log( "不能解锁 %x:%s !\n", getHash(id), id);
+		}
 }
 
 void set_nodelay( int sock )
@@ -1766,19 +1262,10 @@ void set_nodelay( int sock )
     int result = setsockopt( sock, IPPROTO_TCP, TCP_NODELAY,
                              (char*)&flag, sizeof(int));
     if( result < 0 ){
-        log( "cannot set nodelay.\n" );
+        log( "不能设置延迟.\n" );
     } else {
-        log( "set nodelay: fd:%d\n", sock );
+        log( "设置延迟: fd:%d\n", sock );
     }
-
-#ifdef _NONBLOCK
-	result = fcntl (sock, F_SETFL, O_NONBLOCK);
-	if (result < 0) {
-		log ("cannot set nonblock.\n");
-	} else {
-		log ("set nonblock: fd:%d\n", sock);
-	}
-#endif
 }
 
 
@@ -1799,401 +1286,5 @@ void gmsvBroadcast( int fd, char *p1, char *p2, char *p3 , int flag )
             c++;
         }
     }
-/*
-#if 1
-    {
-        char fn[1000];
-        FILE *fp;
-        snprintf( fn, sizeof(fn), "%s/broadcast.log" , logdir );
-        fp = fopen( fn,"a" );
-        if(fp){
-            fprintf( fp, "From %s(%d) Id:[%s] Char:[%s] Mesg:[%s]\n",
-                     gs[fd].name, fd, p1,p2,p3 );
-            fclose(fp);
-        }
-    }
-#endif
-*/
 }
 
-// 星系移民
-/*
-void sigusr2(int a)
-{
-	
-	FILE *listfile;
-	char databuf[1024];
-	//char fname[1024];
-	//char new_fname[1024];
-	char backup_movelist[1024];
-	//char playerinfo[1024], frominfo[1024], toinfo[1024];
-	char *playerinfo;
-	int frominfo, toinfo;
-	int i, j;
-
-	char servername[16][20] =
-	{
-		"仙女", // 0
-		"太阳", // 1
-		"天神", // 2
-		"北斗", // 3
-		"紫微", // 4
-		"苍龙", // 5
-		"银河系", // 6
-		"香港", // 7
-		"星乐园", // 8
-		"网路家庭", // 9
-		"圣兽", // 10
-		"天鹰", // 11
-		"新界", // 12
-		"仙女1", // 13
-		"仙女2", // 14
-		"仙女3" // 15
-	};
-
-
-	log("\n  %s Change_Galaxies.......\n", saacname);
-
-	// 解除全部移民锁定
-	DeleteGalaxyChangeLock(0);
-
-	for( j=1; j<=12; j++) {
-
-		char listfilename[1024];
-		
-		// 读取移民列表
-		sprintf( listfilename, "StaMove_%d.txt", j);
-		listfile = fopen( listfilename, "r");
-		if( listfile == NULL)
-		{
-			continue;
-		}
-		log(" open_list_file:%s\n", listfilename);
-
-		
-		while(1)
-		{
-			if( fgets( databuf, sizeof(databuf), listfile) == NULL )
-				break;
-			
-			if( databuf[0] == '#')
-				continue;
-			
-			// 读一笔资料  (帐号 来源星系 目的星系)
-			//if( sscanf( databuf, "%s,%s,%s", playerinfo, frominfo, toinfo) != 3)
-			//	continue;
-			playerinfo = strtok( databuf, ",");
-			if( playerinfo == NULL) continue;
-			frominfo = atoi( strtok( NULL, ","));
-			toinfo = atoi( strtok( NULL, ","));
-			
-			log("\n %s,%d,%d ", playerinfo, frominfo, toinfo);
-
-			if( (frominfo <0) || ( frominfo >15) || (toinfo <0) || ( toinfo >15))
-				continue;
-			
-			// 是否要移民出去或移民进来
-			if( !strcmp( servername[frominfo], saacname) || !strcmp( servername[toinfo], saacname) )
-			{
-				
-				log(" from:%s to:%s ", servername[frominfo], servername[toinfo]);
-
-				// 锁帐号
-#ifdef _LOCK_ADD_NAME
-				InsertMemLock( getHash(playerinfo) & 0xff, playerinfo, "", "", "星系移民", 0, "0");
-#else
-				InsertMemLock( getHash(playerinfo) & 0xff, playerinfo, "", "星系移民", 0, "0");
-#endif
-				
-				// 踢人
-				log(" 移民前踢人 ");
-				for(i=0;i<MAXCONNECTION;i++)	{
-					if( is_game_server_login(i) ){
-						saacproto_ACKick_send( i , 1 , playerinfo , -2 );
-						log(" %d->%s->%s", i, gs[i].name, playerinfo);
-					}
-				}
-			}
-			//else
-			//{
-			//	continue;
-			//}
-			
-		}
-		
-		// 列表档案改名备份
-		//sprintf( backup_movelist, "%s.old", listfilename);
-		//rename( listfilename, backup_movelist);
-		
-		fclose( listfile);
-		
-	}
-
-	signal(SIGUSR2, sighandle);
-}
-*/
-
-#ifdef _TIMEOUTKICK
-void checkWGSPoint( void)
-{
-	int i, checkcount =0, kickcount =0, mooncount =0, nousecount =0;
-	struct tm *nowtime;
-	char timebuf[128];
-	static time_t lastcheck =0;
-
-	if( sys_time < lastcheck + 60*2 )
-		return;
-	
-	log("\n检查全部Deadline ");
-	
-	nowtime = localtime( &sys_time );
-
-	sprintf( timebuf, "%04d%02d%02d%02d%02d%02d",
-			nowtime->tm_year +1900, nowtime->tm_mon+1, nowtime->tm_mday,
-			nowtime->tm_hour, nowtime->tm_min, nowtime->tm_sec );
-	log(" %s ", timebuf);
-	
-	for( i =0; i <256; i++) {
-		LockNode *ln = userlock[i];
-		while (ln!=NULL) {
-			if( ln->use ==0 || ln->deadline[0] ==0 ) {
-				nousecount++;
-				ln=ln->next;
-				continue;
-			}
-			if( ln->deadline[0] =='0' ) {
-				log(" %s:%s(包月) ", ln->cdkey, ln->deadline);
-				mooncount++;
-				ln=ln->next;
-				continue;
-			}
-			checkcount++;
-			log(" %s:%s ", ln->cdkey, ln->deadline);
-			if( strcmp( timebuf, ln->deadline ) >= 0) {
-				kickcount++;
-				if( addWorkerTask( ln->cdkey, ln->passwd, "5"/*flag*/, checkWGSCallback ,
-						0/*gmsv_index*/, ln->cdkey, ln->passwd, ""/*charname*/ ,
-						"0"/*pros*/ , ""/*deadline*/ , 0, 0 ) < 0 ) {
-					//Kick
-					log(" 检查失败!! ");
-				}
-			}
-			else {
-				
-			}
-
-			ln=ln->next;
-		}
-	}
-
-	lastcheck = sys_time;
-
-	log("\n checked:%d moon:%d nouse:%d send_kick:%d ", checkcount, mooncount, nousecount, kickcount);
-}
-#endif
-
-
-#ifdef _ANGEL_SUMMON
-
-#define MISSIONFILE "db/missiontable.txt"
-
-static int initMissionTable( void )
-{
-	FILE *fp;
-	char onedata[1024];
-	char buf[1024];
-	int index =0;
-
-	memset( missiontable, 0, sizeof(missiontable));
-	fp = fopen( MISSIONFILE, "r");
-	if( !fp ) {
-		log("\n\n Load MissionTable ERROR!!!! \n\n");
-		//return false;
-	}
-	log("\n\n Load MissionTable... \n");
-	while(1) {
-		//
-		if( fgets( onedata, sizeof(onedata), fp) == NULL)
-			break;
-		if( onedata[0] == NULL || onedata[0] == '#' )
-			continue;
-		//easyGetTokenFromBuf( onedata, ',', 1, buf, sizeof( buf));
-		//index = atoi( buf);
-		easyGetTokenFromBuf( onedata, ',', 1, buf, sizeof( buf));
-		if( buf[0] == NULL ) continue;
-		strcpy( missiontable[index].angelinfo, buf);
-		easyGetTokenFromBuf( onedata, ',', 2, buf, sizeof( buf));
-		if( buf[0] == NULL ) continue;
-		strcpy( missiontable[index].heroinfo, buf);
-		easyGetTokenFromBuf( onedata, ',', 3, buf, sizeof( buf));
-		if( buf[0] == NULL ) continue;
-		missiontable[index].mission = atoi( buf);
-		easyGetTokenFromBuf( onedata, ',', 4, buf, sizeof( buf));
-		if( buf[0] == NULL ) continue;
-		missiontable[index].flag = atoi( buf);
-		easyGetTokenFromBuf( onedata, ',', 5, buf, sizeof( buf));
-		if( buf[0] == NULL ) continue;
-		missiontable[index].time = atoi( buf);
-		easyGetTokenFromBuf( onedata, ',', 6, buf, sizeof( buf));
-		if( buf[0] == NULL ) continue;
-		missiontable[index].limittime = atoi( buf);
-
-		log(" %d=%s,%s,%d,%d,%d,%d \n", index,
-			missiontable[index].angelinfo,
-			missiontable[index].heroinfo,
-			missiontable[index].mission,
-			missiontable[index].flag,
-			missiontable[index].time,
-			missiontable[index].limittime );
-
-		index++;
-		if( index >= MAXMISSIONTABLE) break;
-	}
-	fclose( fp);
-	log("..ok! \n");
-	//return true;
-}
-
-
-int saveMissionTable( void )
-{
-	FILE *fp;
-	char onedata[1024];
-	char buf[1024];
-	int index =0;
-
-	fp = fopen( MISSIONFILE, "w");
-	if( !fp ) {
-		log("\n\n Open MissionTable ERROR!!!! \n\n");
-		//return false;
-	}
-	log("\n\n Save MissionTable...");
-	for( index =0; index < MAXMISSIONTABLE; index++) {
-
-		if( missiontable[index].angelinfo[0] == NULL )
-			continue;
-		sprintf( onedata, "%s,%s,%d,%d,%d,%d\n",
-			missiontable[index].angelinfo,
-			missiontable[index].heroinfo,
-			missiontable[index].mission,
-			missiontable[index].flag,
-			missiontable[index].time,
-			missiontable[index].limittime );
-		fputs( onedata, fp);
-	}
-	fclose( fp);
-	log("..ok! \n");
-	//return true;
-}
-
-void delMissionTableOnedata( int index)
-{
-	int gi;
-
-	log("\n Del_MissionTable:%d:%s:%s \n", index, missiontable[index].angelinfo, missiontable[index].heroinfo);
-
-	if( index <0 || index >=MAXMISSIONTABLE) return;
-	strcpy( missiontable[index].angelinfo, "");
-	strcpy( missiontable[index].heroinfo, "");
-	missiontable[index].mission = 0;
-	missiontable[index].flag = MISSION_NONE;
-	missiontable[index].time = 0;
-	missiontable[index].limittime = 0;
-	
-	for( gi=0; gi<MAXCONNECTION; gi++) {
-		if (gs[gi].use && gs[gi].name[0]) {
-			saacproto_ACMissionTable_send( gi, index, 3, "", "");
-		}
-	}
-}
-
-#define ANSWERTIME 1 // 等待回答时间(小时)
-//#define DOINGTIME 3*24 // 任务时间(小时)
-#define BOUNDSTIME 1*24 // 保留时间(小时)
-
-void checkMissionTimelimit( void)
-{
-	int index;
-	static time_t lastcheck =0;
-
-	if( sys_time < lastcheck + 5*60 )
-		return;
-
-	log("\n checkMissionTimelimit:%d \n", sys_time);
-	for( index =0; index < MAXMISSIONTABLE; index++) {
-		if( missiontable[index].flag == MISSION_NONE) {
-			continue;
-		}
-		// 等待使者回应1小时
-		else if( missiontable[index].flag == MISSION_WAIT_ANSWER
-				&& sys_time > missiontable[index].time + ANSWERTIME*60*60 ) {
-			
-			delMissionTableOnedata( index);// 删
-		}
-		// 等待领奖完成 limittime小时
-		else if( ( missiontable[index].flag == MISSION_DOING || missiontable[index].flag == MISSION_HERO_COMPLETE )
-				&& ( sys_time > (missiontable[index].time + missiontable[index].limittime*60*60))		 ) {
-
-			char buf[1024];
-			int gi;
-			// 改TIMEOVER
-			log(" 任务及领奖时间过:%d ", index);
-			missiontable[index].flag = MISSION_TIMEOVER;
-			missiontable[index].time = time(NULL);
-			missiontable[index].limittime = BOUNDSTIME;
-			
-			sprintf( buf, "%d|%s|%s|%d|%d|%d|%d ", index,
-				missiontable[index].angelinfo,
-				missiontable[index].heroinfo,
-				missiontable[index].mission,
-				missiontable[index].flag,
-				missiontable[index].time,
-				missiontable[index].limittime );
-			for( gi=0; gi<MAXCONNECTION; gi++) {
-				if (gs[gi].use && gs[gi].name[0]) {
-					saacproto_ACMissionTable_send( gi, 1, 1, buf, "");
-				}
-			}
-			
-			continue;
-		}
-		//else if( missiontable[index].flag == MISSION_HERO_COMPLETE
-		//		&& sys_time > missiontable[index].time + BOUNDSTIME*60*60 ) {
-		//	log(" 领奖时间过:%d ", index);
-		//	delMissionTableOnedata( index);// 删
-		//}
-
-		// 资料保留时间(BOUNDSTIME小时)
-		else if( missiontable[index].flag == MISSION_TIMEOVER
-				&& sys_time > missiontable[index].time + BOUNDSTIME*60*60 ) {
-			log(" 保留时间过:%d ", index);
-			delMissionTableOnedata( index);// 删
-		}
-
-	}
-	saveMissionTable();
-
-	lastcheck = sys_time;
-}
-
-#endif
-
-#ifdef _RACEMAN
-//#define RANKFILE "race/ranktable.txt"
-struct RankTable ranktable[DEFMAXRANK];
-
-static int initRankTable( void )
-{
-	//FILE *fp;
-	memset( ranktable, 0, sizeof(ranktable));
-/*
-	fp = fopen( RANKFILE, "r");
-	if( !fp ) {
-		log("\n\n Load RankTable ERROR!!!! \n\n");
-	}
-	log("\n\n Load RankTable... \n");
-*/
-	return;
-}
-
-#endif

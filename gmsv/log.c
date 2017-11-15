@@ -13,8 +13,6 @@
 
 /*
  *
- * 夫弘白央奶伙及潘  反append 允月手及午仄卅中手及互丐月［
- * append允月手及反  赓卞白央奶伙毛夫日中化云仁［
  * 公丹匹卅中手及反踏五仇心及凶太卞fopen(..,"w")允月
  * by ringo
  */
@@ -45,16 +43,9 @@ struct tagLogconf{
     { "FAMILY: ", "familylog", "", NULL, TRUE},
     // Shan 11/02
     { "GM: ", "gmlog", "", NULL, TRUE},
-     // Terry 2001/09/28
-#ifdef _SERVICE
-    { "SERVICE: ", "servicelog", "", NULL, TRUE},       
-#endif
+
 #ifdef _GAMBLE_ROULETTE
 	{ "", "gamblelog", "", NULL, TRUE}, 
-#endif
-#ifdef _TEST_PETCREATE
-	{ "", "creatpetlog", "", NULL, TRUE},
-	{ "", "creatpetavglog", "", NULL, TRUE}, 
 #endif
 	{ "LOGIN: ", "loginlog", "", NULL, TRUE},
 	{ "", "pettranslog", "", NULL, TRUE},
@@ -66,30 +57,14 @@ struct tagLogconf{
 
 	{ "ACMESSAGE: ", "acmessagelog" ,"", NULL , TRUE},
 	{ "PKCONTEND:", "pkcontendlog", "", NULL, TRUE},
-#ifdef _STREET_VENDOR
-	{ "STREETVENDOR: ", "StreetVendorlog" ,"", NULL , TRUE},
-#endif
-#ifdef _ANGEL_SUMMON
-	{ "ANGEL: ", "angellog" ,"", NULL , TRUE},
-#endif
-#ifdef _LOG_OTHER
-	{ "OTHER: ", "otherlog" ,"", NULL , TRUE},
-#endif
-#ifdef _NEW_MANOR_LAW
-	{ "FMPKGETMONEY: ","FMPKGetMoneylog","",NULL,TRUE},
-	{ "FMFAMESHOP: ","FMFameShoplog","",NULL,TRUE},
-#endif
 };
 
 tagWarplog warplog[MAXMAPNUM];
 tagWarpCount warpCount[MAXMAPLINK];
 
 /*------------------------------------------------------------
- * 夫弘涩烂白央奶伙毛  氏匹 file 毛钒仁
  * 娄醒
- *  filename        char*       夫弘涩烂白央奶伙  
  * 忒曰袄
- *  FALSE   反褐  卅撩  匹丐月［
  ------------------------------------------------------------*/
 static BOOL readLogConfFile( char* filename )
 {
@@ -239,28 +214,6 @@ void Logfmpk(
 	}
 }
 
-#ifdef _NEW_MANOR_LAW
-void LogFMPKGetMomey(char *szFMName,char *szID,char *szCharName,int iMomentum,int iGetMoney,int iDest)
-{
-	struct  tm tm1;
-	char szDest[3][6] = {"身上","银行","错误"};
-
-	if(iDest < 0 || iDest > 1) iDest = 2;
-	memcpy(&tm1,localtime((time_t*)&NowTime.tv_sec),sizeof(tm1));
- 	printl(LOG_FMPK_GETMONEY,"FMName:%s\tID:%s\tName:%s\tMomentum:%d\tGetMoney:%d\tAddTo:%s\t(%d:%d)",
-														szFMName,szID,szCharName,iMomentum,iGetMoney,szDest[iDest],tm1.tm_hour,tm1.tm_min);
-}
-
-void LogFMFameShop(char *szFMName,char *szID,char *szCharName,int iFame,int iCostFame)
-{
-	struct  tm tm1;
-
-	memcpy(&tm1,localtime((time_t*)&NowTime.tv_sec),sizeof(tm1));
- 	printl(LOG_FM_FAME_SHOP,"FMName:%s\tID:%s\tName:%s\tFame:%d\tCostFame:%d\t(%d:%d)",
-														szFMName,szID,szCharName,iFame,iCostFame,tm1.tm_hour,tm1.tm_min);
-}
-#endif
-
 void LogAcMess(	int fd, char *type, char *mess )
 {
 	struct  tm tm1;
@@ -268,6 +221,7 @@ void LogAcMess(	int fd, char *type, char *mess )
 	if( strstr( mess, "Broadcast") != NULL ) return;
  	printl( LOG_ACMESS, "%d %s [%s] (%d:%d)" , fd, type, mess, tm1.tm_hour, tm1.tm_min);
 }
+
 
 void LogItem(
 	char *CharName, /* 平乓仿弁正   */
@@ -354,31 +308,6 @@ void LogPet(
  			Key,
  			floor, x, y, tm1.tm_hour, tm1.tm_min, uniquecode);
 }
-
-#ifdef _STREET_VENDOR
-void LogStreetVendor(
- 	char *SellName,
-	char *SellID,
-	char *BuyName,
-	char *BuyID,
-	char *ItemPetName,
-	int PetLv, //若是道具此值为 -1
-	int iPrice,
-	char *Key,
-	int Sfloor,
-	int Sx,
-	int Sy,
-	int Bfloor,
-	int Bx,
-	int By,
-	char *uniquecode
-){
-	struct  tm tm1;
-	memcpy(&tm1,localtime((time_t *)&NowTime.tv_sec),sizeof(tm1));
-	printl(LOG_STREET_VENDOR,"Sell:%s\t%s\tBuy:%s\t%s\tName=%s:Lv=%d|Price:%d,%s,SXY(%d,%d,%d)BXY(%d,%d,%d)(%d:%d),%s",SellName,SellID,BuyName,BuyID,
- 														ItemPetName,PetLv,iPrice,Key,Sfloor,Sx,Sy,Bfloor,Bx,By,tm1.tm_hour,tm1.tm_min,uniquecode);
-}
-#endif
 
 void LogBankStone(
         char *CharName, /* 平乓仿弁正   */
@@ -497,31 +426,6 @@ void LogTalk(
 
 
 }
-#ifdef _TEST_PETCREATE
-void backupTempLogFile( char *buf, char *entryname, int Num)
-{
-  int     i;
-  char szBuffer[256];
-	//entry
-    for( i=0 ; i<arraysizeof(LogConf) ; i++ ){
-        if( ! LogConf[i].append )continue;
-		if( strcmp( LogConf[i].entry , entryname )	)
-			continue;
-		print("\n\n find entryname !!");
-		sprintf( szBuffer, "./log/%s.%d", buf, Num );
-		print("\n backup %s \n", szBuffer );
-		if( LogConf[i].f != NULL ){
-			fclose( LogConf[i].f );
-			rename( LogConf[i].filename, szBuffer );
-	        LogConf[i].f = fopen( LogConf[i].filename , "a" );
-		}else{
-			rename( LogConf[i].filename, szBuffer );
-	        LogConf[i].f = fopen( LogConf[i].filename , "a" );
-		}
-		break;
-    }
-}
-#endif
 /*------------------------------------------------------------
  * 涩烂卞仄凶互匀化允屯化及白央奶伙毛田永弁失永皿
  * 白央奶伙反弁夫□术今木化中卅仃木壬弁夫□术允月
@@ -539,7 +443,6 @@ void backupAllLogFile( struct tm *ptm )
         /* append 匹卅中手及反仄卅中 */
         if( ! LogConf[i].append )continue;
 
-		/* 田永弁失永皿白央奶伙  综岳 */
 		sprintf( szBuffer, "%s.%4d%02d%02d", LogConf[i].filename,
 			ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday );
 
@@ -726,51 +629,6 @@ void LogFamily(
  		keyWord, data, tm1.tm_hour, tm1.tm_min );
 }
 
-// Terry 2001/09/28
-#ifdef _SERVICE
-void LogService(
-        char *CharName, //角色名称
-        char *CharID,   //玩家ID
-        int  itemid,    //物品ID
-        char *Key,      //说明
-        int floor,
-        int x,
-        int y
-)
-{
-  struct  tm tm1;
-                                                          
-  memcpy(&tm1,localtime((time_t *)&NowTime.tv_sec),sizeof(tm1));
-  printl(LOG_SERVICE,"%s\t%s\t%d=%s,(%d,%d,%d)(%d:%d)",
-         CharName,CharID,itemid,Key,floor,x,y,tm1.tm_hour,tm1.tm_min);
-  print("%s\t%s\t%d=%s,(%d,%d,%d)(%d:%d)",
-         CharName,CharID,itemid,Key,floor,x,y,tm1.tm_hour,tm1.tm_min);
-}
-#endif
-
-#ifdef _TEST_PETCREATE
-void LogCreatPet(
-	char *PetName, int petid, int lv, int hp,
-	int char_vital, int char_str, int char_tgh, int char_dex,
-	int vital, int str, int tgh, int dex,
-	int fixstr, int fixtgh, int fixdex,
-	int lvup, int petrank,
-	int flg
-	)	{
-  struct  tm tm1;
-  memcpy(&tm1,localtime((time_t *)&NowTime.tv_sec),sizeof(tm1));
-  if( flg == 0 )	{
-	printl(LOG_CREATPET,"%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,power,%d,%d,%d",
-		PetName, petid, lv, hp, char_vital/100, char_str/100, char_tgh/100, char_dex/100,
-		vital, str, tgh, dex, lvup, petrank,fixstr,fixtgh,fixdex);
-  }else	{
-	printl(LOG_AVGCREATPET,"%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,power,%d,%d,%d",
-		PetName, petid, lv, hp, char_vital/100, char_str/100, char_tgh/100, char_dex/100,
-		vital, str, tgh, dex, lvup, petrank,fixstr,fixtgh,fixdex);
-  }
-}
-#endif
-
 #ifdef _GAMBLE_ROULETTE
 void LogGamble(
         char *CharName, //角色名称
@@ -900,27 +758,7 @@ void LogPetFeed(
 	struct tm tm1;
 
 	memcpy( &tm1, localtime( (time_t *)&NowTime.tv_sec), sizeof( tm1));
- 	printl( LOG_PET, "%s\t%s\t%s:%d   蛋=%s (%d,%d,%d)(%d:%d) %s " , 
+ 	printl( LOG_PET, "%s\t%s\t%s:%d 喂蛋=%s (%d,%d,%d)(%d:%d) %s " , 
 		CharName, CharID, PetName, PetLv, Key, floor, x, y, tm1.tm_hour, tm1.tm_min, ucode);
 }
 
-#ifdef _ANGEL_SUMMON
-void LogAngel( char *msg) {
-
-	struct tm tm1;
-	memcpy( &tm1, localtime( (time_t *)&NowTime.tv_sec), sizeof( tm1));
- 	printl( LOG_ANGEL, "%s (%d:%d) ", msg, tm1.tm_hour, tm1.tm_min);
-}
-#endif
-
-#ifdef _LOG_OTHER
-void LogOther(
-	char *CharName,
-	char *CharID,
-	char *message
-){
-	struct  tm tm1;
-	memcpy( &tm1, localtime( (time_t *)&NowTime.tv_sec), sizeof( tm1));
- 	printl( LOG_OTHER, "%s\t%s\t(%d:%d)\t%s" , CharName, CharID, tm1.tm_hour, tm1.tm_min, message);
-}
-#endif

@@ -13,7 +13,7 @@ static int		MAGIC_magicnum;
 
 
 
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
 
 AttMagic	*ATTMAGIC_magic;
 int		 ATTMAGIC_magicnum;
@@ -41,7 +41,7 @@ static MAGIC_MagicFunctionTable MAGIC_functbl[] = {
 	{ "MAGIC_AttReverse",		MAGIC_AttReverse,	0},
 	{ "MAGIC_ResAndDef",		MAGIC_ResAndDef,	0},
 	
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
 	{ "MAGIC_AttMagic" , 		MAGIC_AttMagic , 0 },
 #endif
 #ifdef _OTHER_MAGICSTAUTS
@@ -108,8 +108,8 @@ INLINE int MAGIC_setInt( int index, MAGIC_DATAINT element, int data)
 /*----------------------------------------------------------------------*/
 INLINE char* MAGIC_getChar( int index, MAGIC_DATACHAR element)
 {
-	if( !MAGIC_CHECKINDEX( index)) return NULL;
-	if( !MAGIC_CHECKCHARDATAINDEX( element)) return NULL;
+	if( !MAGIC_CHECKINDEX( index)) return "\0";
+	if( !MAGIC_CHECKCHARDATAINDEX( element)) return "\0";
 	return MAGIC_magic[index].string[element].string;
 }
 
@@ -147,7 +147,7 @@ BOOL MAGIC_initMagic( char *filename)
 
     f = fopen(filename,"r");
     if( f == NULL ){
-        print( "file open error\n");
+        print( "文件打开失败\n");
         return FALSE;
     }
 
@@ -171,12 +171,12 @@ BOOL MAGIC_initMagic( char *filename)
     }
 
 #ifdef _MAGIC_OPTIMUM
-	print("\n 有效MT:%d 最大MT:%d \n", MAGIC_magicnum, max_magicid);
+	print("有效魔法:%d 最大魔法:%d ...", MAGIC_magicnum, max_magicid);
 	MAGIC_magicnum = max_magicid +1;
 #endif
 
     if( fseek( f, 0, SEEK_SET ) == -1 ){
-        fprint( "Seek Error\n" );
+        fprint( "搜索错误\n" );
         fclose(f);
         return FALSE;
     }
@@ -184,7 +184,7 @@ BOOL MAGIC_initMagic( char *filename)
     MAGIC_magic = allocateMemory( sizeof(struct tagMagic)
                                    * MAGIC_magicnum );
     if( MAGIC_magic == NULL ){
-        fprint( "Can't allocate Memory %d\n" ,
+        fprint( "无法分配内存 %d\n" ,
                 sizeof(struct tagMagic)*MAGIC_magicnum);
         fclose( f );
         return FALSE;
@@ -242,7 +242,7 @@ BOOL MAGIC_initMagic( char *filename)
 	        									i + 1,
 	        									token,sizeof(token));
 	        if( ret==FALSE ){
-	            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+	            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
 	            break;
 	        }
 	        MAGIC_setChar( magic_readlen, i, token);
@@ -253,7 +253,7 @@ BOOL MAGIC_initMagic( char *filename)
             ret = getStringFromIndexWithDelim( line,",",i,token,
                                                sizeof(token));
 
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
             
             if( FALSE == ret )
 
@@ -267,7 +267,7 @@ BOOL MAGIC_initMagic( char *filename)
 #else
                                                
             if( ret==FALSE ){
-                fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+                fprint("文件语法错误:%s 第%d行\n",filename,linenum);
                 break;
             }
             if( strlen( token) != 0 ) {
@@ -277,7 +277,7 @@ BOOL MAGIC_initMagic( char *filename)
 	    #endif
         }
 
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
         
         if( i != MAGIC_STARTINTNUM + MAGIC_IDX && i != MAGIC_DATAINTNUM + MAGIC_STARTINTNUM )
         	continue;
@@ -302,24 +302,12 @@ BOOL MAGIC_initMagic( char *filename)
     MAGIC_magicnum = magic_readlen;
 
 
-    print( "Valid magic Num is %d...", MAGIC_magicnum );
+    print( "有效魔法数是 %d...", MAGIC_magicnum );
 
 	/* hash 及瓒   */
 	for( i = 0; i < arraysizeof( MAGIC_functbl); i ++ ) {
 		MAGIC_functbl[i].hash = hashpjw( MAGIC_functbl[i].functionname);
 	}
-#if 0
-    for( i=0; i <MAGIC_magicnum ; i++ ){
-        for( j = 0; j < MAGIC_DATACHARNUM; j ++ ) {
-	        print( "%s ", MAGIC_getChar( i, j));
-		}
-		print( "\n");
-        for( j = 0; j < MAGIC_DATAINTNUM; j ++ ) {
-            print( "%d ", MAGIC_getInt( i, j));
-        }
-        print( "\n-------------------------------------------------\n");
-    }
-#endif
     return TRUE;
 }
 /*------------------------------------------------------------------------
@@ -332,7 +320,7 @@ BOOL MAGIC_reinitMagic( void )
 }
 
 
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
 
 /*------------------------------------------------------------------------
  * AttMagic的初始化
@@ -356,7 +344,7 @@ BOOL ATTMAGIC_initMagic( char *filename )
 	ATTMAGIC_magicnum = ftell( file ) / sizeof( struct tagAttMagic );
 	if( ATTMAGIC_magicnum % 2 )
 	{
-		fprint( "File format is illegal\n" );
+		fprint( "打开文件失败\n" );
 		fclose( file );
 
 		return FALSE;
@@ -368,7 +356,7 @@ BOOL ATTMAGIC_initMagic( char *filename )
     ATTMAGIC_magic = allocateMemory( sizeof( struct tagAttMagic ) * ATTMAGIC_magicnum );
 	if( NULL == ATTMAGIC_magic )
 	{
-		fprint( "Can't allocate Memory %d\n" , sizeof( struct tagAttMagic ) * ATTMAGIC_magicnum );
+		fprint( "无法分配内存 %d\n" , sizeof( struct tagAttMagic ) * ATTMAGIC_magicnum );
 		fclose( file );
 
 		return FALSE;
@@ -382,7 +370,7 @@ BOOL ATTMAGIC_initMagic( char *filename )
 
 	ATTMAGIC_magicnum = ATTMAGIC_magicnum / 2;
 
-    print( "Valid attmagic Num is %d\n" , ATTMAGIC_magicnum );
+    print( "有效的攻击魔法数 %d\n" , ATTMAGIC_magicnum );
 
 	return TRUE;
 }
@@ -466,7 +454,7 @@ int MAGIC_isTargetValid( int magicid, int toindex)
 	int marray;
 	marray= MAGIC_getMagicArray( magicid);
 
-	#ifdef __ATTACK_MAGIC
+	#ifdef _ATTACK_MAGIC
 
 	if( toindex >= 0 && toindex <= 19 )
 		return 0;

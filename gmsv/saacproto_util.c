@@ -9,8 +9,7 @@
 #endif
 #include "saacproto_util.h"
 //ttom +1
-//#define IS_2BYTEWORD( _a_ ) ( (char)(0x80) <= (_a_) && (_a_) <= (char)(0xFF) )
-#define IS_2BYTEWORD(_a_) 0
+#define IS_2BYTEWORD( _a_ ) ( (char)(0x80) <= (_a_) && (_a_) <= (char)(0xFF) )
 
 #ifdef saacproto__ENCRYPT
 long saacproto_ringoCompressor( unsigned char *code , long codelen , unsigned char *text , long textlen);
@@ -361,15 +360,11 @@ char*  saacproto_escapeString( char*a )
 		if( a[i] == '\0' ){
 			saacproto.escapework[c++] = '\0';
 			break;
-		}
-/* 
-		else if( ( char )0x80 <= a[i] && a[i] <= ( char )0xFF ){
+		} else if( ( char )0x80 <= a[i] && a[i] <= ( char )0xFF ){
 		        // for 2 Byte Word
 		        saacproto.escapework[c++] = a[i++];
 		        saacproto.escapework[c++] = a[i];
-		}
-*/ 
-		else if( a[i] == '\\' ){
+		} else if( a[i] == '\\' ){
 			saacproto.escapework[c++] = '\\';
 			saacproto.escapework[c++] = '\\';
 		} else if( a[i] == ' ' ){
@@ -395,15 +390,11 @@ char* saacproto_descapeString( char*a )
 		if( a[i] == '\0' ){
 			saacproto.escapework[c++]='\0';
 			break;
-		} 
-/*
-        else if( (char)0x80 <= a[i] && a[i] <= (char)0xFF ){
+		} else if( (char)0x80 <= a[i] && a[i] <= (char)0xFF ){
 		        // for 2 Byte Word
 		        saacproto.escapework[c++] = a[i++];
 		        saacproto.escapework[c++] = a[i];
-		}
-*/ 
-		else if( a[i] == '\\' ){
+		} else if( a[i] == '\\' ){
 	                if( a[i+1] == 0 ){     /* null */
 	                        saacproto.escapework[c++] = a[i];
 	                        continue;
@@ -558,12 +549,10 @@ void saacproto_CreateHeader( char *out ,char *fname )
 {
 	sprintf( out ,"%lu %s " , saacproto_GetNewMessageID() , fname );
 }
-
 void saacproto_CreateHeaderID( char *out,unsigned long msgid , char *fname )
 {
 	sprintf( out ,"%u %s " , (unsigned int)msgid , fname );
 }
-
 char *saacproto_Ltoa( long v )
 {
 	static char _ltoa_out[64];

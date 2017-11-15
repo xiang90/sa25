@@ -43,6 +43,9 @@ BOOL ITEM_getArgument( char* argument , char* entryname , char* buf , int buflen
 void ITEM_useEncounter( int charaindex, int toindex, int haveitemindex); // Arminius 7.31 cursed stone
 #ifdef _ITEM_METAMO
 void ITEM_metamo( int charaindex, int toindex, int haveitemindex );
+void ITEM_ColorMetamo( int charaindex, int toindex, int haveitemindex);
+void ITEM_CharaMetamo( int charaindex, int toindex, int haveitemindex);
+void ITEM_SexMetamo( int charaindex, int toindex, int haveitemindex);
 #endif
 #ifdef _ITEM_CRACKER
 void ITEM_Cracker(int charaindex,int toindex,int haveitemindex);
@@ -61,10 +64,6 @@ void ITEM_firecracker(int charaindex,int toindex,int haveitemindex);
 
 #ifdef _PET_LIMITLEVEL
 void ITEM_useOtherEditBase( int charaindex, int toindex, int haveitemindex);
-#endif
-
-#ifdef _ITEM_EDITBASES
-void ITEM_useFusionEditBase( int charaindex, int toindex, int haveitemindex);
 #endif
 
 void ITEM_WearEquip( int charaindex, int itemindex);
@@ -103,23 +102,8 @@ void ITEM_MagicEquitWear( int charaindex, int itemindex);
 void ITEM_MagicEquitReWear( int charaindex, int itemindex);
 #endif
 
-#ifdef _EQUIT_RESIST
-void ITEM_MagicResist( int charaindex, int itemindex);
-void ITEM_MagicReResist( int charaindex, int itemindex);
-#endif
-
-#ifdef _MAGIC_RESIST_EQUIT			// WON ADD 职业抗性装备    
-void ITEM_P_MagicEquitWear( int charaindex, int itemindex );
-void ITEM_P_MagicEquitReWear( int charaindex, int itemindex );
-#endif
-
-
 #ifdef _Item_DeathAct
 void ITEM_UseDeathCounter( int charaindex, int toindex, int haveitemindex);
-#endif
-
-#ifdef _DEATH_CONTENDWATCH
-void ITEM_useWatchBattle( int charaindex, int toindex, int haveitemindex);
 #endif
 
 #ifdef _FEV_ADD_NEW_ITEM			// FEV ADD 增加复活守精
@@ -138,10 +122,6 @@ void ITEM_useMaxRedSocksNew( int charaindex, int toindex, int haveitemindex);
 void ITEM_useSkillCanned( int charaindex, int toindex, int itemNo);
 #endif
 
-#ifdef _NEW_RIDEPETS
-void ITEM_useLearnRideCode( int charaindex, int toindex, int haveitemindex);
-#endif
-
 #ifdef _ITEM_WARP_FIX_BI
 void recoverbi(int index);
 #endif
@@ -157,16 +137,9 @@ void ITEM_useWarpForNum( int charaindex, int toindex, int haveitemindex );
 #ifdef _IMPRECATE_ITEM
 void ITEM_useImprecate( int charaindex, int toNo, int haveitemindex );
 #endif
-#ifdef _BLACK_MARKET
-void ITEM_BM_Exchange( int charaindex, int iindex);
-#endif
 
 #ifdef _THROWITEM_ITEMS
 void ITEM_ThrowItemBox( int charaindex, int toindex, int haveitemindex);
-#endif
-
-#ifdef _ITEM_WATERWORDSTATUS
-void ITEM_WaterWordStatus( int charaindex, int toindex, int haveitemindex);
 #endif
 
 #ifdef _ITEM_LOVERPARTY
@@ -185,25 +158,64 @@ void ITEM_useMagic( int charaindex, int toindex, int haveitemindex);
 void ITEM_usePetSkillCanned_WindowResult( int charaindex, int seqno, int select, char *data);
 #endif
 
-void ITEM_AddPRSkillPoint(int charaindex,int toindex,int haveitemindex);
-void ITEM_AddPRSkillPercent( int charaindex,int toindex,int haveitemindex);
-
-#ifdef _ANGEL_SUMMON
-void ITEM_AngelToken( int charaindex, int toindex, int haveitemindex );
-void ITEM_HeroToken( int charaindex, int toindex, int haveitemindex );
-#endif
 #ifdef _HALLOWEEN_EFFECT
 void ITEM_MapEffect(int charaindex,int toindex,int haveitemindex);
 #endif
 void ITEM_changePetOwner( int charaindex, int toindex, int haveitemindex);
 
-#ifdef _CONTRACT
-void ITEM_contract( int charaindex, int toindex, int haveitemindex);
-#endif
-
 #ifdef _TIME_TICKET
 void ITEM_timeticket( int charaindex, int toindex, int haveitemindex);
 #endif
+#ifdef _ITEM_SETLOVER
+void ITEM_SetLoverUser( int charaindex, int toindex, int haveitemindex);
+void ITEM_LoverWarp( int charaindex, int toindex, int haveitemindex);
+void ITEM_LoverUnmarry( int charaindex, int toindex, int haveitemindex);
+#endif
+
+#ifdef _GM_ITEM
+void ITEM_GMFUNCTION( int charaindex, int toindex, int haveitemindex);
+#endif
+
+#ifdef _VIP_SERVER
+void ITEM_AddMemberPoint( int charaindex, int toindex, int haveitemindex);
+#endif
+#ifdef _VIP_RIDE
+void ITEM_VipRide( int charaindex, int toindex, int haveitemindex);
+#endif
+#ifdef _FM_ITEM
+void ITEM_AddFame( int charaindex, int toindex, int haveitemindex);
+#endif
+#ifdef _LUCK_ITEM
+void ITEM_Luck( int charaindex, int toindex, int haveitemindex);
+#endif
+#ifdef _ITEM_METAMO_TIME
+void ITEM_MetamoTime( int charaindex, int toindex, int haveitemindex );
+#endif
+#ifdef _ITEM_GOLD
+void ITEM_Gold( int charaindex, int toindex, int haveitemindex);
+#endif
+#ifdef _MYSTERIOUS_GIFT
+void ITEM_MysteriousGift( int charaindex, int toindex, int haveitemindex);
+#endif
+#ifdef _BATTLE_PK
+void ITEM_BattlePK( int charaindex, int toindex, int haveitemindex);
+#endif
+#ifdef _SILENTZERO
+void ITEM_SetSilentZero( int charaindex, int toindex, int haveitemindex);
+#endif
+#ifdef _PET_LEVEL_ITEM
+void ITEM_PetLevelItem( int charaindex, int toindex, int haveitemindex);
+#endif
+#ifdef _ITEM_EFMETAMO
+void ITEM_efMetamo( int charaindex, int toindex, int haveitemindex);
+#endif
+#ifdef _PET_BEATITUDE
+void PET_BEATITUDE( int charaindex, int toindex, int haveitemindex);
+#endif
+#ifdef _GET_MULTI_ITEM
+void ITEM_GetMultiItem( int charaindex, int toindex, int haveitemindex);
+#endif
+void ITEM_NewName( int charaindex, int toindex, int haveitemindex);
 
 enum{
 	BD_KIND_HP,
@@ -213,9 +225,6 @@ enum{
 	BD_KIND_CURSE,
 	BD_KIND_BESTOW,
 	BD_KIND_WISHES,
-#ifdef _CHANGEITEMUSE	 // Syu ADD 调整战斗中使用料理设定
-	BD_KIND_HP_MP,
-#endif
 #ifdef _ITEM_UNBECOMEPIG
 	BD_KIND_UNBECOMEPIG,
 #endif

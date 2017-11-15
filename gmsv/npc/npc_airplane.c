@@ -39,12 +39,6 @@ enum {
 	NPC_AIR_MSG_EVENT,
 	NPC_AIR_MSG_START,
 	NPC_AIR_MSG_END,
-#ifdef _NPC_AIRDELITEM
-	NPC_AIR_MSG_DELITEM,
-#endif
-#ifdef _NPC_AIRLEVEL
-	NPC_AIR_MSG_MAXLEVEL,
-#endif
 };
 typedef struct {
 	char	option[32];
@@ -61,12 +55,6 @@ NPC_AIR_MSG		airmsg[] = {
 	{ "msg_event",		"PAON！！你无法加入唷！"},
 	{ "msg_start",		"哇喔~(出发进行)"},
 	{ "msg_end",		"哇喔~(到罗)"}
-#ifdef _NPC_AIRDELITEM
-	,{ "msg_delitem",  "你没有搭乘的道具"}
-#endif
-#ifdef _NPC_AIRLEVEL
-    ,{ "msg_maxlevel",  "你的等级过高哦"}
-#endif
 };
 
 static int NPC_AirSetPoint( int meindex, char *argstr);
@@ -77,9 +65,6 @@ static int NPC_AirCheckStone( int meindex, int charaindex, char *argstr);
 static void NPC_AirSendMsg( int meindex, int talkerindex, int tablenum);
 static int NPC_AirGetRoutePointNum( int meindex, char *argstr );
 static void NPC_Air_walk( int meindex);
-#ifdef _NPC_AIRLEVEL
-static BOOL NPC_AirCheckMaxLevel( int meindex, int charaindex, char *argstr);
-#endif
 
 #define		NPC_AIR_LOOPTIME		100
 #define		NPC_AIR_WAITTIME_DEFAULT	180
@@ -90,7 +75,7 @@ static BOOL NPC_AirCheckMaxLevel( int meindex, int charaindex, char *argstr);
 *********************************/
 BOOL NPC_AirInit( int meindex )
 {
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	int	i;
 	char	buf[256],buf1[256];
 	int	routenum;
@@ -241,36 +226,6 @@ void NPC_AirTalked( int meindex , int talkerindex , char *szMes ,
 				}
 			}
 		}
-#if 0
-		else if( strstr( szMes, "停止" )  ||
-			strstr( szMes, "停止" )  ||
-			strstr( szMes, "stop" )  ||
-			strstr( szMes, "Stop" ))
-		{
-			CHAR_setWorkInt( meindex, NPC_WORK_MODE,2);
-
-			/* 伙□皿楮醒及奶件正□田伙毛聂仁允月  */
-			CHAR_setInt( meindex, CHAR_LOOPINTERVAL, 
-						NPC_AIR_WAITINGMODE_WAITTIME);
-		    /* 蜇箕及凛棉毛本永玄 */
-		    CHAR_setWorkInt( meindex, NPC_WORK_CURRENTTIME, NowTime.tv_sec);
-		}
-		else if( strstr( szMes, NPC_AIR_DEBUGROUTINTG )) {
-			/* 犯田永弘迕 */
-			char *p = strstr( szMes,NPC_AIR_DEBUGROUTINTG);
-			char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
-
-			NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
-			if( p) {
-				int a = atoi( p+strlen(NPC_AIR_DEBUGROUTINTG));
-				if( a <0 ) a = 1;
-				CHAR_setWorkInt( meindex, NPC_WORK_CURRENTROUTE, a);
-			}
-			//print( "route:%d\n",CHAR_getWorkInt( meindex, NPC_WORK_CURRENTROUTE));
-			/* 伙□玄毛本永玄允月 */
-			NPC_AirSetPoint( meindex, argstr);
-		}
-#endif
 	}
 }
 /**************************************
@@ -332,7 +287,7 @@ void NPC_AirLoop( int meindex)
 		 * 剂仄仇仇匹它尼奶玄毛中木化支月
 		 */
 		if( CHAR_getWorkInt( meindex, NPC_WORK_CURRENTTIME) + 3	< NowTime.tv_sec){
-			char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+			char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 			NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
 			CHAR_setInt( meindex, CHAR_LOOPINTERVAL, NPC_AIR_WAITINGMODE_WAITTIME);
 			{
@@ -385,7 +340,7 @@ static void NPC_Air_walk( int meindex)
 	/* 谗邋仄凶及匹戚及禾奶件玄卞 */
 	if( start.x == end.x && start.y == end.y ) {
 		int add = 1;
-		char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+		char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 
 		NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
 
@@ -433,17 +388,6 @@ static void NPC_Air_walk( int meindex)
 	/* 漆中月桦赭及谨    由□  奴汹五匹银丹   */
 	end.x = CHAR_getInt( meindex, CHAR_X);
 	end.y = CHAR_getInt( meindex, CHAR_Y);
-
-#if 0
-	/* 夫匀井井匀凶凛及啃及质   */
-	for( i = 0; i < 100; i ++ ) {	
-		if( dir < 0 ) {
-			dir = RAND( 0,7);
-		}	
-		dir = NPC_Util_SuberiWalk( meindex, dir);
-		if( dir >= 0 && dir <= 7) break;
-	}
-#endif
 	
 	if( dir >= 0 && dir <= 7 ) {
 		/* 汹仁 */
@@ -602,7 +546,7 @@ BOOL NPC_AirCheckAllowItem( int meindex, int charaindex, BOOL pickupmode)
 	char	buf[1024];
 	BOOL	found = TRUE;
 	BOOL	pickup = FALSE;
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	
 	NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
 	
@@ -664,22 +608,6 @@ static BOOL NPC_AirCheckLevel( int meindex, int charaindex, char *argstr)
 	return FALSE;
 }
 
-#ifdef _NPC_AIRLEVEL
-static BOOL NPC_AirCheckMaxLevel( int meindex, int charaindex, char *argstr)
-{
-	int		level;
-	
-	/* 卅仃木壬中仃卅中娄醒及民尼永弁 */
-	level = NPC_Util_GetNumFromStrWithDelim( argstr, "maxlevel");
-	if( level == -1 ) {
-		return TRUE;
-	}
-	if( CHAR_getInt( charaindex, CHAR_LV) < level ) return TRUE;
-	
-	return FALSE;
-}
-#endif
-
 /**************************************
  * 豢嗯毛民尼永弁允月
  * -1 蛲   0动晓”    ］井勾  邰Stone
@@ -703,7 +631,7 @@ static int NPC_AirCheckStone( int meindex, int charaindex, char *argstr)
  **************************************/
 static void NPC_AirSendMsg( int meindex, int talkerindex, int tablenum)
 {
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	char	buf[256];
 	char	msg[256];
 	if( tablenum < 0 || tablenum >= arraysizeof( airmsg)) return;
@@ -749,7 +677,7 @@ static int NPC_AirGetRoutePointNum( int meindex, char *argstr )
 BOOL NPC_AirCheckJoinParty( int meindex, int charaindex, BOOL msgflg)
 {
     //int		fd;
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	int		ret;
 	NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
 	
@@ -787,23 +715,11 @@ BOOL NPC_AirCheckJoinParty( int meindex, int charaindex, BOOL msgflg)
 		if( msgflg) NPC_AirSendMsg( meindex, charaindex, NPC_AIR_MSG_ALLOWITEM);
 		return FALSE;
 	}
-#ifdef _NPC_AIRDELITEM
-	if( !NPC_AirCheckDelItem( meindex, charaindex, FALSE) ){ //若是没扣除了道具
-		if( msgflg ) NPC_AirSendMsg( meindex, charaindex, NPC_AIR_MSG_DELITEM);
-	    return FALSE;
-	}
-#endif
 	/* 伊矛伙及民尼永弁毛允月 */
 	if( !NPC_AirCheckLevel( meindex, charaindex, argstr)) {
 		if( msgflg) NPC_AirSendMsg( meindex, charaindex, NPC_AIR_MSG_LEVEL);
 		return FALSE;
 	}
-#ifdef _NPC_AIRLEVEL
-    if( !NPC_AirCheckMaxLevel( meindex, charaindex, argstr)) {
-		if( msgflg) NPC_AirSendMsg( meindex, charaindex, NPC_AIR_MSG_MAXLEVEL);
-		return FALSE;
-	}
-#endif
 	/* 奶矛件玄  井民尼永弁允月 */
 //	if( CHAR_getInt( charaindex, CHAR_NOWEVENT) != 0 ||
 //		CHAR_getInt( charaindex, CHAR_NOWEVENT2) != 0 ||
@@ -837,43 +753,3 @@ BOOL NPC_AirCheckJoinParty( int meindex, int charaindex, BOOL msgflg)
 	
 	return TRUE;
 }
-
-#ifdef _NPC_AIRDELITEM //上飞机时,检查是否要扣除道具
-BOOL NPC_AirCheckDelItem( int meindex, int charaindex, BOOL pickupmode)
-{
-	char	buf[1024];
-	BOOL	found = TRUE;
-	BOOL	pickup = FALSE;
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
-	
-	NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
-	if( NPC_Util_GetStrFromStrWithDelim( argstr, "delitem", buf, sizeof( buf))
-		!= NULL ) 
-	{
-		int	i;
-		int ret;
-		for( i = 1; ; i ++) {
-			int itemid;
-			char buf2[64];
-			int j;
-			ret = getStringFromIndexWithDelim( buf, ",", i, buf2, sizeof(buf2));
-			if( ret == FALSE ) break;
-			itemid = atoi( buf2);
-			for( j = 0; j < CHAR_MAXITEMHAVE; j ++) {
-				int itemindex = CHAR_getItemIndex( charaindex, j);
-				if( ITEM_CHECKINDEX( itemindex)) {
-					if( ITEM_getInt( itemindex, ITEM_ID) == itemid) {
-						CHAR_DelItem( charaindex, j);
-						break;
-					}
-				}
-			}
-			if( j == CHAR_MAXITEMHAVE) {
-				found = FALSE;
-				break;
-			}
-		}
-	}
-	return found;
-}
-#endif

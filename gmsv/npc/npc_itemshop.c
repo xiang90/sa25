@@ -11,43 +11,22 @@
 #include "log.h"
 #include "family.h"
 
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收	
-extern struct  FM_POINTLIST fmpointlist;                   // 家族据点
-#endif
 #define MAXSHOPITEM 33
 static void NPC_ItemShop_selectWindow( int meindex, int talker, int num,int select);
 void NPC_ItemShop_BuyMain(int meindex,int talker,int before );
-
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收	
-void NPC_GetItemList(int meindex, char *argstr,char * argtoken2);
-void NPC_ItemStrStr(int meindex, int itemID,double rate,char *name,char *token2);
-#else
 void NPC_GetItemList(char *argstr,char * argtoken2);
-	#ifdef _NEW_MANOR_LAW
-	void NPC_ItemStrStr(int itemID,double rate,char *name,char *token2,int iCostFame,int iChangeItemCost);
-	#else
-	void NPC_ItemStrStr(int itemID,double rate,char *name,char *token2);
-	#endif
-#endif
+void NPC_ItemStrStr(int itemID,double rate,char *name,char *token2);
 
 BOOL NPC_SetNewItem(int meindex,int talker,char *data);
 BOOL NPC_SellNewItem(int meindex,int talker,char *data);
 
 void NPC_ItemShop_Menu(int meindex,int talker);
 
-#ifdef _NPC_SHOPALTER01
-int NPC_GetLimtItemList(int talker,char *argstr,char *token2,int sell, char* sLimt); //sLimt存放玩家的物品可否卖出,以及价钱,格式为 0|100|10|0|1|50|10|0|1|80|10|0| ,0:可卖,1:不可卖,再来数值为价钱,10为table,0为堆叠
-#else
 int NPC_GetLimtItemList(int talker,char *argstr,char *token2,int sell);
-#endif
 
 void NPC_ItemShop_SellMain(int meindex,int talker,int select);
 int NPC_GetSellItemList(int itemindex,int flg,char *argstr,char *argtoken,int select,int sell);
-#ifdef _NEW_MANOR_LAW
-BOOL NPC_AddItemBuy(int meindex, int talker,int itemID,int kosuu,double rate,int iCostFame,int iChangeItemCost);
-#else
 BOOL NPC_AddItemBuy(int meindex, int talker,int itemID,int kosuu,double rate);
-#endif
 int NPC_SellItemstrsStr(int itemindex,int flg,double rate,char *argtoken,int select,int sell);
 void NPC_LimitItemShop(int meindex,int talker,int select);
 void NPC_ExpressmanCheck(int meindex,int talker);
@@ -77,7 +56,7 @@ static NPC_Shop		TypeTable[] = {
 	{ "ARMOUR",		7 }, //盔甲
 	{ "BRACELET",	8},  //手镯
 	{ "ANCLET",		9 }, //踝饰
-	{ "NECKLACE",	10}, //项  
+	{ "NECKLACE",	10}, //项链
 	{ "RING",		11}, //戒指
 	{ "BELT",		12}, //腰带
 	{ "EARRING",	13}, //耳环
@@ -87,18 +66,6 @@ static NPC_Shop		TypeTable[] = {
 	{ "BOOMERANG",	17}, //回力标
 	{ "BOUNDTHROW",	18}, 
 	{ "BREAKTHROW",	19}, //投掷物
-#ifdef _ITEM_TYPETABLE
-	{ "DISH",	20},
-	{ "METAL",	21},
-	{ "JEWEL",	22},
-	{ "WARES",	23},
-	{ "WBELT",	24},
-	{ "WSHIELD", 25},
-	{ "WSHOES",	26},
-	{ "WGLOVE",	27},
-	{ "ANGELTOKEN",	28},
-	{ "HEROTOKEN",	29},
-#endif
 	{ "ACCESSORY",	30}, //配件
 	{ "OFFENCE",	40}, //攻击
 	{ "DEFENCE",	50}, //防御
@@ -349,22 +316,11 @@ void NPC_ItemShop_BuyMain(int meindex,int talker,int before )
     
 	char token2[NPC_UTIL_GETARGSTR_BUFSIZE];
 	char buff2[256];
-    char buff[256];
-    
-#ifdef _NPC_SHOPALTER01
-	char sLimt[1024]; //存放玩家物品可否卖出及价钱
-	char tokentemp[NPC_UTIL_GETARGSTR_BUFSIZE]; //与token功能相同
-	float fdata; //转换sell_rate为数值
-#endif
-
+  char buff[256];
 	if(NPC_Util_GetArgStr( meindex, argstr, sizeof(argstr)) == NULL) {
        	print("itemshop_GetArgStr_Err");
        	return;
     }
-#ifdef _ADD_STATUS_2
-	sprintf(token,"FAME|%d",CHAR_getInt(talker,CHAR_FAME)/100);
-	lssproto_S2_send(fd,token);
-#endif
 	if(before != -1) {
 		sprintf(token,"0|0");
 
@@ -395,22 +351,9 @@ void NPC_ItemShop_BuyMain(int meindex,int talker,int before )
 		strncat(token , token2,sizeof(token));
 		strcpy(token2, "|");
 
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收	
-		NPC_GetItemList(meindex, argstr, token2);
-#else
 		NPC_GetItemList( argstr, token2);
-#endif
 		strncat( token, token2, sizeof( token));
 	}
-
-#ifdef _NPC_SHOPALTER01
-	sprintf(tokentemp,"%s","");
-	sprintf(sLimt,"%s","");
-	NPC_GetLimtItemList( talker, argstr, tokentemp, -1, sLimt);//详细玩家要卖出的道具资料
-    fdata = atof(NPC_Util_GetStrFromStrWithDelim( argstr, "sell_rate", buff, sizeof( buff)));
-	fdata *= 100; //原本资料为小数,Client端处理的为整数,所以乘以100
-	sprintf(token,"%suseritem|%d%s", token, (int)fdata, sLimt);//原本的字串後再加上sell_rate,与sLimt资料
-#endif
 
 	lssproto_WN_send( fd, WINDOW_MESSAGETYPE_ITEMSHOPMAIN, 
 				WINDOW_BUTTONTYPE_NONE, 
@@ -419,25 +362,12 @@ void NPC_ItemShop_BuyMain(int meindex,int talker,int before )
 				token);
 
 }
-
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收	
-void NPC_GetItemList(int meindex, char *argstr,char *argtoken)
-#else
 void NPC_GetItemList(char *argstr,char *argtoken)
-#endif
 {
 	int i = 1;
 	int tmp;
-	char *name ;
+	char *name ="\0";
 	char buff2[256];
-#ifdef _NEW_MANOR_LAW
-	char buff3[NPC_UTIL_GETARGSTR_LINEMAX];
-	char buff4[256];
-	char buff5[NPC_UTIL_GETARGSTR_LINEMAX];
-	char buff6[256];
-	int iCostFame = 0;
-	int iChangeItemCost = 0;
-#endif
 	char buff[NPC_UTIL_GETARGSTR_LINEMAX];
 	char token2[NPC_UTIL_GETARGSTR_BUFSIZE];
 	double rate = 1.0;
@@ -447,38 +377,15 @@ void NPC_GetItemList(char *argstr,char *argtoken)
 	 != NULL){
 		rate = atof( buff2);
 	}
-#ifdef _NEW_MANOR_LAW
-	memset(buff3,0,sizeof(buff3));
-	memset(buff5,0,sizeof(buff5));
-	if(NPC_Util_GetStrFromStrWithDelim(argstr,"CostFame",buff3,sizeof(buff3)) == NULL) iCostFame = -1;
-	if(NPC_Util_GetStrFromStrWithDelim(argstr,"ChangeItemCost",buff5,sizeof(buff5)) == NULL) iChangeItemCost = -1;
-#endif
 	if( NPC_Util_GetStrFromStrWithDelim( argstr, "ItemList", buff, sizeof( buff)) != NULL ){
 	    while( getStringFromIndexWithDelim(buff,",",i,buff2,sizeof(buff2)) !=FALSE ) {
-#ifdef _NEW_MANOR_LAW
-				if(iCostFame > -1){
-					if(getStringFromIndexWithDelim(buff3,",",i,buff4,sizeof(buff4)) != FALSE) iCostFame = atoi(buff4);
-				}
-				if(iChangeItemCost > -1){
-					if(getStringFromIndexWithDelim(buff5,",",i,buff6,sizeof(buff6)) != FALSE) iChangeItemCost = atoi(buff6);
-				}
-#endif
 			i++;
 			if(strstr( buff2, "-") == NULL) {
 			 	name = ITEM_getNameFromNumber( atoi(buff2));
-				if(name == NULL) continue;
+				if(name == "\0") continue;
 				loopcnt++;
 				if(loopcnt == MAXSHOPITEM) break;
-
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收
-				NPC_ItemStrStr( meindex, atoi( buff2), rate, name, token2);
-#else
-	#ifdef _NEW_MANOR_LAW
-				NPC_ItemStrStr( atoi( buff2), rate, name, token2,iCostFame,iChangeItemCost);
-	#else
 				NPC_ItemStrStr( atoi( buff2), rate, name, token2);
-	#endif
-#endif
 	    		strncat( argtoken, token2, sizeof(token2));
 			}else{
 				int start;
@@ -494,22 +401,13 @@ void NPC_GetItemList(char *argstr,char *argtoken)
 				}
 				end++;
 				for(; start < end ; start++ ) {
-					/*--引内  蟆      --*/
+					/*--引内抩蟆???--*/
 
 				 	name = ITEM_getNameFromNumber( start );
-					if(name == NULL) continue;
+					if(name == "\0") continue;
 					loopcnt++;
 					if(loopcnt == MAXSHOPITEM) break;
-
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收
-					NPC_ItemStrStr( meindex, start, rate, name, token2);
-#else
-	#ifdef _NEW_MANOR_LAW
-					NPC_ItemStrStr( start, rate, name, token2,iCostFame,iChangeItemCost);
-	#else
 					NPC_ItemStrStr( start, rate, name, token2);
-	#endif
-#endif
 		    		strncat( argtoken, token2, sizeof(token2));
 				}
 			}
@@ -517,15 +415,7 @@ void NPC_GetItemList(char *argstr,char *argtoken)
 	}
 }
 
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收
-	void NPC_ItemStrStr(int meindex, int itemID,double rate,char *name,char *token2)
-#else
-	#ifdef _NEW_MANOR_LAW
-		void NPC_ItemStrStr(int itemID,double rate,char *name,char *token2,int iCostFame,int iChangeItemCost)
-	#else
-		void NPC_ItemStrStr(int itemID,double rate,char *name,char *token2)
-	#endif
-#endif
+void NPC_ItemStrStr(int itemID,double rate,char *name,char *token2)
 {
 
 	int gold;
@@ -533,64 +423,7 @@ void NPC_GetItemList(char *argstr,char *argtoken)
 	int graNo;
 	char info[1024];
 	char escape[256];	
-
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收(改九大庄园时要修改)
-	float fm_tax=1.00;
-	int npc_village;
-
-	// 改九大庄园时要修改
-	switch( (int)( CHAR_getInt( meindex, CHAR_FLOOR)/100 ) )
-	{
-		case 10:
-			npc_village = 0;
-			break;
-		case 20:
-			npc_village = 1;
-			break;			
-		case 30:
-			npc_village = 2;
-			break;		
-		case 40:
-			npc_village = 3;
-			break;
-#ifdef _FAMILY_MANORNUM_CHANGE	// 加庄园时要记得加
-		case 50:
-			npc_village = 4;
-			break;	
-		case 60:
-			npc_village = 5;
-			break;
-		case 70:
-			npc_village = 6;
-			break;			
-		case 80:
-			npc_village = 7;
-			break;		
-		case 90:
-			npc_village = 8;
-			break;			
-#endif
-		default:
-			npc_village = -1;
-			break;
-	}
-	if( npc_village < 0 || npc_village > 9 )
-		return;
-	// 税率控制
-	if( npc_village >= 0){
-		fm_tax +=  (float)fmpointlist.fm_tax[ npc_village ] / 100;
-	}
-	if (fm_tax < 1)		fm_tax = 1 ;
-
-	gold =(int)( (float)ITEM_getcostFromITEMtabl(itemID) * fm_tax );
-
-#else
-	#ifdef _NEW_MANOR_LAW
-	if(iChangeItemCost > -1) gold = iChangeItemCost;
-	else 
-	#endif
 	gold  = ITEM_getcostFromITEMtabl( itemID);
-#endif
 	level = ITEM_getlevelFromITEMtabl( itemID);
 	graNo = ITEM_getgraNoFromITEMtabl( itemID);
 	strcpy(escape,ITEM_getItemInfoFromNumber( itemID));
@@ -598,11 +431,7 @@ void NPC_GetItemList(char *argstr,char *argtoken)
 
 	makeEscapeString( escape, info, sizeof( info));
 	makeEscapeString( name, escape, sizeof( escape));
-#ifdef _NEW_MANOR_LAW
-	sprintf(token2,"%s|0|%d|%d|%d|%s|%d|",escape,level,gold,graNo,info,iCostFame < 0 ? -1:iCostFame/100);
-#else
 	sprintf( token2, "%s|0|%d|%d|%d|%s|", escape, level, gold, graNo, info);
-#endif
 }
 
 BOOL NPC_SetNewItem(int meindex,int talker,char *data)
@@ -610,14 +439,6 @@ BOOL NPC_SetNewItem(int meindex,int talker,char *data)
 
 	char buf[1024];
 	char buff2[128];
-#ifdef _NEW_MANOR_LAW
-	char buff3[1024];
-	char buff4[128];
-	char buff5[1024];
-	char buff6[128];
-	int iCostFame = 0;
-	int iChangeItemCost = 0;
-#endif
 	int i = 1, j = 1;
 	int select;
 	int kosuu = 0;
@@ -663,24 +484,9 @@ BOOL NPC_SetNewItem(int meindex,int talker,char *data)
 		rate= atof( buf);
 	}
 
-#ifdef _NEW_MANOR_LAW
-	memset(buff3,0,sizeof(buff3));
-	memset(buff5,0,sizeof(buff5));
-	if(NPC_Util_GetStrFromStrWithDelim(argstr,"CostFame",buff3,sizeof(buff3)) == NULL) iCostFame = -1;
-	if(NPC_Util_GetStrFromStrWithDelim(argstr,"ChangeItemCost",buff5,sizeof(buff5)) == NULL) iChangeItemCost = -1;
-#endif
-
 	/*--失奶  丞及馨笛毛垫丹午仇欠-*/
 	if( NPC_Util_GetStrFromStrWithDelim( argstr, "ItemList", buf, sizeof( buf)) != NULL ){
 		while(getStringFromIndexWithDelim(buf , "," , j, buff2, sizeof(buff2)) != FALSE ){
-#ifdef _NEW_MANOR_LAW
-			if(iCostFame > -1){
-				if(getStringFromIndexWithDelim(buff3,",",j,buff4,sizeof(buff4)) != FALSE) iCostFame = atoi(buff4);
-			}
-			if(iChangeItemCost > -1){
-				if(getStringFromIndexWithDelim(buff5,",",j,buff6,sizeof(buff6)) != FALSE) iChangeItemCost = atoi(buff6);
-			}
-#endif
 			j++;
 			/*--  "-"互殖引木化中月井升丹井--*/
 			if(strstr( buff2, "-") == NULL) {
@@ -688,11 +494,7 @@ BOOL NPC_SetNewItem(int meindex,int talker,char *data)
 					if ( i == select) {
 						/*---失奶  丞及综岳---*/
 						/*--蜊醒坌综岳--*/
-#ifdef _NEW_MANOR_LAW
-						if(NPC_AddItemBuy(meindex, talker,atoi(buff2),kosuu,rate,iCostFame,iChangeItemCost) != TRUE)
-#else
 						if(NPC_AddItemBuy(meindex, talker,atoi(buff2),kosuu,rate) != TRUE)
-#endif
 						{
 							return FALSE;
 						}
@@ -725,11 +527,7 @@ BOOL NPC_SetNewItem(int meindex,int talker,char *data)
 						if ( i == select) {
 							/*---失奶  丞及综岳---*/
 							/*--蜊醒坌综岳--*/
-#ifdef _NEW_MANOR_LAW
-							if(NPC_AddItemBuy(meindex, talker, start, kosuu, rate,iCostFame,iChangeItemCost) != TRUE)
-#else
 							if(NPC_AddItemBuy(meindex, talker, start, kosuu, rate) != TRUE)
-#endif
 							{
 								return FALSE;
 							}
@@ -749,11 +547,7 @@ BOOL NPC_SetNewItem(int meindex,int talker,char *data)
 /*---------------------------------------------
  *失奶  丞及馨笛毛垫丹
  *--------------------------------------------*/
-#ifdef _NEW_MANOR_LAW
-BOOL NPC_AddItemBuy(int meindex, int talker,int itemID,int kosuu,double rate,int iCostFame,int iChangeItemCost)
-#else
 BOOL NPC_AddItemBuy(int meindex, int talker,int itemID,int kosuu,double rate)
-#endif
 {
 
 	int itemindex;
@@ -761,78 +555,14 @@ BOOL NPC_AddItemBuy(int meindex, int talker,int itemID,int kosuu,double rate)
 	int gold;
 	int ret;
 	int maxgold;
-#ifdef _NEW_MANOR_LAW
-	int iTotalCostFame = -1;
-#endif
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收(改九大庄园时要修改)
-	float fm_tax=1;
-	int npc_village;
-
-	gold = ITEM_getcostFromITEMtabl( itemID);
-	switch( (int)( CHAR_getInt( meindex, CHAR_FLOOR)/100 ) ){
-		case 10:
-			npc_village = 0;
-			break;
-		case 20:
-			npc_village = 1;
-			break;			
-		case 30:
-			npc_village = 2;
-			break;		
-		case 40:
-			npc_village = 3;
-			break;
-#ifdef _FAMILY_MANORNUM_CHANGE
-		case 50:
-			npc_village = 4;
-			break;	
-		case 60:
-			npc_village = 5;
-			break;
-		case 70:
-			npc_village = 6;
-			break;			
-		case 80:
-			npc_village = 7;
-			break;		
-		case 90:
-			npc_village = 8;
-			break;			
-#endif
-		default:
-			npc_village = -1;
-			break;
-	}
-	// 税率控制
-	if( npc_village > 0)
-		fm_tax += (float)fmpointlist.fm_tax[ npc_village ] / 100;
-	if (fm_tax < 1)		fm_tax = 1 ;
-	gold = (int)( (float)gold * rate * fm_tax ) ;
-#else
-	#ifdef _NEW_MANOR_LAW
-	if(iChangeItemCost > -1) gold = iChangeItemCost;
-	else
-	#endif
 	gold = ITEM_getcostFromITEMtabl( itemID);
 	gold = (int)(gold * rate);
-#endif
 
 	maxgold = gold * kosuu;
 	if(CHAR_getInt( talker, CHAR_GOLD) < maxgold ) return FALSE;
-#ifdef _NEW_MANOR_LAW
-	if(iCostFame > 0){
-		iTotalCostFame= iCostFame * kosuu;
-		if(CHAR_getInt(talker,CHAR_FAME) < iTotalCostFame) return FALSE;
-	}
-#endif
 
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收		
-	if( addNpcFamilyTax( meindex, talker, maxgold * (fm_tax - 1) ) )
-#else
 	if( addNpcFamilyTax( meindex, talker, maxgold*0.4 ) )
-#endif
-		//print(" FamilyTaxDone! ");
-		;
+		print(" FamilyTaxDone! ");
 	else
 		print(" FamilyTaxError!");
 	for(i = 0 ; i < kosuu ; i++){
@@ -848,28 +578,6 @@ BOOL NPC_AddItemBuy(int meindex, int talker,int itemID,int kosuu,double rate)
 		CHAR_sendItemDataOne( talker, ret);
 	}
 	CHAR_DelGold( talker, maxgold);
-#ifdef _NEW_MANOR_LAW
-	if(iTotalCostFame > 0){
-		CHAR_setInt(talker,CHAR_FAME,CHAR_getInt(talker,CHAR_FAME) - iTotalCostFame);
-		if(CHAR_getInt(talker,CHAR_FMINDEX) != -1 && (strcmp(CHAR_getChar(talker,CHAR_FMNAME),""))){
-			int fd = getfdFromCharaIndex(talker);
-			char	buf[256];
-			sprintf(buf,"%d",CHAR_getInt(talker,CHAR_FAME));
-			saacproto_ACFixFMData_send(acfd,
-				CHAR_getChar(talker,CHAR_FMNAME),
-				CHAR_getInt(talker,CHAR_FMINDEX),
-				CHAR_getWorkInt(talker,CHAR_WORKFMINDEXI),
-				FM_FIX_FAME,buf,"",
-				CHAR_getWorkInt(talker,CHAR_WORKFMCHARINDEX),
-				CONNECT_getFdid(fd));
-			LogFMFameShop(CHAR_getChar(talker,CHAR_FMNAME),
-										CHAR_getChar(talker,CHAR_CDKEY),
-										CHAR_getChar(talker,CHAR_NAME),
-										CHAR_getInt(talker,CHAR_FAME),
-										iTotalCostFame);
-		}
-	}
-#endif
 	//CHAR_send_P_StatusString( talker, CHAR_P_STRING_GOLD);
 	return TRUE;
 
@@ -883,12 +591,6 @@ void NPC_ItemShop_Menu(int meindex,int talker)
 	char buff[256];
 	int fd = getfdFromCharaIndex( talker);
 
-#ifdef _NPC_SHOPALTER01
-	char sLimt[1024]; //存放玩家物品可否卖出及价钱
-	char tokentemp[NPC_UTIL_GETARGSTR_BUFSIZE]; //与token功能相同
-	float fdata; //转换sell_rate为数值
-#endif
-
     //argstr取得整个设定档的讯息: 例如->buy_rate:1.0|sell_rate:0.2|buy_msg:买,购买,感谢您,kau,buy............. (中间的分格号是读入时加入的)
     if(NPC_Util_GetArgStr( meindex, argstr, sizeof(argstr)) == NULL) {
 		print("shop_GetArgStr_Err");
@@ -897,20 +599,8 @@ void NPC_ItemShop_Menu(int meindex,int talker)
     
 	//token为视窗上面的title文字  例如: 萨姆吉尔的防具店|欢迎光临
     NPC_Util_GetStrFromStrWithDelim( argstr, "main_msg", buff, sizeof( buff));
-#ifdef _NEW_MANOR_LAW
-	snprintf(token, sizeof(token),"%s|%s|%d",CHAR_getChar(meindex,CHAR_NAME),buff,CHAR_getInt(talker,CHAR_FAME)/100);
-#else
 	snprintf(token, sizeof(token),"%s|%s",CHAR_getChar( meindex, CHAR_NAME), buff);
-#endif
 
-#ifdef _NPC_SHOPALTER01
-	sprintf(tokentemp,"%s","");
-	sprintf(sLimt,"%s","");
-	NPC_GetLimtItemList( talker, argstr, tokentemp, -1, sLimt);//详细玩家要卖出的道具资料
-    fdata = atof(NPC_Util_GetStrFromStrWithDelim( argstr, "sell_rate", buff, sizeof( buff)));
-	fdata *= 100; //原本资料为小数,Client端处理的为整数,所以乘以100
-	sprintf(token,"%suseritem|%d%s", token, (int)fdata, sLimt);//原本的字串後再加上sell_rate,与sLimt资料
-#endif
 	lssproto_WN_send( fd, WINDOW_MESSAGETYPE_ITEMSHOPMENU, 
 				WINDOW_BUTTONTYPE_NONE, 
 				CHAR_WINDOWTYPE_WINDOWITEMSHOP_STARTMSG,
@@ -930,11 +620,6 @@ void NPC_ItemShop_SellMain(int meindex,int talker,int before)
        	print("shop_GetArgStr_Err");
        	return;
     }
-
-#ifdef _ADD_STATUS_2
-	sprintf(token,"FAME|%d",CHAR_getInt(talker,CHAR_FAME)/100);
-	lssproto_S2_send(fd,token);
-#endif
 
 	if(before != -1) {
 		sprintf(token,"1|0");
@@ -964,11 +649,7 @@ void NPC_ItemShop_SellMain(int meindex,int talker,int before)
 			NPC_Util_GetStrFromStrWithDelim( argstr, "realy_msg", buff2, sizeof( buff2));
 		}
 		sprintf( token2,"%s|%s|", buff, buff2);
-#ifdef _NPC_SHOPALTER01
-		NPC_GetLimtItemList( talker,argstr, token2, -1, NULL);//详细玩家要卖出的道具资料
-#else
 		NPC_GetLimtItemList( talker,argstr, token2, -1);//详细玩家要卖出的道具资料
-#endif	
 		strncat( token, token2, sizeof( token));
 
 		lssproto_WN_send( fd, WINDOW_MESSAGETYPE_ITEMSHOPMAIN+
@@ -980,11 +661,7 @@ void NPC_ItemShop_SellMain(int meindex,int talker,int before)
 
 	}
 }
-#ifdef _NPC_SHOPALTER01
-int NPC_GetLimtItemList(int talker, char *argstr, char* token2,int sell, char* sLimt)//sLimt:玩家可卖物品的字串
-#else
 int NPC_GetLimtItemList(int talker, char *argstr, char* token2,int sell)
-#endif
 {
 
 	char token[NPC_UTIL_GETARGSTR_LINEMAX];
@@ -998,11 +675,6 @@ int NPC_GetLimtItemList(int talker, char *argstr, char* token2,int sell)
 	char buf[256];
 	int flg=0;
 	int cost;
-
-#ifdef _NPC_SHOPALTER01
-    char sbuf[256]; //取得sLimt前,用sbuf取得每一项资料,再存入sLimt
-#endif
-
 
 	if(sell == -1 ){
 		i = CHAR_STARTITEMARRAY;
@@ -1022,41 +694,14 @@ int NPC_GetLimtItemList(int talker, char *argstr, char* token2,int sell)
 			if( NPC_Util_GetStrFromStrWithDelim( argstr,"LimitItemType", buff, sizeof( buff)) != NULL ){
 				k = 1;
 				while(getStringFromIndexWithDelim(buff , "," , k, token, sizeof(token)) != FALSE ){
-#ifdef _ITEM_TYPETABLE
-					int cmpmaxitem = sizeof(TypeTable)/sizeof(TypeTable[0]);
-#endif
 					k++;
-#ifdef _ITEM_TYPETABLE
-					for(j = 0 ; j < cmpmaxitem ; j++){
-#else
 					for(j = 0 ; j < ITEM_CATEGORYNUM+3 ; j++){
-#endif
 						if(strcmp( TypeTable[ j].arg  , token) == 0 ) {
 							itemtype = TypeTable[ j].type;
 							if(ITEM_getInt(itemindex,ITEM_TYPE) == itemtype) {
 								cost = NPC_GetSellItemList(itemindex,0,argstr,token3,i,sell);
 								if(cost != -1) return cost;
 								strncat( token2, token3, sizeof( token3));
-#ifdef _NPC_SHOPALTER01
-								print("Change->itemtype = %d",itemtype);
-								print("Change->token2:%s\n",token2);
-								print("Change->token3:%s\n",token3);
-								if( sLimt )
-								{
-									if( getStringFromIndexWithDelim(token3 , "|" , 2, sbuf, sizeof( sbuf)) ){
-										sprintf(sLimt,"%s|%s",sLimt,sbuf);
-										if( getStringFromIndexWithDelim(token3 , "|" , 3, sbuf, sizeof( sbuf)) ){
-											sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-											if( getStringFromIndexWithDelim(token3 , "|" , 6, sbuf, sizeof( sbuf)) ){
-												sprintf(sLimt,"%s|%s",sLimt,sbuf);  
-												if( getStringFromIndexWithDelim(token3 , "|" , 7, sbuf, sizeof( sbuf)) ){
-													sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-												}
-											}
-										}
-									}
-								}
-#endif
 								okflg = 1;
 							}else if(itemtype == 30){
 								if( 8 <= ITEM_getInt(itemindex,ITEM_TYPE) 
@@ -1064,26 +709,6 @@ int NPC_GetLimtItemList(int talker, char *argstr, char* token2,int sell)
 									cost = NPC_GetSellItemList(itemindex,0,argstr,token3,i,sell);
 									if(cost != -1) return cost;
 									strncat(token2,token3,sizeof(token3));
-#ifdef _NPC_SHOPALTER01
-									print("Change->itemtype = 30");
-									print("Change->token2:%s\n",token2);
-									print("Change->token3:%s\n",token3);
-									if( sLimt )
-									{
-										if( getStringFromIndexWithDelim(token3 , "|" , 2, sbuf, sizeof( sbuf)) ){
-											sprintf(sLimt,"%s|%s",sLimt,sbuf);
-											if( getStringFromIndexWithDelim(token3 , "|" , 3, sbuf, sizeof( sbuf)) ){
-												sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-												if( getStringFromIndexWithDelim(token3 , "|" , 6, sbuf, sizeof( sbuf)) ){
-													sprintf(sLimt,"%s|%s",sLimt,sbuf); 
-													if( getStringFromIndexWithDelim(token3 , "|" , 7, sbuf, sizeof( sbuf)) ){
-														sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-													}
-												}
-											}
-										}
-									}
-#endif
 									okflg = 1;
 								}
 							}else if(itemtype == 40){
@@ -1094,26 +719,6 @@ int NPC_GetLimtItemList(int talker, char *argstr, char* token2,int sell)
 									cost = NPC_GetSellItemList(itemindex,0,argstr,token3,i,sell);
 									if(cost != -1) return cost;
 									strncat(token2,token3,sizeof(token3));
-#ifdef _NPC_SHOPALTER01
-									print("Change->itemtype = 40");
-									print("Change->token2:%s\n",token2);
-									print("Change->token3:%s\n",token3);
-									if( sLimt )
-									{
-										if( getStringFromIndexWithDelim(token3 , "|" , 2, sbuf, sizeof( sbuf)) ){
-											sprintf(sLimt,"%s|%s",sLimt,sbuf);
-											if( getStringFromIndexWithDelim(token3 , "|" , 3, sbuf, sizeof( sbuf)) ){
-												sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-												if( getStringFromIndexWithDelim(token3 , "|" , 6, sbuf, sizeof( sbuf)) ){
-													sprintf(sLimt,"%s|%s",sLimt,sbuf); 
-													if( getStringFromIndexWithDelim(token3 , "|" , 7, sbuf, sizeof( sbuf)) ){
-														sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-													}
-												}
-											}
-										}
-									}
-#endif
 									okflg = 1;
 								}
 							}else if(itemtype == 50){
@@ -1122,26 +727,6 @@ int NPC_GetLimtItemList(int talker, char *argstr, char* token2,int sell)
 									cost = NPC_GetSellItemList(itemindex,0,argstr,token3,i,sell);
 									if(cost != -1) return cost;
 									strncat(token2,token3,sizeof(token3));
-#ifdef _NPC_SHOPALTER01
-									print("Change->itemtype = 50");
-									print("Change->token2:%s\n",token2);
-									print("Change->token3:%s\n",token3);
-									if( sLimt )
-									{
-										if( getStringFromIndexWithDelim(token3 , "|" , 2, sbuf, sizeof( sbuf)) ){
-											sprintf(sLimt,"%s|%s",sLimt,sbuf);
-											if( getStringFromIndexWithDelim(token3 , "|" , 3, sbuf, sizeof( sbuf)) ){
-												sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-												if( getStringFromIndexWithDelim(token3 , "|" , 6, sbuf, sizeof( sbuf)) ){
-													sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-													if( getStringFromIndexWithDelim(token3 , "|" , 7, sbuf, sizeof( sbuf)) ){
-														sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-													}
-												}
-											}
-										}
-									}
-#endif
 									okflg = 1;
 								}
 							}
@@ -1161,26 +746,6 @@ int NPC_GetLimtItemList(int talker, char *argstr, char* token2,int sell)
 							cost = NPC_GetSellItemList(itemindex,0,argstr,token3,i,sell);
 							if(cost != -1) return cost;
 							strncat(token2,token3,sizeof(token3));
-#ifdef _NPC_SHOPALTER01
-							print("Change->1\n");
-							print("Change->token2:%s\n",token2);
-							print("Change->token3:%s\n",token3);
-							if( sLimt )
-							{
-								if( getStringFromIndexWithDelim(token3 , "|" , 2, sbuf, sizeof( sbuf)) ){
-									sprintf(sLimt,"%s|%s",sLimt,sbuf);
-									if( getStringFromIndexWithDelim(token3 , "|" , 3, sbuf, sizeof( sbuf)) ){
-										sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-										if( getStringFromIndexWithDelim(token3 , "|" , 6, sbuf, sizeof( sbuf)) ){
-											sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-											if( getStringFromIndexWithDelim(token3 , "|" , 7, sbuf, sizeof( sbuf)) ){
-												sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-											}
-										}
-									}
-								}
-							}
-#endif
 							okflg=1;
 						}
 					}else if (strstr( token, "-") != NULL){
@@ -1205,26 +770,6 @@ int NPC_GetLimtItemList(int talker, char *argstr, char* token2,int sell)
 							cost = NPC_GetSellItemList(itemindex,0,argstr,token3,i,sell);
 							if(cost != -1) return cost;
 							strncat(token2,token3,sizeof(token3));
-#ifdef _NPC_SHOPALTER01
-							print("Change->2\n");
-							print("Change->token2:%s\n",token2);
-							print("Change->token3:%s\n",token3);
-							if( sLimt )
-							{
-								if( getStringFromIndexWithDelim(token3 , "|" , 2, sbuf, sizeof( sbuf)) ){
-									sprintf(sLimt,"%s|%s",sLimt,sbuf);
-									if( getStringFromIndexWithDelim(token3 , "|" , 3, sbuf, sizeof( sbuf)) ){
-										sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-										if( getStringFromIndexWithDelim(token3 , "|" , 6, sbuf, sizeof( sbuf)) ){
-											sprintf(sLimt,"%s|%s",sLimt,sbuf);
-											if( getStringFromIndexWithDelim(token3 , "|" , 7, sbuf, sizeof( sbuf)) ){
-												sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-											}
-										}
-									}
-								}
-							}
-#endif
 							okflg = 1;
 						}
 					}
@@ -1235,26 +780,6 @@ int NPC_GetLimtItemList(int talker, char *argstr, char* token2,int sell)
 				cost = NPC_GetSellItemList(itemindex, 1, argstr, token3, i, sell);
 				if(sell != -1) return -1;
 				strncat( token2, token3, sizeof( token3));
-#ifdef _NPC_SHOPALTER01
-				print("Change->4\n");
-				print("Change->token2:%s\n",token2);
-				print("Change->token3:%s\n",token3);
-				if( sLimt )
-				{
-					if( getStringFromIndexWithDelim(token3 , "|" , 2, sbuf, sizeof( sbuf)) ){
-						sprintf(sLimt,"%s|%s",sLimt,sbuf);
-						if( getStringFromIndexWithDelim(token3 , "|" , 3, sbuf, sizeof( sbuf)) ){
-							sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-							if( getStringFromIndexWithDelim(token3 , "|" , 6, sbuf, sizeof( sbuf)) ){
-								sprintf(sLimt,"%s|%s",sLimt,sbuf);  
-								if( getStringFromIndexWithDelim(token3 , "|" , 7, sbuf, sizeof( sbuf)) ){
-									sprintf(sLimt,"%s|%s",sLimt,sbuf);    
-								}
-							}
-						}
-					}
-				}
-#endif
 			}
 			
 		}
@@ -1344,17 +869,10 @@ int NPC_SellItemstrsStr(int itemindex,int flg,double rate,char *argtoken,int sel
 
 
 	sprintf( argtoken,
-#ifdef _ITEM_PILENUMS
-			"%s|%d|%d|%d|%s|%d|%d|",
-#else
 			"%s|%d|%d|%d|%s|%d|",
-#endif
 			name, flg, cost,
 			ITEM_getInt( itemindex, ITEM_BASEIMAGENUMBER),
 			escapedname, select
-#ifdef _ITEM_PILENUMS
-			,ITEM_getInt( itemindex, ITEM_USEPILENUMS)
-#endif
 	);
 
 	return -1;
@@ -1377,19 +895,11 @@ BOOL NPC_SellNewItem(int meindex,int talker,char *data)
 	}
 	getStringFromIndexWithDelim(data , "|" ,1, token, sizeof( token));
 	select = atoi(token);
-#ifdef _ITEM_PILENUMS
-	getStringFromIndexWithDelim(data , "|" ,2, token, sizeof( token));
-	sellnum = atoi(token);
-#endif
 
 	if( select < CHAR_STARTITEMARRAY || select >= CHAR_MAXITEMHAVE ) return FALSE;
 	k = select;
 	itemindex = CHAR_getItemIndex( talker , k);
-#ifdef _NPC_SHOPALTER01
-	cost = NPC_GetLimtItemList( talker,argstr, token2,select, NULL);
-#else
 	cost = NPC_GetLimtItemList( talker,argstr, token2,select);
-#endif
 	if( cost == -1 || (cost*sellnum)+MyGold >= MaxGold || !ITEM_CHECKINDEX( itemindex) ){
 		int fd = getfdFromCharaIndex( talker);
 		sprintf(token,"\n\n哎呀!对不起" "\n\n对不起啊 ! 可不可以再选一次呢？" );	
@@ -1400,9 +910,6 @@ BOOL NPC_SellNewItem(int meindex,int talker,char *data)
 				token);
 		return FALSE;
 	}
-#ifdef _ITEM_PILENUMS
-	if( NPC_DelItem( talker, k, sellnum) == FALSE ) return FALSE;
-#else
 	{
 		LogItem(
 			CHAR_getChar( talker, CHAR_NAME ),
@@ -1423,7 +930,6 @@ BOOL NPC_SellNewItem(int meindex,int talker,char *data)
 		);
 	}
 	CHAR_DelItem( talker, k);
-#endif
 	CHAR_AddGold( talker, cost*sellnum);
 	CHAR_send_P_StatusString( talker, CHAR_P_STRING_GOLD);
 	return TRUE;
@@ -1470,10 +976,9 @@ void NPC_ExpressmanCheck(int meindex,int talker)
        	return;
 	}
 	NPC_Util_GetStrFromStrWithDelim( argstr, "main_msg", buf, sizeof( buf));
-	sprintf(token,
-			"4\n              %s\n\n%s"
-			"\n\n          ＜  打工  ＞      "
-			"\n\n          ＜交付行李＞"
+	sprintf(token,"4\n　　　　　　　%s\n\n%s"
+					"\n\n　　　　　＜  打工  ＞　　　"
+				  "\n\n　　　　  ＜交付行李＞"
 					,CHAR_getChar(meindex,CHAR_NAME),buf);
 	lssproto_WN_send( fd, WINDOW_MESSAGETYPE_SELECT, 
 			WINDOW_BUTTONTYPE_CANCEL, 

@@ -425,7 +425,7 @@ static int ADDRESSBOOK_findBlankEntry( int cindex )
 	
 	if( CHAR_CHECKINDEX( cindex ) == FALSE )return -1;
 	
-	for( i=0 ; i<ADDRESSBOOK_MAX ; i++){
+	for( i=0 ; i<ADDRESSBOOK_MAX-1 ; i++){
 		ADDRESSBOOK_entry *ae;
 		ae = CHAR_getAddressbookEntry( cindex , i );
 		if( ae && ae->use == FALSE ) {
@@ -444,7 +444,7 @@ static BOOL ADDRESSBOOK_makeEntryFromCharaindex( int charaindex,
 
 	memset( ae,0,sizeof(ADDRESSBOOK_entry) );
 	cdkey = CHAR_getChar( charaindex, CHAR_CDKEY);
-	if( cdkey == NULL ){
+	if( cdkey == "\0" ){
 		print( "ADDRESSBOOK_makeEntryFromCharaindex:"
 			   " strange! getcdkeyFromCharaIndex returns NULL!"
 			   " charaindex: %d\n" , charaindex );
@@ -521,14 +521,12 @@ void ADDRESSBOOK_notifyLoginLogout( int cindex , int flg )
 				}
 			}
 			if( j == playernum) {
-#ifndef _DEATH_CONTEND
 				char buff[512];
 				char escapebuf[1024];
 				ae->online = 0;
 				snprintf( buff, sizeof(buff), "%s_%s", ae->cdkey, ae->charname);
 				makeEscapeString( buff, escapebuf, sizeof(escapebuf));
 				saacproto_DBGetEntryString_send( acfd, DB_ADDRESSBOOK, escapebuf, 0,0);
-#endif
 			}
 		}
 		ADDRESSBOOK_sendAddressbookTable(cindex);
@@ -829,7 +827,7 @@ void ADDRESSBOOK_DispatchMessage( char *cd, char *nm, char *value, int mode)
 			if( CHAR_CHECKINDEX( i )) {
 				char *c = CHAR_getChar( i, CHAR_CDKEY);
 				char *n = CHAR_getChar( i, CHAR_NAME);
-				if( c == NULL || n == NULL ) continue;
+				if( c == "\0" || n == "\0" ) continue;
 				if( strcmp( c , cd ) == 0 && strcmp( n, nm ) == 0 )  {
 					break;
 				}
@@ -868,40 +866,3 @@ void ADDRESSBOOK_DispatchMessage( char *cd, char *nm, char *value, int mode)
 		}
 	}
 }
-
-
-BOOL ADDRESSBOOK_AutoaddAddressBook( int meindex, int toindex)
-{
-	int  hisblank;
-	int	myblank;
-	int	myaddindex, toaddindex;
-
-	char *cdkey;
-
-	myblank = ADDRESSBOOK_findBlankEntry( meindex );
-	hisblank = ADDRESSBOOK_findBlankEntry( toindex );
-	if( hisblank < 0 || myblank < 0) { //"ÃûÆ¬Ï»ÒÑÂú¡£"
-			return FALSE;
-	}
-	
-	cdkey = CHAR_getChar( toindex, CHAR_CDKEY);
-	myaddindex = ADDRESSBOOK_getIndexInAddressbook( meindex, cdkey, 
-								CHAR_getChar( toindex, CHAR_NAME));
-	cdkey = CHAR_getChar( meindex, CHAR_CDKEY);
-	toaddindex = ADDRESSBOOK_getIndexInAddressbook( toindex, cdkey, 
-									CHAR_getChar(meindex, CHAR_NAME));
-	if( myaddindex < 0 ){
-		ADDRESSBOOK_entry   meae;
-		ADDRESSBOOK_entry   hisentry;
-		if( ADDRESSBOOK_makeEntryFromCharaindex(toindex,&hisentry) == FALSE ||
-			ADDRESSBOOK_makeEntryFromCharaindex(meindex,&meae) == FALSE ){
-			return FALSE;
-		}
-		CHAR_setAddressbookEntry( meindex, myblank,&hisentry );
-		CHAR_setAddressbookEntry( toindex, hisblank,&meae );
-		ADDRESSBOOK_sendAddressbookTableOne( meindex, myblank);
-		ADDRESSBOOK_sendAddressbookTableOne( toindex , hisblank);
-	}
-	return TRUE;
-}
-

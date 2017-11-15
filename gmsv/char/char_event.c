@@ -85,21 +85,6 @@ BOOL CHAR_makeCAOPT1String( int objindex,char* buf, int buflen, int act,int opt1
     return TRUE;
 }
 
-#ifdef _STREET_VENDOR
-BOOL CHAR_makeCAOPTString(int objindex,char* buf,int buflen,int act,char *string)
-{
-	char	objindexbuf[64];
-
-  if(CHECKOBJECT(objindex) == FALSE ) return FALSE;
-  if(OBJECT_getType(objindex) != OBJTYPE_CHARA ) return FALSE;
-  snprintf( buf,buflen,"%s|%d|%d|%d|%d|%s",
-						cnv10to62(objindex,objindexbuf, sizeof(objindexbuf)),
-            OBJECT_getX(objindex), OBJECT_getY(objindex),act,
-            CHAR_getInt(OBJECT_getIndex(objindex),CHAR_DIR),string);
-  return TRUE;
-}
-#endif
-
 BOOL CHAR_makeCAOPT3String( int objindex,char* buf, int buflen, int act,int opt1,int opt2,int opt3 )
 {
 	char	objindexbuf[64];
@@ -169,15 +154,6 @@ void CHAR_playerWatchfunc( int objmeindex, int objmoveindex,
                     CONNECT_appendCAbuf( fd, buf, strlen(buf));
             break;
 
-#ifdef _ANGEL_SUMMON
-        case CHAR_ACTANGEL:
-            if( optlen == 1 )
-                if( CHAR_makeCAOPT1String( objmoveindex, buf,
-                                               sizeof( buf), act, opt[0] ) )
-                    CONNECT_appendCAbuf( fd, buf, strlen(buf));
-            break;
-#endif
-
 		// shan end
 #ifdef _MIND_ICON
 		case CHAR_MIND:			
@@ -186,18 +162,6 @@ void CHAR_playerWatchfunc( int objmeindex, int objmoveindex,
                                                sizeof(buf), act, opt[0]))
                     CONNECT_appendCAbuf( fd, buf, strlen(buf));
             break;
-#endif
-#ifdef _STREET_VENDOR
-		case CHAR_STREETVENDOR_OPEN:
-			if(CHAR_makeCAOPTString(objmoveindex,buf,sizeof(buf),
-				 act,CHAR_getWorkChar(OBJECT_getIndex(objmoveindex),CHAR_STREETVENDOR_NAME)))
-				 CONNECT_appendCAbuf(fd,buf,strlen(buf));
-			break;
-		case CHAR_STREETVENDOR_CLOSE:
-			if(CHAR_makeCAOPTString(objmoveindex,buf,sizeof(buf),
-				 act,CHAR_getWorkChar(OBJECT_getIndex(objmoveindex),CHAR_STREETVENDOR_NAME)))
-				 CONNECT_appendCAbuf(fd,buf,strlen(buf));
-			break;
 #endif
 #ifdef _ITEM_CRACKER
 		case CHAR_ITEM_CRACKER:			
@@ -512,11 +476,7 @@ void CHAR_playerTalkedfunc( int charaindex, int talkindex,char* message, int col
     if( fd == -1 )return;
     if( (channel>-1) && (fmindex>0) ){
 		if( channel == 0 ){
-#ifndef _CHANNEL_MODIFY
 			snprintf( lastbuf,sizeof(lastbuf),"P|[族]%s",
-#else
-			snprintf( lastbuf,sizeof(lastbuf),"P|F|[族]%s",
-#endif
 				makeEscapeString( CHAR_appendNameAndTitle(talkindex, message, mesgbuf,sizeof(mesgbuf)),
 				escapebuf,sizeof(escapebuf) ));
 		}
@@ -525,11 +485,7 @@ void CHAR_playerTalkedfunc( int charaindex, int talkindex,char* message, int col
 #else
 		else if( channel == FAMILY_MAXCHANNEL && CHAR_getInt( talkindex, CHAR_FMLEADERFLAG ) == 1 ){
 #endif
-#ifndef _CHANNEL_MODIFY
 			snprintf( lastbuf,sizeof(lastbuf),"P|[族长广播]%s",
-#else
-			snprintf( lastbuf,sizeof(lastbuf),"P|F|[族长广播]%s",
-#endif
 				makeEscapeString(CHAR_appendNameAndTitle(talkindex, message,mesgbuf,sizeof(mesgbuf)),
 				escapebuf,sizeof(escapebuf) ));
 		}else{
@@ -538,27 +494,9 @@ void CHAR_playerTalkedfunc( int charaindex, int talkindex,char* message, int col
 				escapebuf,sizeof(escapebuf) ));
 		}
 	}else{
-#ifdef _CHANNEL_MODIFY
-		if(CHAR_getFlg(talkindex,CHAR_ISPARTYCHAT) && (CHAR_getWorkInt(talkindex,CHAR_WORKPARTYMODE) != CHAR_PARTY_NONE))
-				snprintf( lastbuf,sizeof(lastbuf),"P|T|[队]%s",
-				makeEscapeString(CHAR_appendNameAndTitle(talkindex, message,mesgbuf,sizeof(mesgbuf)),
-				escapebuf,sizeof(escapebuf) ));
-		else
-#ifdef _FONT_SIZE
-				snprintf( lastbuf,sizeof(lastbuf),"P|P|%s|%d",
-				makeEscapeString(CHAR_appendNameAndTitle(talkindex, message,mesgbuf,sizeof(mesgbuf)),
-				escapebuf,sizeof(escapebuf) ), CHAR_getWorkInt( talkindex, CHAR_WORKFONTSIZE) );
-#else
-				snprintf( lastbuf,sizeof(lastbuf),"P|P|%s",
-				makeEscapeString(CHAR_appendNameAndTitle(talkindex, message,mesgbuf,sizeof(mesgbuf)),
-				escapebuf,sizeof(escapebuf) ));
-#endif
-
-#else
 		snprintf( lastbuf,sizeof(lastbuf),"P|%s",
 				makeEscapeString(CHAR_appendNameAndTitle(talkindex, message,mesgbuf,sizeof(mesgbuf)),
 				escapebuf,sizeof(escapebuf) ));
-#endif
 	}
 	lssproto_TK_send( fd, CHAR_getWorkInt( talkindex, CHAR_WORKOBJINDEX ),lastbuf, color);
 }

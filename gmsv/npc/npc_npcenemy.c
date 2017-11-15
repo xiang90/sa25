@@ -215,7 +215,6 @@ void NPC_NPCEnemyTalked( int meindex , int talkerindex , char *szMes ,
 
 int NPC_NPCEnemy_Encount( int meindex, int charaindex, int mode)
 {
-
 	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
 	char	buf[512];
 	BOOL	flg = TRUE;
@@ -341,8 +340,7 @@ int NPC_NPCEnemy_Encount( int meindex, int charaindex, int mode)
 				}
 			}
 			if( i != battlemax ) {
-				if( NPC_Util_GetStrFromStrWithDelim( argstr, "alreadymsg", buf, sizeof( buf))
-					!= NULL )
+				if( NPC_Util_GetStrFromStrWithDelim( argstr, "alreadymsg", buf, sizeof( buf))!= NULL )
 				{
 					CHAR_talkToCliAndParty( charaindex, meindex ,buf , CHAR_COLORYELLOW );
 				}
@@ -361,8 +359,7 @@ int NPC_NPCEnemy_Encount( int meindex, int charaindex, int mode)
 			/* ¾ô  »¥ï§ÒýÔÂó¡±åß¤  ¶ªÓÀ±¾¡õ³â */
 			
 			
-			if( NPC_Util_GetStrFromStrWithDelim( argstr, config,  buf, sizeof( buf))
-				!= NULL )
+			if( NPC_Util_GetStrFromStrWithDelim( argstr, config,  buf, sizeof( buf))!= NULL )
 			{
 				int	len = strlen( buf);
 				char	escapebuf[1024];
@@ -371,8 +368,7 @@ int NPC_NPCEnemy_Encount( int meindex, int charaindex, int mode)
 				/* askbattlemsg? »¥Ø¤Ä¾ÈÉ  ÐÑµæ±åÔÊÔÂ  "\n"Îì¡õÓñÃ«  Ä¾ÔÂ)*/
 				for( i = 2; i < 7; i ++ ) {
 					snprintf( config, sizeof( config), "askbattlemsg%d", i);
-					if( NPC_Util_GetStrFromStrWithDelim( argstr, config, buf2, sizeof( buf2))
-						!= NULL )
+					if( NPC_Util_GetStrFromStrWithDelim( argstr, config, buf2, sizeof( buf2))!= NULL )
 					{
 						strcpysafe( &buf[len], sizeof( buf)-len, "\n" );
 						len++;
@@ -409,8 +405,7 @@ int NPC_NPCEnemy_Encount( int meindex, int charaindex, int mode)
 		}
 	}
 	if( !flg) {
-		if( NPC_Util_GetStrFromStrWithDelim( argstr, "deniedmsg", buf, sizeof( buf))
-			!= NULL )
+		if( NPC_Util_GetStrFromStrWithDelim( argstr, "deniedmsg", buf, sizeof( buf))!= NULL )
 		{
 			CHAR_talkToCliAndParty( charaindex, meindex ,buf , CHAR_COLORYELLOW );
 		}
@@ -570,17 +565,6 @@ BOOL NPC_NPCEnemy_BattleIn(  int meindex, int charaindex)
 	NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
 	gym = NPC_Util_GetNumFromStrWithDelim( argstr, "gym");
 
-#ifdef _EMENY_CHANCEMAN
-	{
-		int masterindex=-1;
-		masterindex = NPC_EmenyChanceCheck( meindex, charaindex, argstr);
-		if( CHAR_CHECKINDEX( masterindex)){
-			charaindex = masterindex;
-		}else	{
-			return TRUE;
-		}
-	}
-#endif
 	if( gym > 0 ){
 		ret = BATTLE_CreateVsEnemy( charaindex, 2, meindex);
 	}else{
@@ -604,13 +588,6 @@ void NPC_NPCEnemyWindowTalked( int meindex, int talkerindex, int seqno, int sele
 {
 	if( seqno == CHAR_WINDOWTYPE_NPCENEMY_START) {
 		if( select == WINDOW_BUTTONTYPE_YES) {
-#if 0
-			print(" NPC_NPCEnemyWindowTalked ");
-			if( CHAR_getWorkInt( meindex, CHAR_WORKEVENTTYPE) != CHAR_EVENT_ENEMY ) {
-				print(" NPCEnemyError!! ");
-				return;
-			}
-#endif
 			NPC_NPCEnemy_BattleIn( meindex, talkerindex);
 		}
 	}
@@ -619,8 +596,7 @@ void NPC_NPCEnemyWindowTalked( int meindex, int talkerindex, int seqno, int sele
 static int NPC_NPCEnemy_StealItem( char *argstr, int meindex, int charaindex)
 {
 	char	itembuf[1024];
-	if( NPC_Util_GetStrFromStrWithDelim( argstr, "item", itembuf, sizeof( itembuf))
-		!= NULL )
+	if( NPC_Util_GetStrFromStrWithDelim( argstr, "item", itembuf, sizeof( itembuf))!= NULL )
 	{
 		char	data[128];
 		int		delitemgroup[CHAR_MAXITEMHAVE];
@@ -885,7 +861,6 @@ BOOL NPCEnemy_FreeIfCheck(int meindex,int talker,char* buf,int kosuu,int flg, in
 
 BOOL NPCEnemy_WarpManReduce(int meindex,int talker,char *buf)
 {
-
 	char buf2[512];
 	char buf3[256];
 	int id=0;
@@ -920,7 +895,6 @@ BOOL NPCEnemy_WarpManReduce(int meindex,int talker,char *buf)
 
 BOOL NPCEnemy_BigSmallLastCheck(int point1,int mypoint,int flg)
 {
-
 	if(flg==0){
 		if(point1==mypoint) {
 			return TRUE;

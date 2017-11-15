@@ -8,12 +8,7 @@
 // Nuke +1 0902: For queuing control
 #include <signal.h>
 
-#if USE_MTIO
 #include <pthread.h>
-#endif
-
-#include "link.h"
-
 
 #undef EXTERN
 #ifdef __NET_C__
@@ -68,13 +63,13 @@ typedef enum
 #define		NET_STRING_FAILED		"failed"
 
 // 孔勾丹及    及伉□玉］仿奶玄田永白央扔奶术
-#define RBSIZE 65536
-#define WBSIZE (65536*6)
+#define RBSIZE (1024*64*10)
+#define WBSIZE (1024*64*10)
 // 失市它件玄扔□田□迕
 
-#define   AC_RBSIZE (3548576)
-//#define	AC_RBSIZE (3145728) //65536*48
+//#define	AC_RBSIZE (65536*48)
 //#define	AC_RBSIZE (65536*32)
+#define	AC_RBSIZE (1024*64*10)
 //ttom modify because the second version had this
 //#define	AC_WBSIZE (65536*16)
 extern int AC_WBSIZE;
@@ -83,14 +78,6 @@ EXTERN int      bindedfd;     /*夫□市伙失玉伊旦卞田奶件玉仄凶末弗永玄*/
 EXTERN int      acfd;         /*失市它件玄扔□田卞戊生弁玄扑正末弗永玄*/
 EXTERN int      ConnectLen;   /*票及袄及赢今*/
 #define CONNECT_WINDOWBUFSIZE 7
-
-//#ifdef _M_SERVER
-EXTERN int		mfd;
-//#endif
-
-#ifdef _NPCSERVER_NEW
-EXTERN int		npcfd;
-#endif
 
 /* 湘  凶切 */
 BOOL initConnect( int size );
@@ -177,9 +164,6 @@ void CONNECT_setJoinpartycharaindex( int fd, int i , int a);
 int CONNECT_getJoinpartycharaindex( int fd, int i );
 void CONNECT_setTradecardcharaindex( int fd, int i , int a );
 int CONNECT_getTradecardcharaindex( int fd, int i );
-int CONNECT_getClosed( int fd );
-void CONNECT_setClosed( int fd, int a );
-
 /* MT犯田永弘迕穴弁夫 */
 #define CONNECT_endOne_debug(a) CONNECT_endOne( (a) , __LINE__ )
 
@@ -190,11 +174,6 @@ void CONNECT_setState( int fd, int s );
 int CONNECT_getState( int fd );
 void CONNECT_checkStatecount( int a );
 int CONNECT_checkStateSomeOne( int a, int maxcount);
-
-#if USE_MTIO
-int MTIO_setup( void );
-void MTIO_join( void );
-#endif   /* USE_MTIO */
 
 BOOL CONNECT_acfdInitRB( int fd );
 BOOL CONNECT_acfdInitWB( int fd );
@@ -207,11 +186,6 @@ int setBtime(int fd);
 //void setDefBTime( int fd, unsigned int times);
 //unsigned int getDefBTime( int fd);
 BOOL CheckDefBTime( int charaindex, int fd, unsigned int lowTime, unsigned int battletime, unsigned int addTime);
-#endif
-
-#ifdef _CHECK_GAMESPEED
-int getGameSpeedTime( int fd);
-void setGameSpeedTime( int fd, int times);
 #endif
 
 #ifdef _TYPE_TOXICATION
@@ -234,7 +208,7 @@ int CONNECT_get_state_trans(int fd);
 //ttom end
 
 // CoolFish: +9 2001/4/18
-void CONNECT_setCloseRequest(int fd, int count);
+void CONNECT_setCloseRequest( int fd, int count);
 void CONNECT_set_first_warp(int fd, BOOL b_ps);
 BOOL CONNECT_get_first_warp(int fd);
 int isDie(int fd);
@@ -252,20 +226,6 @@ void CONNECT_set_announced(int fd, int a);
 int  CONNECT_get_confirm(int fd);
 void CONNECT_set_confirm(int fd, BOOL b);
 // end
-
-#ifdef _BLACK_MARKET
-int CONNECT_get_BMList(int fd, int i);
-void CONNECT_set_BMList(int fd,int i, int b);
-#endif
-
-#ifdef _NO_WARP
-// shan hjj add Begin
-int  CONNECT_get_seqno(int fd);
-void CONNECT_set_seqno(int fd,int a);
-int  CONNECT_get_selectbutton(int fd);
-void CONNECT_set_selectbutton(int fd, int a);
-// shan End
-#endif
 
 void CONNECT_setTradecharaindex( int fd, int i , int a);
 
@@ -308,40 +268,10 @@ int CONNECT_getBDTime( int fd);
 // Arminius debug
 void CONNECT_setUse( int fd , int a);
 
-#ifdef _ITEM_PILEFORTRADE
-void CONNECT_setTradeList( int fd, int num);
-int CONNECT_getTradeList(int fd);
-#endif
-
 #define QUEUE_LENGTH1 6
 #define QUEUE_LENGTH2 7
 
 BOOL MSBUF_CHECKbuflen( int size, float defp);
 
-
-#ifdef _GM_BROADCAST					// WON ADD 客服公告系统
-
-
-typedef struct tag_broadcast_struct
-{
-	int time;			// 讯息间隔时间
-	int loop;			// 执行次数	
-	int wait;			// 公告完休息时间
-	int next_msg;
-	int max_msg_line;	// 讯息数
-	char msg[10][128];	// 公告讯息
-}broadcast_struct;
-
-broadcast_struct BS;
-
-void Init_GM_BROADCAST( int loop, int time, int wait, char *msg );
-void GM_BROADCAST();
-#endif
-
-
-#ifdef _DEATH_FAMILY_STRUCT		// WON ADD 家族战存放胜负资料
-void Init_FM_PK_STRUCT();
-#endif
-
-
+void SetTcpBuf( int sockfd);
 #endif 

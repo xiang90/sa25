@@ -13,28 +13,14 @@
 #include "function.h"
 #include "magic_base.h"
 
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-#include "profession_skill.h"
-#endif
-
 static int ITEM_tblen = 0;
+static int ITEM_idxlen = 0;
 static ITEM_exists* ITEM_item;
 static int          ITEM_itemnum;
 static int			ITEM_UseItemnum=0;
 static char* ITEM_checkString( char* string );
 static int ITEM_getRandomValue( char*  string,int* randomwidth, int num );
 static int ITEM_isstring1or0( char*  string,int* randomwidth, int num );
-
-#ifdef _IMPOROVE_ITEMTABLE
-typedef struct _tag_ITEM_transformList
-{
-	int Si;
-	int use;
-}sITEM_transformList;
-sITEM_transformList *ITEM_TransformList = NULL;
-static int defitemtbls=0;
-static int totalitemtbls=0;
-#endif
 
 #ifdef _SIMPLIFY_ITEMSTRING
 typedef struct ITEM_tag_intDataSetting
@@ -59,16 +45,6 @@ static ITEM_intDataSetting ITEM_setintdata[]={
 	{"ft",		0,			ITEM_ABLEUSEFIELD },
 	{"tg",		0,			ITEM_TARGET },
 	{"lv",		0,			ITEM_LEVEL },
-
-#ifdef _READ_ITEM3FORMAT
-	{"dib",		-1,			ITEM_DAMAGEBREAK },
-	{"dmce",	0,			ITEM_DAMAGECRUSHE },
-	{"mdmce",	0,			ITEM_MAXDAMAGECRUSHE },
-	{"otdmag",	0,			ITEM_OTHERDAMAGE },
-	{"otdefc",	0,			ITEM_OTHERDEFC },
-	{"nsuit",	0,			ITEM_SUITCODE },
-#endif
-
 #ifdef _ITEM_MAXUSERNUM
 	{"dib",		-1,			ITEM_DAMAGEBREAK },
 #endif
@@ -91,14 +67,14 @@ static ITEM_intDataSetting ITEM_setintdata[]={
 #ifdef _SUIT_ITEM
 	{"nsuit",	0,			ITEM_SUITCODE },
 #endif
-
 	{"ann",		0,			ITEM_ATTACKNUM_MIN },
 	{"anx",		0,			ITEM_ATTACKNUM_MAX },
 	{"ma",		0,			ITEM_MODIFYATTACK },
 	{"md",		0,			ITEM_MODIFYDEFENCE },
-	{"mq",		0,			ITEM_MODIFYQUICK},
-	{"mh",		0,			ITEM_MODIFYHP},
-	{"mm",		0,			ITEM_MODIFYMP},
+
+	{"mh",		0,			ITEM_MODIFYQUICK}, //ITEM_MODIFYHP }, ITEM_MODIFYQUICK
+	{"mm",		0,			ITEM_MODIFYHP}, //ITEM_MODIFYMP }, ITEM_MODIFYHP
+	{"mq",		0,			ITEM_MODIFYMP}, //ITEM_MODIFYQUICK }, ITEM_MODIFYMP
 	{"ml",		0,			ITEM_MODIFYLUCK },
 	{"mc",		0,			ITEM_MODIFYCHARM },
 	{"mv",		0,			ITEM_MODIFYAVOID },
@@ -126,12 +102,6 @@ static ITEM_charDataSetting     ITEM_setchardata[]={
 	{"sn",			"",	ITEM_SECRETNAME },        /*  ITEM_SCRETNAME  */
 	{"en",			"",	ITEM_EFFECTSTRING },        /*  ITEM_EFFECTSTRING  */
 	{"ar",			"",	ITEM_ARGUMENT },        /*  ITEM_ARGUMENT   */
-
-#ifdef _READ_ITEM3FORMAT
-	{"acode",   ""},
-	{"inlaycode",   ""},
-#endif
-
 #ifdef _ITEM_INSLAY
 	{"acode",		"",	ITEM_TYPECODE }, /*ITEM_TYPECODE,*/
 	{"inlaycode",	"",	ITEM_INLAYCODE}, /*ITEM_INLAYCODE,*/
@@ -141,18 +111,6 @@ static ITEM_charDataSetting     ITEM_setchardata[]={
 	{"forname",		"",	ITEM_FORUSERNAME },		//ITEM_FORUSERNAME,
 	{"forcdkey",	"",	ITEM_FORUSERCDKEY },		//ITEM_FORUSERCDKEY
 #endif
-
-#ifdef _ANGEL_SUMMON
-	{"mindex",		"",	ITEM_ANGELMISSION},
-	{"angel",		"",	ITEM_ANGELINFO},
-	{"hero",		"",	ITEM_HEROINFO},
-#endif
-
-#ifdef _CONTRACT
-	{"ctt",			"",	ITEM_CONTRACTTIME},
-	{"cta",			"",	ITEM_CONTRACTARG},
-#endif
-
 #ifdef _UNIQUE_P_I
 	{"ucode",		"",	ITEM_UNIQUECODE},    /*  ITEM_UNIQUECODE  */
 #endif	
@@ -184,15 +142,6 @@ static ITEM_intDataSetting ITEM_setintdata[ITEM_DATAINTNUM]={
 	{"ft",  0},					/*  ITEM_ABLEUSEFIELD */
 	{"tg",  0},					/*  ITEM_TARGET */
 	{"lv",  0},                 /*  ITEM_LEVEL  */
-
-#ifdef _READ_ITEM3FORMAT
-	{"dib",		-1,			ITEM_DAMAGEBREAK },
-	{"dmce",	0,			ITEM_DAMAGECRUSHE },
-	{"mdmce",	0,			ITEM_MAXDAMAGECRUSHE },
-	{"otdmag",	0,			ITEM_OTHERDAMAGE },
-	{"otdefc",	0,			ITEM_OTHERDEFC },
-	{"nsuit",	0,			ITEM_SUITCODE },
-#endif
 
 #ifdef _ITEM_MAXUSERNUM
 	{"dib", -1},					/*ITEM_DAMAGEBREAK*/
@@ -288,12 +237,6 @@ static ITEM_charDataSetting     ITEM_setchardata[ITEM_DATACHARNUM]={
 	{"sn",  ""},        /*  ITEM_SCRETNAME  */
 	{"en",  ""},        /*  ITEM_EFFECTSTRING  */
 	{"ar",  ""},        /*  ITEM_ARGUMENT   */
-
-#ifdef _READ_ITEM3FORMAT
-	{"acode",   ""},
-	{"inlaycode",   ""},
-#endif
-
 #ifdef _ITEM_INSLAY
 	{"acode",   ""}, /*ITEM_TYPECODE,*/
 	{"inlaycode",   ""}, /*ITEM_INLAYCODE,*/
@@ -352,12 +295,6 @@ static struct ITEM_itemconfentry
 	{"secretname",  ITEM_CHARFUNC, 	ITEM_SECRETNAME,    	ITEM_checkString},
 	{"effectstring",ITEM_CHARFUNC, 	ITEM_EFFECTSTRING,  	ITEM_checkString},
 	{"argument",    ITEM_CHARENTRY, ITEM_ARGUMENT,          NULL},
-
-#ifdef _READ_ITEM3FORMAT
-	{"acode",		ITEM_CHARENTRY, ITEM_TYPECODE,		NULL},
-	{"inlaycode",	ITEM_CHARENTRY, ITEM_INLAYCODE,		NULL},
-#endif
-
 #ifdef _ITEM_INSLAY
 	{"acode",		ITEM_CHARENTRY, ITEM_TYPECODE,		NULL},
 	{"inlaycode",	ITEM_CHARENTRY, ITEM_INLAYCODE,		NULL},
@@ -382,16 +319,6 @@ static struct ITEM_itemconfentry
 	{"target",   	ITEM_INTENTRY,	ITEM_TARGET,  			NULL},
 
 	{"level",       ITEM_INTENTRY,	ITEM_LEVEL, 			NULL},
-
-#ifdef _READ_ITEM3FORMAT
-	{"dambreak",       ITEM_INTENTRY,	ITEM_DAMAGEBREAK, 			NULL},
-	{"damcrushe",	ITEM_INTENTRY,	ITEM_DAMAGECRUSHE,	NULL},
-	{"maxdmce",	ITEM_INTENTRY,	ITEM_MAXDAMAGECRUSHE,	NULL},
-	{"otdmags",	ITEM_INTENTRY,	ITEM_OTHERDAMAGE,	NULL},
-	{"otdefcs",	ITEM_INTENTRY,	ITEM_OTHERDEFC,	NULL},
-	{"nsuit",	ITEM_INTENTRY,	ITEM_SUITCODE,	NULL},
-#endif
-
 #ifdef _ITEM_MAXUSERNUM
 	{"dambreak",       ITEM_INTENTRY,	ITEM_DAMAGEBREAK, 			NULL},
 #endif
@@ -475,11 +402,8 @@ static struct ITEM_itemconfentry
 };
 
 
-#ifdef _ITEMTBL_STAIC
-ITEM_table  ITEM_tbl[28000];
-#else
 ITEM_table*  ITEM_tbl=NULL;
-#endif
+ITEM_index*  ITEM_idx=NULL;
 
 static INLINE BOOL ITEM_CHECKARRAYINDEX(int index)
 {
@@ -529,11 +453,11 @@ BOOL ITEM_initExistItemsArray( int num )
 		memset( &ITEM_item[i], 0 , sizeof( ITEM_exists ));
 		ITEM_item[i].use = FALSE;
 	}
-
+	print("第二次分配 %4.2f MB 空间...", sizeof( ITEM_exists ) * num /1024.0/1024.0);
 	return TRUE;
 }
 
-BOOL ITEM_endExistItemsArray( void )
+BOOL ITEM_endExistItemsArray( ITEM_table* ITEM_item )
 {
 	freeMemory( ITEM_item );
 	return TRUE;
@@ -591,7 +515,7 @@ int _ITEM_initExistItemsOne( char *file, int line, ITEM_Item* itm )
 			return Sindex;
 		}
 	}
-	fprint( "Error:Item full\n" );
+	fprint( "物品已满\n" );
 	return -1;
 }
 
@@ -674,8 +598,8 @@ INLINE int _ITEM_setInt( char *file, int line, int index ,ITEM_DATAINT element, 
 
 INLINE char* ITEM_getChar( int index ,ITEM_DATACHAR element )
 {
-	if(!ITEM_CHECKINDEX(index))return NULL;
-	if(!ITEM_CHECKCHARDATAINDEX(element))return NULL;
+	if(!ITEM_CHECKINDEX(index))return "\0";
+	if(!ITEM_CHECKCHARDATAINDEX(element))return "\0";
 	return ITEM_item[index].itm.string[element].string;
 }
 
@@ -739,7 +663,7 @@ void* ITEM_getFunctionPointer( int itemindex, int functype )
 {
 	if( !ITEM_CHECKINDEX(itemindex) )return NULL;
 	if( functype < ITEM_FIRSTFUNCTION  || functype >= ITEM_LASTFUNCTION ){
-		print( "ANDY functype err:%d\n", functype);
+		print( "类型错误:%d\n", functype);
 		return NULL;
 	}
 	return ITEM_item[itemindex].itm.
@@ -748,7 +672,7 @@ void* ITEM_getFunctionPointer( int itemindex, int functype )
 
 int ITEM_getItemMaxIdNum( void)
 {
-	return ITEM_tblen;
+	return ITEM_idxlen;
 }
 
 BOOL ITEM_checksetdata( void )
@@ -790,7 +714,7 @@ char* ITEM_makeStringFromItemIndex( int index, int mode )
 	if( 0 <= index && index < ITEM_itemnum && ITEM_item[index].use == TRUE)
 		;
 	else
-		return NULL;
+		return "\0";
 	return ITEM_makeStringFromItemData( &ITEM_item[index].itm, mode );
 }
 
@@ -812,7 +736,7 @@ char*   ITEM_makeStringFromItemData( ITEM_Item* one, int mode )
 
 #ifdef _SIMPLIFY_ITEMSTRING2
 	int itemID = one->data[ ITEM_ID];
-	if( !ITEM_CHECKITEMTABLE( itemID) ) return NULL;
+	if( !ITEM_CHECKITEMTABLE( itemID) ) return "\0";
 #endif
 	if( mode == 0 ) {
 		delim1 = '=';	delim2 = '|';
@@ -1082,6 +1006,7 @@ BOOL ITEM_readItemConfFile( char* filename )
 	char    line[512];
 	char	token[64];
 	int     linenum=0;
+	int     itemnum=0;
 	int		i;
 	int		maxid=0, itemid;
 	int		ret;
@@ -1089,7 +1014,7 @@ BOOL ITEM_readItemConfFile( char* filename )
 
 	f = fopen(filename,"r");
 	if( f == NULL ){
-		print( "file open error\n");
+		print( "不能打开文件\n");
 		return FALSE;
 	}
 #ifdef _ITEMSET2_ITEM
@@ -1111,67 +1036,62 @@ BOOL ITEM_readItemConfFile( char* filename )
 
 		ret = getStringFromIndexWithDelim( line, ",", ITEM_ID_TOKEN_INDEX, token, sizeof(token));
 		if( ret == FALSE ){
-			fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+			fprint("文件秩序错误:%s 第:%d行\n",filename,linenum);
 			continue;
 		}
 		itemid = atoi( token);
 		if( itemid > maxid ){
-            maxid = itemid;
-        }
+       maxid = itemid;
+    }
+    itemnum ++;
 	}
 
 	if( maxid <=0 ) {
-		print( "error maxid\n");
+		print( "最大ID错误\n");
 		fclose(f);
 		return FALSE;
 	}
 	
 	if( fseek( f, 0, SEEK_SET ) == -1 ){
-		fprint( "Seek Error\n" );
+		fprint( "搜索错误\n" );
 		fclose(f);
 		return FALSE;
 	}
-#ifdef _IMPOROVE_ITEMTABLE
-	ITEM_tblen = linenum+1;
-	print( "ITEM linenum is %d - size:%d\n", linenum, sizeof(ITEM_table));
-	if( ITEM_TransformList != NULL )
-		freeMemory( ITEM_TransformList);
-	defitemtbls = (maxid+1);
-	ITEM_TransformList = allocateMemory( sizeof(sITEM_transformList) * defitemtbls );
-	for( i = 0 ; i < (maxid+1); i ++ ) {
-		ITEM_TransformList[i].use = FALSE;
-	}
-#else
-	print( "ITEM maxid is %d", maxid);
-	ITEM_tblen = maxid + 1;
-#endif
-
-#ifdef _ITEMTBL_STAIC
-	for( i = 0 ; i < 28000 ; i ++ ) {
-		ITEM_tbl[i].use = FALSE;
-	}
-#else
+	print( "物品最大ID %d...", maxid);
+	ITEM_tblen = itemnum + 1;
+	ITEM_idxlen = maxid + 1;
 	if( ITEM_tbl != NULL )
-		freeMemory( ITEM_tbl);
+		ITEM_endExistItemsArray( ITEM_tbl);
 	ITEM_tbl = allocateMemory( sizeof(ITEM_table) * ITEM_tblen );
+	if( ITEM_idx != NULL )
+		ITEM_endExistItemsArray( ITEM_idx);
+	ITEM_idx = allocateMemory( sizeof(ITEM_index) * ITEM_idxlen );
 
 	if( ITEM_tbl == NULL ){
-		fprint( "Can't allocate Memory %d\n" , sizeof(ITEM_table)*ITEM_tblen );
+		fprint( "无法分配内存 %d\n" , sizeof(ITEM_table)*ITEM_tblen );
 		fclose( f );
 		return FALSE;
 	}
-	for( i = 0 ; i < ITEM_tblen ; i ++ ) {
-		ITEM_tbl[i].use = FALSE;
+	if( ITEM_idx == NULL ){
+		fprint( "无法分配内存 %d\n" , sizeof(ITEM_index)*ITEM_idxlen );
+		fclose( f );
+		return FALSE;
 	}
-#endif
+	print("ITEM_tbl分配 %4.2f MB 空间...", sizeof(ITEM_table) * ITEM_tblen /1024.0/1024.0);
+	print("ITEM_idx分配 %4.2f MB 空间...", sizeof(ITEM_index) * ITEM_idxlen /1024.0/1024.0);
+	
+	for( i = 0 ; i < ITEM_idxlen ; i ++ ) {
+		ITEM_idx[i].use = FALSE;
+	}
 	linenum = 0;
+	itemnum = 0;
 	while( fgets( line, sizeof( line ), f ) ){
 		linenum ++;
 		if( line[0] == '#' )continue;        /* comment */
 		if( line[0] == '\n' )continue;       /* none    */
 		chomp( line );
 		replaceString( line, '\t' , ' ' );
-
+		itemnum ++;
 {
 		char    buf[256];
 		for( i = 0; i < strlen( line); i ++) {
@@ -1257,13 +1177,9 @@ BOOL ITEM_readItemConfFile( char* filename )
 			}
 		}
 		if( !dataerror) {
-#ifdef _IMPOROVE_ITEMTABLE
-			int ListNum = itemid;
-			itemid = totalitemtbls;
-#endif
-			if( itemid >= ITEM_tblen ){
+			if( itemid >= ITEM_idxlen ){
 				print( "ITEM_tbl full:%d err !!\n" , itemid );
-			}else if( ITEM_tbl[itemid].use == TRUE ) {
+			}else if( ITEM_idx[itemid].use == TRUE ) {
 				fprint( "Duplicate Itemid %d.ignore\n" , itemid );
 			}else{
 				if( itm.string[ITEM_SECRETNAME].string[0] == '\0') {
@@ -1283,23 +1199,12 @@ BOOL ITEM_readItemConfFile( char* filename )
 				itm.data[ITEM_ATTACKNUM_MAX] = max( attacknum_min,
 													attacknum_max);
 }
-				memcpy( &ITEM_tbl[itemid].itm, &itm, sizeof(ITEM_Item));				
-				ITEM_tbl[itemid].use = TRUE;
-
+				memcpy( &ITEM_tbl[itemnum].itm, &itm, sizeof(ITEM_Item));				
+				ITEM_idx[itemid].use = TRUE;
+				ITEM_idx[itemid].index = itemnum;
 				for( i=0 ; i< ITEM_DATAINTNUM ; i++ ){
-					ITEM_tbl[itemid].randomdata[i] = intdata[i];
+					ITEM_tbl[itemnum].randomdata[i] = intdata[i];
 				}
-#ifdef _IMPOROVE_ITEMTABLE
-
-				if( ITEM_TransformList[ ListNum].use != 0 ){
-					ITEM_tbl[itemid].use = TRUE;
-					ITEM_TransformList[ ListNum].use = 0;
-				}else {
-					ITEM_TransformList[ ListNum].Si = totalitemtbls;
-					ITEM_TransformList[ ListNum].use = TRUE;
-				}
-				totalitemtbls++;
-#endif
 			}
 		}
 }
@@ -1321,41 +1226,6 @@ CHAR_EquipPlace ITEM_getEquipPlace( int charaindex, int itmid )
 	case ITEM_BOOMERANG:
 	case ITEM_BREAKTHROW:
 	case ITEM_BOUNDTHROW:
-
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-		{	
-			int i=0;
-
-			// 勇士职业技能二刀流
-			for( i=0; i<CHAR_SKILLMAXHAVE; i++ ){
-				char *skill_name;
-				// 技能ID
-				int skillid = CHAR_getCharSkill( charaindex, i);
-				int Pskillid = PROFESSION_SKILL_getskillArray( skillid);		
-				if( Pskillid <= 0 ) continue;
-
-				// 技能名称
-				skill_name = PROFESSION_SKILL_getChar( Pskillid, PROFESSION_SKILL_FUNCNAME);
-				if( skill_name == NULL ) continue;
-	
-				// 二刀流
-				if( (strcmp( skill_name , "PROFESSION_DUAL_WEAPON" )) == 0 ){
-					int get_item = BATTLE_GetWepon( charaindex );
-
-					if( get_item != ITEM_BOW ){
-						int right_hand = CHAR_getItemIndex( charaindex, CHAR_ARM );
-						int left_hand  = CHAR_getItemIndex( charaindex, CHAR_EQSHIELD );
-
-						if( right_hand < 0 )	return CHAR_ARM;
-						else{
-							if( left_hand < 0 )	return CHAR_EQSHIELD;
-							else				return CHAR_ARM;	
-						}
-					}
-				} 
-			}
-		}
-#endif
 		return CHAR_ARM;
 		break;
 	case ITEM_HELM:
@@ -1375,30 +1245,8 @@ CHAR_EquipPlace ITEM_getEquipPlace( int charaindex, int itmid )
 		return CHAR_DECORATION1;
 		break;
 	case ITEM_BOW:
-#ifdef _ITEM_EQUITSPACE
-		if( CHAR_getItemIndex( charaindex, CHAR_EQSHIELD ) > 0 )	return -1;
-#endif
 		return CHAR_ARM;
 		break;
-
-#ifdef _ITEM_EQUITSPACE
-	case ITEM_WBELT:
-		return CHAR_EQBELT;
-		break;
-	case ITEM_WSHIELD:
-		if( BATTLE_GetWepon( charaindex ) != ITEM_BOW )
-			return CHAR_EQSHIELD;
-		break;
-	case ITEM_WSHOES:
-		return CHAR_EQSHOES;
-		break;
-#endif
-
-#ifdef _EQUIT_NEWGLOVE
-	case ITEM_WGLOVE:
-		return CHAR_EQGLOVE;
-		break;
-#endif
 	default:
 		break;
 	}
@@ -1414,73 +1262,17 @@ char*  ITEM_makeItemStatusString( int haveitemindex, int itemindex )
 	int     leaklevel;
 	int		itemcolor = 0;
 	int 	flg;
-	char	INGNAME0[4];
-	char	INGNAME1[4];
 
-	if( !ITEM_CHECKINDEX(itemindex) ) return NULL;
+	if( !ITEM_CHECKINDEX(itemindex) ) return "\0";
 	leaklevel = ITEM_getInt(itemindex,ITEM_LEAKLEVEL);
 	 
 	//if( leaklevel >= 1 ) 	// Nuke debug
 	{
 		makeEscapeString( ITEM_getChar(itemindex, ITEM_SECRETNAME),
 						  escapename, sizeof(escapename) );
-		/*if( leaklevel >= 2  )
-		{
-			static struct Showparamint{
-				char*   name;
-				int     intindex;
-			}showparamint[]={
-				{ "ATK" , ITEM_MODIFYATTACK },
-				{ "DEF" , ITEM_MODIFYDEFENCE },
-				{ "HP"  , ITEM_MODIFYHP },
-				{ "MP"  , ITEM_MODIFYMP },
-				{ "QUICK" , ITEM_MODIFYQUICK },
-				{ "LUCK" , ITEM_MODIFYLUCK },
-				{ "CHARM" , ITEM_MODIFYCHARM },
-			};
-			int     i;
-			int     stringlen=0;
-
-			paramshow[0] = '\0';
-
-			for( i = 0 ; i < arraysizeof( showparamint ); i ++ ){
-				int     value;
-				char    sign;
-				char    tmpbuf[128];
-				value = ITEM_getInt(itemindex,showparamint[i].intindex);
-
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-				
-				
-
-#endif
-
-				if( value == 0 )continue;
-				else if( value > 0 ) sign = '+';
-				else sign = '-';
-
-				snprintf(  tmpbuf,sizeof( tmpbuf ), "%s%c%d ",
-						   showparamint[i].name,sign,ABS(value) );
-
-				strcpysafe( paramshow + stringlen ,
-							sizeof(paramshow) - stringlen, tmpbuf );
-				stringlen +=strlen(tmpbuf);
-				if( stringlen >= arraysizeof( paramshow ))
-					break;
-			}
-			dchop( paramshow , " " );
-		}
-		else*/
 			paramshow[0] = '\0';
 
 	}
-	/*else{
-		if(strlen(ITEM_getChar(itemindex,ITEM_SECRETNAME)) > 0){
-			makeEscapeString(ITEM_getChar(itemindex,ITEM_SECRETNAME),escapename,sizeof(escapename));
-		}
-		else makeEscapeString( ITEM_getChar(itemindex,ITEM_NAME),escapename,sizeof(escapename));
-		paramshow[0] = '\0';
-	}*/
 
 	makeEscapeString( ITEM_getChar( itemindex, ITEM_EFFECTSTRING),
 						escapeeffectstring,
@@ -1517,56 +1309,7 @@ char*  ITEM_makeItemStatusString( int haveitemindex, int itemindex )
 	}
 #endif
 
-#ifdef _ALCHEMIST
-	strcpy( INGNAME0, ITEM_getChar( itemindex, ITEM_INGNAME0) );
-	strcpy( INGNAME1, ITEM_getChar( itemindex, ITEM_INGNAME1) );
-	if( (INGNAME0[0] != NULL && INGNAME1[0] != NULL) || (INGNAME0[0] == NULL) ) {
-		strcpy( INGNAME0, "杂" );
-	}
-#endif
-
 	if( haveitemindex == -1 ) {
-#ifdef _ADD_SHOW_ITEMDAMAGE  // WON ADD 显示物品耐久度
-		char buff1[256];
-		int crushe	= ITEM_getInt( itemindex, ITEM_DAMAGECRUSHE);
-		int maxcrushe = ITEM_getInt( itemindex, ITEM_MAXDAMAGECRUSHE);
-		if(crushe < 1) crushe = 1;
-		if(maxcrushe < 1){
-			sprintf(buff1, "不会损坏");
-		}else{
-			maxcrushe = maxcrushe/1000;
-			crushe = crushe/1000;
-			if( maxcrushe <= 0 ) maxcrushe = 1;
-			snprintf(buff1, sizeof(buff1), "%d%%", (int)((crushe*100)/maxcrushe) );
-		}
-
-		snprintf(ITEM_itemStatusStringBuffer,
-				 sizeof( ITEM_itemStatusStringBuffer),
-#ifdef _ITEM_PILENUMS
-#ifdef _ALCHEMIST
-				"%s|%s|%d|%s|%d|%d|%d|%d|%d|%s|%d|%s",
-#else
-				"%s|%s|%d|%s|%d|%d|%d|%d|%d|%s|%d",
-#endif
-#else
-				 "%s|%s|%d|%s|%d|%d|%d|%d|%d|%s",
-#endif
-				 escapename, paramshow,
-				 itemcolor, escapeeffectstring ,
-				 ITEM_getInt( itemindex, ITEM_BASEIMAGENUMBER),
-				 ITEM_getInt( itemindex, ITEM_ABLEUSEFIELD),
-				 ITEM_getInt( itemindex, ITEM_TARGET),
-				 ITEM_getInt( itemindex, ITEM_LEVEL),
-				  flg,
-				  buff1
-#ifdef _ITEM_PILENUMS
-				 ,ITEM_getInt( itemindex, ITEM_USEPILENUMS)
-#ifdef _ALCHEMIST
-				 ,INGNAME0 //,ITEM_getInt( itemindex, ITEM_ALCHEMIST)
-#endif
-#endif
-				  );
-#else
 		snprintf(ITEM_itemStatusStringBuffer,
 				 sizeof( ITEM_itemStatusStringBuffer),
 				 "%s|%s|%d|%s|%d|%d|%d|%d|%d",
@@ -1578,49 +1321,7 @@ char*  ITEM_makeItemStatusString( int haveitemindex, int itemindex )
 				 ITEM_getInt( itemindex, ITEM_LEVEL),
 				  flg
 				  );
-#endif
 	}else {
-#ifdef _ADD_SHOW_ITEMDAMAGE  // WON ADD 显示物品耐久度
-		char buff1[256];
-		int crushe	= ITEM_getInt( itemindex, ITEM_DAMAGECRUSHE);
-		int maxcrushe = ITEM_getInt( itemindex, ITEM_MAXDAMAGECRUSHE);
-		if(crushe < 1) crushe = 1;
-		if(maxcrushe < 1){
-			sprintf(buff1, "不会损坏");
-		}else{
-			maxcrushe = maxcrushe/1000;
-			crushe = crushe/1000;
-			if( maxcrushe <= 0 ) maxcrushe = 1;
-			snprintf(buff1, sizeof(buff1), "%d%%", (int)((crushe*100)/maxcrushe) );
-		}
-		snprintf(ITEM_itemStatusStringBuffer, sizeof( ITEM_itemStatusStringBuffer),
-				 
-#ifdef _ITEM_PILENUMS
-#ifdef _ALCHEMIST
-				"%d|%s|%s|%d|%s|%d|%d|%d|%d|%d|%s|%d|%s",
-#else
-				"%d|%s|%s|%d|%s|%d|%d|%d|%d|%d|%s|%d",
-#endif
-#else
-				"%d|%s|%s|%d|%s|%d|%d|%d|%d|%d|%s",
-#endif
-				 haveitemindex,
-				 escapename, paramshow,
-				 itemcolor, escapeeffectstring ,
-				 ITEM_getInt( itemindex, ITEM_BASEIMAGENUMBER),
-				 ITEM_getInt( itemindex, ITEM_ABLEUSEFIELD),
-				 ITEM_getInt( itemindex, ITEM_TARGET),
-				 ITEM_getInt( itemindex, ITEM_LEVEL),
-				 flg,
-				 buff1
-#ifdef _ITEM_PILENUMS
-				,ITEM_getInt( itemindex, ITEM_USEPILENUMS)
-#ifdef _ALCHEMIST
-				,INGNAME0 //,ITEM_getInt( itemindex, ITEM_ALCHEMIST)
-#endif
-#endif
-				  );
-#else
 		snprintf(ITEM_itemStatusStringBuffer,
 				 sizeof( ITEM_itemStatusStringBuffer),
 				 "%d|%s|%s|%d|%s|%d|%d|%d|%d|%d",
@@ -1633,7 +1334,6 @@ char*  ITEM_makeItemStatusString( int haveitemindex, int itemindex )
 				 ITEM_getInt( itemindex, ITEM_LEVEL),
 				 flg
 				  );
-#endif
 	}
 
 	return ITEM_itemStatusStringBuffer;
@@ -1642,76 +1342,32 @@ char*  ITEM_makeItemStatusString( int haveitemindex, int itemindex )
 char*   ITEM_makeItemFalseString( void )
 {
 
-#ifdef _ADD_SHOW_ITEMDAMAGE  // WON ADD 显示物品耐久度
-	strcpysafe( ITEM_itemStatusStringBuffer,
-				sizeof( ITEM_itemStatusStringBuffer),
-#ifdef _ITEM_PILENUMS
-#ifdef _ALCHEMIST
-				"|||||||||||"
-#else
-				"||||||||||"
-#endif
-#else
-				"|||||||||"
-#endif
-			);
-
-#else
 	strcpysafe( ITEM_itemStatusStringBuffer,
 				sizeof( ITEM_itemStatusStringBuffer),
 				"||||||||" );
-#endif
 	return ITEM_itemStatusStringBuffer;
 }
 
 char*   ITEM_makeItemFalseStringWithNum( int haveitemindex )
 {
-#ifdef _ADD_SHOW_ITEMDAMAGE  // WON ADD 显示物品耐久度
-	snprintf(  ITEM_itemStatusStringBuffer, sizeof( ITEM_itemStatusStringBuffer),
-
-#ifdef _ITEM_PILENUMS
-#ifdef _ALCHEMIST
-				"%d||||||||||||",
-#else
-				"%d|||||||||||",
-#endif
-#else
-				"%d||||||||||",
-#endif
-				haveitemindex );
-#else
 	snprintf(  ITEM_itemStatusStringBuffer, sizeof( ITEM_itemStatusStringBuffer),
 				"%d|||||||||", haveitemindex);
-#endif
 	return ITEM_itemStatusStringBuffer;
 }
 
 BOOL ITEM_makeItem( ITEM_Item* itm, int number )
 {
 	int i;
-#ifdef _IMPOROVE_ITEMTABLE
-	int Itemsi;
-#endif
 	if( ITEM_CHECKITEMTABLE(number) == FALSE ){
-		//print(" Can't makeItem for itemid:%d!!\n", number);
+		print(" Can't makeItem for itemid:%d!!\n", number);
 		return FALSE;
 	}
-#ifdef _IMPOROVE_ITEMTABLE
-	Itemsi = ITEM_getSIndexFromTransList( number);
-	memcpy( itm, &ITEM_tbl[Itemsi].itm , sizeof( ITEM_Item ) ); //new
+	memcpy( itm, &ITEM_tbl[ITEM_idx[number].index].itm , sizeof( ITEM_Item ) ); //new
 	for( i=0 ; i<ITEM_DATAINTNUM ; i++ ){
 		int     randomvalue;
-		randomvalue = RAND( 0, ITEM_tbl[Itemsi].randomdata[i] ); //new
-		itm->data[i] = ITEM_tbl[Itemsi].itm.data[i] + randomvalue; //new
+		randomvalue = RAND(0,ITEM_tbl[ITEM_idx[number].index].randomdata[i]); //new
+		itm->data[i] = ITEM_tbl[ITEM_idx[number].index].itm.data[i] + randomvalue; //new
 	}
-#else
-	memcpy( itm, &ITEM_tbl[number].itm , sizeof( ITEM_Item ) ); //new
-	for( i=0 ; i<ITEM_DATAINTNUM ; i++ ){
-		int     randomvalue;
-		randomvalue = RAND(0,ITEM_tbl[number].randomdata[i]); //new
-		itm->data[i] = ITEM_tbl[number].itm.data[i] + randomvalue; //new
-	}
-#endif
 	itm->data[ITEM_LEAKLEVEL] = 1;
 	return TRUE;
 }
@@ -1730,9 +1386,6 @@ void ITEM_equipEffect( int index )
 {
 	int     i;
 	int		attribaccum[4] = { 0,0,0,0};
-#ifdef _ANGEL_SUMMON
-	int		angelmode, angelequip =0;
-#endif
 	static struct itmeffectstruct{
 		int itemdataintindex;
 		int charmodifyparamindex;
@@ -1777,94 +1430,24 @@ void ITEM_equipEffect( int index )
 		itemEffect[i].accumulation = 0;
 
 	if( !CHAR_CHECKINDEX(index) )return;
-
-#ifdef _ANGEL_SUMMON
-	angelmode = CHAR_getWorkInt( index, CHAR_WORKANGELMODE);
-#endif
-
+	
 	for( i = 0 ; i < CHAR_EQUIPPLACENUM ; i ++ ){
-		int     id = CHAR_getItemIndex(index,i);
+		int id = CHAR_getItemIndex(index,i);
 		if( ITEM_CHECKINDEX(id) ){
 			int     j;
 			int		attrib = 0;
 
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-			if( i == CHAR_ARM )
-					CHAR_sendStatusString( index , "S");
-#endif
-
 			for( j=0; j < arraysizeof( itemEffect ); j ++ ) {
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
 
-				if( i == CHAR_EQSHIELD ){
-					int item_type = ITEM_FIST;
-					item_type = ITEM_getInt( id, ITEM_TYPE );
-
-					// 当左手装备武器的时候									
-					if( item_type != ITEM_WSHIELD ){
-						int k;
-						// 勇士职业技能二刀流
-						for( k=0; k<CHAR_SKILLMAXHAVE; k++ ){
-							char *skill_name;
-							// 技能ID
-							int skillid = CHAR_getCharSkill( index, k);
-							int Pskillid = PROFESSION_SKILL_getskillArray( skillid);		
-							if( Pskillid <= 0 ) continue;
-
-							// 技能名称
-							skill_name = PROFESSION_SKILL_getChar( Pskillid, PROFESSION_SKILL_FUNCNAME);
-							if( skill_name == NULL ) continue;
-	
-							// 二刀流
-							if( (strcmp( skill_name , "PROFESSION_DUAL_WEAPON" )) == 0 ){
-								int skill=k, skill_level=0, rate=0, value=0;
-								CHAR_HaveSkill* hskill;
-								// 人物技能等级
-								hskill = CHAR_getCharHaveSkill( index, skill );
-								skill_level = SKILL_getInt( &hskill->skill, SKILL_LEVEL);
-								skill_level = PROFESSION_CHANGE_SKILL_LEVEL_A( skill_level );
-								rate = (skill_level * 3 + 20);
-								value = ITEM_getInt( id, itemEffect[j].itemdataintindex ) * rate / 100;
-								itemEffect[j].accumulation += value;
-							}
-						}
-					}else
-						itemEffect[j].accumulation += ITEM_getInt( id, itemEffect[j].itemdataintindex );
-				}else 
-#endif
-				itemEffect[j].accumulation += ITEM_getInt( id, itemEffect[j].itemdataintindex );			
+				itemEffect[j].accumulation += ITEM_getInt( id, itemEffect[j].itemdataintindex );
 			}
 
 			attrib = ITEM_getInt( id, ITEM_MODIFYATTRIB);
 			if(  attrib > 0 && attrib < 5) {
 				attribaccum[attrib - 1] += ITEM_getInt( id, ITEM_MODIFYATTRIBVALUE);
 			}
-
-#ifdef _ANGEL_SUMMON
-			//if( !strcmp( ITEM_getChar( id, ITEM_USEFUNC), "ITEM_AngelToken") ) {
-			if( ITEM_getInt( id, ITEM_ID) == ANGELITEM ) {
-				//print(" 使者信物装备中 ");
-				angelequip = TRUE;
-			}
-#endif
-
-
 		}
 	}
-
-#ifdef _ANGEL_SUMMON
-	if( angelmode == TRUE && angelequip == FALSE ) {
-		CHAR_setWorkInt( index, CHAR_WORKANGELMODE, FALSE);
-		CHAR_sendAngelMark( CHAR_getWorkInt( index, CHAR_WORKOBJINDEX), 0);
-		print(" 卸下使者信物 ");
-	}
-	if( angelmode == FALSE && angelequip == TRUE ) {
-		CHAR_setWorkInt( index, CHAR_WORKANGELMODE, TRUE);
-		CHAR_sendAngelMark( CHAR_getWorkInt( index, CHAR_WORKOBJINDEX), 1);
-		CHAR_talkToCli( index, -1, "你受到了精灵保护，不会被敌人攻击。", CHAR_COLORYELLOW );
-		print(" 装备使者信物 ");
-	}
-#endif
 
 #ifdef _FIX_MAXCHARMP
 	for(i = 3 ; i < arraysizeof( itemEffect ) ; i ++ ){
@@ -1940,21 +1523,6 @@ void Other_DefcharWorkInt( int index)
 		CHAR_setWorkInt( index, CHAR_WORKFIXDEX, CHAR_getWorkInt( index, CHAR_WORKFIXDEX)+mdex*CHAR_getWorkInt( index, CHAR_WORKSUITDEX_P)/100.0);
 #endif
 #endif//_SUIT_ITEM
-
-#ifdef _MAGIC_RESIST_EQUIT			// WON ADD 职业抗性装备
-	/*{
-		int f_res = -1, i_res = -1, t_res = -1;
-		f_res = CHAR_getWorkInt( index, CHAR_WORK_F_RESIST );
-		i_res = CHAR_getWorkInt( index, CHAR_WORK_I_RESIST );		
-		t_res = CHAR_getWorkInt( index, CHAR_WORK_T_RESIST );
-
-		CHAR_setWorkInt( index, CHAR_WORK_F_RESIST, f_res+CHAR_getWorkInt( index, CHAR_WORK_F_SUIT ) );
-		CHAR_setWorkInt( index, CHAR_WORK_I_RESIST, i_res+CHAR_getWorkInt( index, CHAR_WORK_I_SUIT ) );
-		CHAR_setWorkInt( index, CHAR_WORK_T_RESIST, t_res+CHAR_getWorkInt( index, CHAR_WORK_T_SUIT ) );
-	}*/
-#endif
-
-
 #ifdef _PETSKILL_SETDUCK
 	//profession fix
 	//使用回避招式时,会将防值减去30%然後设定成回避值,奇怪的设定,也造成原本设定的回避值跟没设一样,因此我(Change)先把整段拿掉
@@ -1992,25 +1560,6 @@ void Other_DefcharWorkInt( int index)
 	}
 #endif
 
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-	if( CHAR_getWorkInt( index, CHAR_MYSKILLHIT) > 0 ){
-		int mpower, mdef;
-		mpower = CHAR_getWorkInt( index, CHAR_MYSKILLHIT);
-		mdef = CHAR_getWorkInt( index, CHAR_WORKHITRIGHT);
-		mpower += (mtgh*mdef)/100;
-		if( mtgh < 0 ) mtgh=0;
-		CHAR_setWorkInt( index, CHAR_MYSKILLHIT, mpower);
-	}
-	if( CHAR_getWorkInt( index, CHAR_WORK_WEAPON) > 0 ){	// 武器专精
-		int mpower, mdef;
-		mpower = CHAR_getWorkInt( index, CHAR_WORKFIXSTR);
-		mdef = CHAR_getWorkInt( index, CHAR_WORKMOD_WEAPON);
-		mpower = mpower * ( 100 + mdef ) /100;
-		if( mtgh < 0 ) mtgh=0;
-		CHAR_setWorkInt( index, CHAR_WORKFIXSTR, mpower);
-	}
-#endif
-
 #ifdef _VARY_WOLF		
 	if(CHAR_getInt( index, CHAR_BASEIMAGENUMBER)==101428){
 		int Rands=0, power;
@@ -2023,14 +1572,6 @@ void Other_DefcharWorkInt( int index)
 		power = CHAR_getWorkInt( index, CHAR_WORKFIXDEX);
 		power = power + (power*Rands)/100;
 		CHAR_setWorkInt( index, CHAR_WORKFIXDEX, power);
-	}
-#endif
-
-#ifdef _PROFESSION_ADDSKILL
-	if( CHAR_getWorkInt( index, CHAR_WORKFEAR ) > 0 ){
-		CHAR_setWorkInt( index, CHAR_WORKFIXSTR, CHAR_getWorkInt( index, CHAR_WORKFIXSTR ) - mfix*0.1 );
-		CHAR_setWorkInt( index, CHAR_WORKFIXTOUGH, CHAR_getWorkInt( index, CHAR_WORKFIXTOUGH ) - mtgh*0.1 );
-		CHAR_setWorkInt( index, CHAR_WORKFIXDEX, CHAR_getWorkInt( index, CHAR_WORKFIXDEX ) - mdex*0.2 );
 	}
 #endif
 
@@ -2056,7 +1597,7 @@ void Other_DefcharWorkInt( int index)
 char* ITEM_getAppropriateName(int itemindex)
 {
 	int nameindex;
-	if( !ITEM_CHECKINDEX(itemindex ) )return NULL;
+	if( !ITEM_CHECKINDEX(itemindex ) )return "\0";
 	if( ITEM_getInt(itemindex,ITEM_LEAKLEVEL) <= 0 )
 		nameindex = ITEM_NAME;
 	else
@@ -2067,7 +1608,7 @@ char* ITEM_getAppropriateName(int itemindex)
 
 char* ITEM_getEffectString( int itemindex )
 {
-	if( !ITEM_CHECKINDEX(itemindex))return NULL;
+	if( !ITEM_CHECKINDEX(itemindex))return "\0";
 	return ITEM_item[itemindex].itm.string[ITEM_EFFECTSTRING].string;
 }
 
@@ -2080,7 +1621,7 @@ INLINE char* _ITEM_getNameFromNumber( char *file, int line, int itemid )
 {
 	if( ITEM_CHECKITEMTABLE(itemid) == FALSE ){
 		print("Can't Get ItemTable for:%d! - %s:%d\n",itemid, file, line);
-		return NULL;
+		return "\0";
 	}
 	return ITEMTBL_getChar( itemid, ITEM_NAME);
 }
@@ -2190,81 +1731,28 @@ BOOL CHAR_CheckInItemForWares( int charaindex, int flg)
 }
 #endif
 
-
-#ifdef _IMPOROVE_ITEMTABLE
-
-BOOL ITEMTBL_CHECKINDEX( int ItemID)
-{
-	if( ItemID < 0 || ItemID >= defitemtbls )
-		return FALSE;
-	return ITEM_TransformList[ ItemID].use;
-}
-
-int ITEM_getSIndexFromTransList( int ItemID)
-{
-	if( !ITEMTBL_CHECKINDEX( ItemID) )
-		return -1;
-	return ITEM_TransformList[ ItemID].Si;
-}
-
-int ITEM_getTotalitemtblsFromTransList()
-{
-	return totalitemtbls;
-}
-
-int ITEM_getMaxitemtblsFromTransList()
-{
-	return defitemtbls;
-}
-#endif
-
 int ITEMTBL_getInt( int ItemID, ITEM_DATAINT datatype)
 {
-#ifdef _IMPOROVE_ITEMTABLE
-	int itemsi=0;
-	if( !ITEM_CHECKITEMTABLE( ItemID) ) return -1;
-	itemsi = ITEM_getSIndexFromTransList( ItemID);
-	if( datatype >= ITEM_DATAINTNUM || datatype < 0 ) return -1;
-	return ITEM_tbl[itemsi].itm.data[datatype]; //new
-#else
 	if( datatype >= ITEM_DATAINTNUM || datatype < 0 ) return -1;
 	if( ITEM_CHECKITEMTABLE(ItemID) == FALSE )return -1;
-		return ITEM_tbl[ItemID].itm.data[datatype]; //new
-#endif
+		return ITEM_tbl[ITEM_idx[ItemID].index].itm.data[datatype]; //new
 }
 
 char *ITEMTBL_getChar( int ItemID, ITEM_DATACHAR datatype)
 {
-#ifdef _IMPOROVE_ITEMTABLE
-	int itemsi=0;
-	if( !ITEM_CHECKITEMTABLE( ItemID) ) return NULL;
-	itemsi = ITEM_getSIndexFromTransList( ItemID);
-	if( datatype >= ITEM_DATACHARNUM || datatype < 0 ) return NULL;
-	return ITEM_tbl[itemsi].itm.string[datatype].string; //new
-#else
-	if( datatype >= ITEM_DATACHARNUM || datatype < 0 ) return NULL;
-	if( ITEM_CHECKITEMTABLE(ItemID) == FALSE )return NULL;
-	return ITEM_tbl[ItemID].itm.string[datatype].string; //new
-#endif
+	if( datatype >= ITEM_DATACHARNUM || datatype < 0 ) return "\0";
+	if( ITEM_CHECKITEMTABLE(ItemID) == FALSE )return "\0";
+	return ITEM_tbl[ITEM_idx[ItemID].index].itm.string[datatype].string; //new
 }
 
 INLINE BOOL ITEM_CHECKITEMTABLE( int number )
 {
-#ifdef _IMPOROVE_ITEMTABLE
-	int itemsi=0;
-	if( !ITEMTBL_CHECKINDEX( number) ) return FALSE;
-	itemsi = ITEM_getSIndexFromTransList( number);
-	if( itemsi < 0 || itemsi >= ITEM_tblen  )
-		return FALSE;
-	return ITEM_tbl[itemsi].use; //new
-#else
-	if( number < 0 || number >= ITEM_tblen  ){
+	if( number < 0 || number >= ITEM_idxlen  ){
 		//andy_log
-		print("ITEM_CHECKITEMTABLE() number:%d ITEM_tblen:%d !!\n", number, ITEM_tblen );
+		print("ITEM_CHECKITEMTABLE() number:%d ITEM_tblen:%d !!\n", number, ITEM_idxlen );
 		return FALSE;
 	}
-	return ITEM_tbl[number].use; //new
-#endif
+	return ITEM_idx[number].use; //new
 }
 
 int ITEM_getItemDamageCrusheED( int itemindex)
@@ -2290,87 +1778,3 @@ void ITEM_RsetEquit( int charaindex)
 		CHAR_setItemIndex( charaindex , ti, itemindex);
 	}
 }
-
-void ITEM_reChangeItemToPile( int itemindex)
-{
-#ifdef _ITEM_PILENUMS
-	int itemID;
-	if( !ITEM_CHECKINDEX(itemindex) ) return;
-	
-	if( ITEM_getInt( itemindex, ITEM_USEPILENUMS) <= 0 )
-		ITEM_setInt( itemindex, ITEM_USEPILENUMS, 1);
-	itemID = ITEM_getInt( itemindex, ITEM_ID);
-	if( !ITEM_CHECKITEMTABLE( itemID) ) return;
-	if( itemID == 20284 ) return;//铁枪叁另外处理
-	if( ITEM_getInt( itemindex, ITEM_CANBEPILE) != ITEMTBL_getInt( itemID, ITEM_CANBEPILE) )
-		ITEM_setInt( itemindex, ITEM_CANBEPILE, ITEMTBL_getInt( itemID, ITEM_CANBEPILE) );
-#endif
-}
-
-void ITEM_reChangeItemName( int itemindex)
-{//ITEM_NAME
-/*
-	int itemID;
-	char *IDNAME;
-	char *NAME;
-	if( !ITEM_CHECKINDEX(itemindex) ) return;
-	itemID = ITEM_getInt( itemindex, ITEM_ID);
-	if( !ITEM_CHECKITEMTABLE( itemID) ) return;
-
-	IDNAME = ITEMTBL_getChar( itemID, ITEM_NAME);
-	NAME = ITEM_getChar( itemindex, ITEM_NAME);
-	if( IDNAME==NULL || NAME==NULL ) return;
-	if( !strcmp( IDNAME, NAME) ) return;
-
-	ITEM_setChar( itemindex, ITEM_NAME, IDNAME);
-*/
-}
-
-#ifdef _CHECK_ITEM_MODIFY
-void ITEM_checkItemModify( int charaindex, int itemindex)
-{
-	//int itemindex;
-	int item_ID;
-	int nowData;
-	int baseData;
-	int randData;
-	int i;
-
-	int checkList[] = {	
-			ITEM_MODIFYATTACK,
-			ITEM_MODIFYDEFENCE,
-			ITEM_MODIFYQUICK,
-			ITEM_MODIFYHP,
-			ITEM_MODIFYMP,
-			ITEM_MODIFYLUCK,
-			ITEM_MODIFYCHARM,
-			ITEM_MODIFYAVOID
-	};
-
-	//itemindex = CHAR_getItemIndex( charaindex, equipindex);
-	item_ID = ITEM_getInt( itemindex, ITEM_ID);
-
-	for( i = 0; i < arraysizeof( checkList); i ++ ){
-
-		nowData = ITEM_getInt( itemindex, checkList[i]);
-		baseData = ITEMTBL_getInt( item_ID, checkList[i]);
-		if( baseData == -1 )	continue;
-		randData = ITEM_tbl[item_ID].randomdata[checkList[i]];
-		
-		if( nowData > baseData + randData ) {
-			char szBuffer[1024];
-			ITEM_setInt( itemindex, checkList[i], baseData); 
-			sprintf( szBuffer, " 修正异常道具: id=%d a=%d now=%d base=%d rand=%d ",
-				item_ID, checkList[i], nowData, baseData, randData );
-			print( szBuffer);
-			if( CHAR_CHECKINDEX(charaindex) ) {
-				LogOther( 
-					CHAR_getChar( charaindex, CHAR_CDKEY),
-					CHAR_getChar( charaindex, CHAR_NAME),
-					szBuffer );
-			}
-
-		}
-	}
-}
-#endif

@@ -25,7 +25,7 @@
 #include "npc_fmdengon.h"
 #endif
 
-#define CHAR_MAXNAME 20
+#define CHAR_MAXNAME 32
 #define CHAR_MAXID 20
 #define MINFMLEVLEFORPOINT	3	// 3 申请庄园最低等级
 #ifdef _FAMILY_MANORNUM_CHANGE
@@ -59,7 +59,7 @@ int	familyMemberIndex[FAMILY_MAXNUM][FAMILY_MAXMEMBER];
 
 int	familyTax[FAMILY_MAXNUM];
 
-extern	tagRidePetTable ridePetTable[122];
+extern	tagRidePetTable ridePetTable[296];
 
 void LeaveMemberIndex( int charaindex, int fmindexi);
 
@@ -116,41 +116,9 @@ int getFmLv(int playerindex)	// 合成时专用
     return i;
 }
 
-#ifdef _MERGE_NEW_8 // 查询个人声望等级
-int famelevelexp[]={0,			// 0
-					1500,		// 1
-					3000,		// 2
-					4500,		// 3
-					7500,		// 4
-					11000,		// 5
-					14500,		// 6
-					18000,		// 7
-					25000,		// 8
-					32000,		// 9
-					39000		//10
-					};
-
-int getFameLv(int playerindex)	// 合成时专用
-{
-    int i, dp;
-    dp = CHAR_getWorkInt(playerindex, CHAR_FAME);
-    if( dp > famelevelexp[10] ){
-        return 10;
-    }
-    for(i=0; i<=10; i++)
-        if( dp <= famelevelexp[i+1] ) break;
-	if (i>=10) i=10;
-	
-    return i;
-}
-#endif
-
 struct FMMEMBER_LIST memberlist[FAMILY_MAXNUM];
 struct FMS_MEMO      fmsmemo;
 struct FM_POINTLIST  fmpointlist;
-#ifdef _NEW_MANOR_LAW
-ManorSchedule_t	ManorSchedule[MANORNUM];
-#endif
 struct FMS_DPTOP     fmdptop; 
 struct FM_PKFLOOR    fmpkflnum[FAMILY_FMPKFLOOR]=
 {
@@ -169,6 +137,7 @@ struct FM_PKFLOOR    fmpkflnum[FAMILY_FMPKFLOOR]=
 	{7032},
 	{8032},
 	{9032},
+	{10032},
 #endif
 };
 int leaderdengonindex = 0;
@@ -221,18 +190,6 @@ void FAMILY_Init( void )
 	for( i=0; i<FAMILY_MAXNUM; i++)
 	    for( j=0; j<FAMILY_MAXMEMBER; j++ )
 	    	familyMemberIndex[i][j] = -1;	    
-#ifdef _NEW_MANOR_LAW
-	for(i=0;i<FAMILY_MAXHOME;i++){
-		fmpointlist.fm_momentum[i] = -1;
-		fmpointlist.fm_inwar[i] = FALSE;
-	}
-	memset(&ManorSchedule,0,sizeof(ManorSchedule));
-	for(j=0;j<MANORNUM;j++){
-		for(i=0;i<10;i++){
-			ManorSchedule[j].iSort[i] = ManorSchedule[j].iFmIndex[i] = -1;
-		}
-	}
-#endif		
 	familyListBuf[0] = '\0';
 	saacproto_ACShowFMList_send( acfd );
 
@@ -288,11 +245,8 @@ void CHAR_Family(int fd, int index, char *message)
 				FAMILY_Bank(fd, index, message);
 				break;
 			case 'p':
-#ifdef _UN_FMPOINT
-#else
 				// 申请家族据点
 				FAMILY_SetPoint(fd, index, message);
-#endif
 				break;
 			case 't':
 				// 是否继续招募成员
@@ -486,12 +440,12 @@ void FAMILY_Add(int fd, int meindex, char* message)
 }
 
 /*
-    ┐┌   
-  ┘└┘└  
-└┐．．┌┘─   
-  ┴──┤★~~├   
+  ╭┐┌╮ 
+╭┘└┘└╮
+└┐．．┌┘─╮ 
+╭┴──┤★~~├╮ 
 │ｏ　ｏ│　　│● 　 
-  ┬──  　　│ ~~~~~~~~~哞 
+╰┬──╯　　│ ~~~~~~~~~哞 
 ▲△▲△▲△▲△▲△▲△▲△▲△ 
 
 */
@@ -517,10 +471,6 @@ void ACAddFM(int fd, int result, int fmindex, int index)
 		CHAR_setInt(meindex, CHAR_FMINDEX, fmindex);
 		CHAR_setWorkInt(meindex, CHAR_WORKFMINDEXI, index);
 		CHAR_setWorkInt(meindex, CHAR_WORKFMSETUPFLAG, 0);
-#ifdef _NEW_MANOR_LAW
-		CHAR_setInt(meindex,CHAR_MOMENTUM,0);
-		CHAR_talkToCli(meindex,-1,"成立家族个人气势归零",CHAR_COLORYELLOW);
-#endif
 		 lssproto_WN_send( fd, WINDOW_MESSAGETYPE_MESSAGE,
 			 WINDOW_BUTTONTYPE_OK,
 			 -1, -1,
@@ -532,6 +482,7 @@ void ACAddFM(int fd, int result, int fmindex, int index)
 		 saacproto_ACShowFMList_send( acfd );
 		 saacproto_ACShowMemberList_send( acfd, index );
 		 saacproto_ACShowTopFMList_send(acfd, FM_TOP_INTEGRATE);
+	
 		 
 		 LogFamily(
 			 CHAR_getChar( meindex, CHAR_FMNAME),
@@ -590,11 +541,11 @@ void FAMILY_Join(int fd, int meindex, char *message)
 
 #ifdef _FM_JOINLIMIT
 	if( CHAR_getInt( meindex, CHAR_FMTIMELIMIT ) > (int)time(NULL) ){
+		char buff[255];
+		sprintf(buff, "\n如之前退出家族，\n需满%d小时才能再加入家族喔！",(CHAR_getInt( meindex, CHAR_FMTIMELIMIT )-(int)time(NULL))/3600+1);
 		lssproto_WN_send( fd, WINDOW_MESSAGETYPE_MESSAGE,
 			WINDOW_BUTTONTYPE_OK, -1, -1,
-			makeEscapeString( "\n如之前退出家族，\n需满7天才能再加入家族喔！", buf, sizeof(buf)));
-		//andy_log
-		print("FM_JOINL: fail\n");
+			makeEscapeString( buff, buf, sizeof(buf)));
 		return;
 	}
 #endif
@@ -656,10 +607,6 @@ void ACJoinFM(int fd, int result, int recv)
 			makeEscapeString( "\n谢谢你的加入申请！请先等族长对你的审核通过之後，才算正式加入。", buf, sizeof(buf)));
 		 
 		  JoinMemberIndex( meindex, CHAR_getWorkInt(meindex, CHAR_WORKFMINDEXI) );
-#ifdef _NEW_MANOR_LAW
-			CHAR_setInt(meindex,CHAR_MOMENTUM,0);
-			CHAR_talkToCli(meindex,-1,"加入家族个人气势归零",CHAR_COLORYELLOW);
-#endif
 		 
 		sprintf(buf,"fame:%d",CHAR_getInt(meindex,CHAR_FAME));
 		 
@@ -775,7 +722,6 @@ void FAMILY_Leave(int fd, int meindex, char *message)
 		 CONNECT_getFdid(fd));
       }
 
-      
    }
 }
 
@@ -802,15 +748,18 @@ void ACLeaveFM( int fd, int result, int resultflag)
 		lssproto_WN_send( fd, WINDOW_MESSAGETYPE_MESSAGE,
 			WINDOW_BUTTONTYPE_OK, -1, -1,
 			makeEscapeString( "\n申请退出家族ＯＫ！", buf, sizeof(buf)));
-		
+		CHAR_setWorkInt( meindex, CHAR_WORKFMFLOOR, -1);
 #ifdef _FM_JOINLIMIT
-		CHAR_setInt( meindex, CHAR_FMTIMELIMIT, (int)time(NULL)+(7*24)*(60*60) );
+		CHAR_setInt( meindex, CHAR_FMTIMELIMIT, (int)time(NULL)+getJoinFamilyTime()*(60*60) );
 #endif
-#ifdef _NEW_MANOR_LAW
-		CHAR_setInt(meindex,CHAR_MOMENTUM,0);
-		CHAR_talkToCli(meindex,-1,"退出家族个人气势归零",CHAR_COLORYELLOW);
+		CHAR_setInt( meindex , CHAR_RIDEPET, -1 );
+		CHAR_setInt( meindex , CHAR_BASEIMAGENUMBER , CHAR_getInt( meindex , CHAR_BASEBASEIMAGENUMBER) );
+		CHAR_complianceParameter( meindex );
+		CHAR_sendCToArroundCharacter( CHAR_getWorkInt( meindex, CHAR_WORKOBJINDEX ));
+		CHAR_send_P_StatusString( meindex , CHAR_P_STRING_RIDEPET);
+#ifdef _FM_METAMO
+			CHAR_ReMetamo(meindex);
 #endif
-	
 	}else
 		lssproto_WN_send( fd, WINDOW_MESSAGETYPE_MESSAGE,
 		WINDOW_BUTTONTYPE_OK, -1, -1,
@@ -936,10 +885,6 @@ void ACShowDpTop(int result,int num, char *data, int kindflag)
 #ifdef _FMVER21
                     fmdptop.fmtopdp[i] = -1;
 #endif
-#ifdef _NEW_MANOR_LAW
-										fmdptop.fmMomentum[i] = -1;
-										fmdptop.momentum_topid[i] = -1;
-#endif
                 }
                 fmdptop.num = num;
                 for(i=0; i<fmdptop.num; i++){
@@ -953,10 +898,6 @@ void ACShowDpTop(int result,int num, char *data, int kindflag)
                    // family popularity
                    getStringFromIndexWithDelim( tmpbuf, "|", 6, tmpbuf1, sizeof(tmpbuf1));
                    fmdptop.fmtopdp[i] = atoi(tmpbuf1);                   
-#endif                   
-#ifdef _NEW_MANOR_LAW
-									 getStringFromIndexWithDelim( tmpbuf, "|", 7, tmpbuf1, sizeof(tmpbuf1));
-                   fmdptop.fmMomentum[i] = atoi(tmpbuf1);
 #endif
                 }
             }
@@ -1021,23 +962,6 @@ void ACShowDpTop(int result,int num, char *data, int kindflag)
                 }                
             }
             break;
-#ifdef _NEW_MANOR_LAW
-						case FM_TOP_MOMENTUM:
-						{
-							for(i=0; i<30; i++){
-								strcpy(fmdptop.momentum_topmemo[i], "");
-								if(getStringFromIndexWithDelim(data," ",i+1,tmpbuf,sizeof(tmpbuf)) == FALSE) break;
-								strcpy(fmdptop.momentum_topmemo[i],tmpbuf);
-							}
-							for(i=0; i<num; i++){
-								if(getStringFromIndexWithDelim(data," ",i+1,tmpbuf,sizeof(tmpbuf)) == FALSE) return;
-								getStringFromIndexWithDelim(tmpbuf,"|",1,tmpbuf1,sizeof(tmpbuf1));
-								// get top id
-								fmdptop.momentum_topid[i] = atoi(tmpbuf1);
-							}
-						}
-						break;
-#endif
             default:
             break;
         }
@@ -1054,7 +978,7 @@ void ACShowPointList(int result, char *data)
         for(i=0;i<FAMILY_MAXHOME;i++){
             if(getStringFromIndexWithDelim(data," ",i+1,tmpbuf,sizeof(tmpbuf)) == FALSE)
                return;
-            strcpy(fmpointlist.pointlistarray[i],tmpbuf);       
+            strcpy(fmpointlist.pointlistarray[i],tmpbuf);    
         }
     }
 }
@@ -1109,9 +1033,6 @@ void ACShowFMMemo(int result, int index, int num, int dataindex, char *data)
 #ifdef _PERSONAL_FAME   // Arminius: 家族显\\个人声望
 void ACFMCharLogin(int fd, int result, int index, int floor, int fmdp,
 	int joinflag, int fmsetupflag, int flag, int charindex, int charfame
-	#ifdef _NEW_MANOR_LAW
-	,int momentum
-	#endif
 	)
 #else
 void ACFMCharLogin(int fd, int result, int index, int floor, int fmdp,
@@ -1123,11 +1044,6 @@ void ACFMCharLogin(int fd, int result, int index, int floor, int fmdp,
    int meindex = CONNECT_getCharaindex(fd);
    if (!CHAR_CHECKINDEX(meindex))	return;
    if (result == 1){
-#ifdef _NEW_MANOR_LAW
-		 // 气势回传为0时要把人物的气势设定为0,因为回传是0有可能是打完庄园战,所以气势要归零
-		 if(momentum == 0) CHAR_setInt(meindex,CHAR_MOMENTUM,0);
-		 else CHAR_setInt(meindex,CHAR_MOMENTUM,momentum);
-#endif
 		 if(charfame != CHAR_getInt(meindex,CHAR_FAME)){
 			 sprintf(buf,"server fame:%d,ac fame:%d",CHAR_getInt(meindex,CHAR_FAME),charfame);
 			 LogFamily(
@@ -1142,6 +1058,28 @@ void ACFMCharLogin(int fd, int result, int index, int floor, int fmdp,
 		 //CHAR_setInt(meindex,CHAR_FAME,charfame);
 		 CHAR_setWorkInt(meindex, CHAR_WORKFMINDEXI, index);
 		 CHAR_setWorkInt(meindex, CHAR_WORKFMFLOOR, floor);
+#ifdef _FM_LEADER_RIDE
+			if(floor==-1){
+				int i;
+				int petindex = CHAR_getCharPet( meindex,CHAR_getInt( meindex , CHAR_RIDEPET));
+				int petmetamo= CHAR_getInt( petindex , CHAR_BASEIMAGENUMBER);
+				for(i=0;i<FMPOINTNUM;i++){
+					if(CHAR_getInt( meindex, CHAR_FMLEADERFLAG ) == FMMEMBER_LEADER){
+
+					}else if(CHAR_getInt( meindex, CHAR_FMLEADERFLAG ) == FMMEMBER_ELDER){
+
+					}else if(CHAR_getInt( meindex, CHAR_FMLEADERFLAG ) == FMMEMBER_MEMBER){
+
+					}
+				}
+				if(i<FMPOINTNUM){
+					CHAR_setInt( meindex , CHAR_RIDEPET, -1 );
+					CHAR_setInt( meindex , CHAR_BASEIMAGENUMBER , CHAR_getInt( meindex , CHAR_BASEBASEIMAGENUMBER) );
+					CHAR_sendCToArroundCharacter( CHAR_getWorkInt( meindex, CHAR_WORKOBJINDEX ));
+					CHAR_send_P_StatusString( meindex, CHAR_P_STRING_RIDEPET );
+				}
+			}
+#endif
 		 CHAR_setWorkInt(meindex, CHAR_WORKFMDP, fmdp);
 		 CHAR_setWorkInt(meindex, CHAR_WORKFMSETUPFLAG, fmsetupflag);
 		 CHAR_setWorkInt(meindex, CHAR_WORKFMCHARINDEX, charindex);
@@ -1191,7 +1129,7 @@ void ACFMCharLogin(int fd, int result, int index, int floor, int fmdp,
    {
    	   SetFMVarInit(meindex);
 #ifdef _FM_JOINLIMIT
-		CHAR_setInt( meindex, CHAR_FMTIMELIMIT, (int)time(NULL)+(7*24)*(60*60) );
+			 CHAR_setInt( meindex, CHAR_FMTIMELIMIT, (int)time(NULL)+getJoinFamilyTime()*(60*60) );
 #endif
    	   if (flag == 0)
    		   CHAR_talkToCli(meindex, -1, "你已经退出家族或家族已经不存在了！", CHAR_COLORYELLOW);
@@ -1210,9 +1148,8 @@ void ACFMCharLogin(int fd, int result, int index, int floor, int fmdp,
 			   CHAR_complianceParameter( meindex );
 			   CHAR_sendCToArroundCharacter( CHAR_getWorkInt( meindex , CHAR_WORKOBJINDEX ));
 		   }
-	   } 
+		  }
    }
-
 }
 
 void FAMILY_Detail(int fd, int meindex, char *message)
@@ -1269,8 +1206,8 @@ void FAMILY_Detail(int fd, int meindex, char *message)
 #endif       
 		sprintf( sendbuf, "你目前的个人声望点数为：%d", personfame);
 		CHAR_talkToCli(meindex, -1, sendbuf, CHAR_COLORYELLOW);
-#ifdef _NEW_MANOR_LAW
-		sprintf(sendbuf,"你目前的个人气势点数为：%d",CHAR_getInt(meindex,CHAR_MOMENTUM)/100);
+#ifdef _VIP_SERVER
+		sprintf(sendbuf,"你目前的个人会员点数为：%d",CHAR_getInt(meindex,CHAR_AMPOINT));
 		CHAR_talkToCli(meindex, -1, sendbuf, CHAR_COLORYELLOW);
 #endif
 	}
@@ -1328,11 +1265,7 @@ void FAMILY_Detail(int fd, int meindex, char *message)
       getStringFromIndexWithDelim(memberlist[fmindex_wk].numberlistarray[0],
 				"|",2,leadernamebuf,sizeof(leadernamebuf));
       // sendbuf -> 家族名称|人数|族长名称|家族排行|家族声望|个人声望|个人职位|家族精灵|PK
-#ifdef _NEW_MANOR_LAW
-			sprintf( sendbuf, "%s|%d|%s|%d|%d|%d|%d|%d|%s|%d|%d", 
-#else
 				sprintf( sendbuf, "%s|%d|%s|%d|%d|%d|%d|%d|%s", 
-#endif
 				CHAR_getChar(meindex, CHAR_FMNAME),
 				memberlist[fmindex_wk].fmjoinnum,
 				leadernamebuf,
@@ -1350,10 +1283,6 @@ void FAMILY_Detail(int fd, int meindex, char *message)
 				CHAR_getInt( meindex, CHAR_FMLEADERFLAG),
 				CHAR_getInt( meindex, CHAR_FMSPRITE ),
 				tmpbuf
-#ifdef _NEW_MANOR_LAW
-				,fmdptop.fmMomentum[h]/100	// 家族气势
-				,CHAR_getInt(meindex,CHAR_MOMENTUM)/100 // 个人气势
-#endif
 				);
 			
 			lssproto_WN_send( fd, WINDOW_MESSAGETYPE_FAMILYDETAIL,
@@ -1524,7 +1453,6 @@ void FAMILY_CheckMember(int fd, int meindex, char *message)
 	  // shan begin
       char sbuf[1024];	  
 	  sprintf( sbuf, "族长代号:%d -> 人物名称:%s 人物索引:%d (将该人物退出家族)\n", CHAR_getInt(meindex, CHAR_FMLEADERFLAG), charname, charindex);
-
 	  LogFamily(
 		  CHAR_getChar(meindex, CHAR_FMNAME),
 		  CHAR_getInt(meindex, CHAR_FMINDEX),
@@ -1580,8 +1508,8 @@ void FAMILY_CheckMember(int fd, int meindex, char *message)
    		CONNECT_getFdid(fd));
 	  }
 #else
-	  {
-      saacproto_ACMemberJoinFM_send(acfd,
+   {
+   	saacproto_ACMemberJoinFM_send(acfd,
       		CHAR_getChar(meindex, CHAR_FMNAME),
       	 	CHAR_getInt(meindex, CHAR_FMINDEX), charname, charindex,
    		CHAR_getWorkInt(meindex, CHAR_WORKFMINDEXI), result,
@@ -1677,12 +1605,9 @@ void FAMILY_Channel(int fd, int meindex, char *message)
 				i++;
 			}
 			if( i >= FAMILY_MAXMEMBER ) {
-#ifndef _CHANNEL_MODIFY
 				CHAR_talkToCli( meindex, -1, "此频道人数已满。", CHAR_COLORWHITE);
-#endif
 				return;
 			}
-#ifndef _CHANNEL_MODIFY
 			sprintf( buf, "加入家族频道 [全]。");
 			CHAR_talkToCli( meindex, -1, buf, CHAR_COLORWHITE);
 			if( nowchannel >=0 && nowchannel < FAMILY_MAXCHANNEL ) {
@@ -1701,7 +1626,6 @@ void FAMILY_Channel(int fd, int meindex, char *message)
 					CHAR_talkToCli( channelMember[fmindexi][channel][i], -1, buf, CHAR_COLORWHITE);
 				}
 			}
-#endif
 		}
 #ifdef _FMVER21
 		else if( channel == FAMILY_MAXCHANNEL && CHAR_getInt( meindex, CHAR_FMLEADERFLAG ) == FMMEMBER_LEADER )
@@ -1713,20 +1637,7 @@ void FAMILY_Channel(int fd, int meindex, char *message)
 		}
 		else {
 			channel = -1;
-#ifndef _CHANNEL_MODIFY
 			CHAR_talkToCli( meindex, -1, "退出家族频道。", CHAR_COLORWHITE);
-#else
-			CHAR_talkToCli( meindex, -1, "关闭族长广播。", CHAR_COLORWHITE);
-			channel = 0;
-			i = 0;
-			while(i < FAMILY_MAXMEMBER){
-				if( channelMember[fmindexi][0][i] < 0 ) {
-					channelMember[fmindexi][0][i] = meindex;
-					break;
-				}
-				i++;
-			}
-#endif
 			
 			sprintf( buf, "%s 退出频道。", CHAR_getChar( meindex, CHAR_NAME) );
 			for( i=0; i < FAMILY_MAXCHANNELMEMBER; i++ ) {
@@ -1922,13 +1833,6 @@ void FAMILY_Bank(int fd, int meindex, char *message)
 			CHAR_getInt(meindex, CHAR_FMINDEX),
 			CHAR_getWorkInt(meindex, CHAR_WORKFMINDEXI), FM_FIX_FMGOLD, buf,
 			"", CHAR_getWorkInt(meindex, CHAR_WORKFMCHARINDEX), CONNECT_getFdid(fd));
-#ifdef _FAMILYBANKSTONELOG
-		saacproto_ACgetFMBankgold_send(acfd,
-			CHAR_getChar(meindex, CHAR_FMNAME),
-			CHAR_getInt(meindex, CHAR_FMINDEX),
-			CHAR_getWorkInt(meindex, CHAR_WORKFMINDEXI), 
-			CHAR_getWorkInt(meindex, CHAR_WORKFMCHARINDEX), CONNECT_getFdid(fd));
-#endif	   	
 		//print(" getTax:%s=%d ", CHAR_getChar(meindex, CHAR_FMNAME), toTax );
 	}
 }
@@ -1936,22 +1840,6 @@ void FAMILY_Bank(int fd, int meindex, char *message)
 void ACFMPointList(int ret, char *data)
 {
 }
-
-
-#ifdef _CK_ONLINE_PLAYER_COUNT    // WON ADD 计算线上人数
-void GS_SEND_PLAYER_COUNT(void)
-{
-	int i, count = 0;
-	int playernum = CHAR_getPlayerMaxNum();
-
-    for( i = 0 ; i < playernum ; i++) {
-        if( CHAR_getCharUse(i) != FALSE ) count++;
-	}
-
-	saacproto_GS_PLAYER_COUNT_SEND(acfd, count);
-}
-#endif
-
 
 #ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收	
 // GS 启动及定时向 AC 要求庄园税率
@@ -2032,15 +1920,6 @@ void FAMILY_SetPoint(int fd, int meindex, char *message)
    		fmlevel = i;
    	}
    }
-#ifndef _ACFMPK_NOFREE
-   if (fmlevel < MINFMLEVLEFORPOINT){// or 人数小於30人
-	lssproto_WN_send( fd, WINDOW_MESSAGETYPE_MESSAGE,
-		WINDOW_BUTTONTYPE_OK,
-		-1, -1,
-		makeEscapeString( "\n家族等级尚未到达申请家族据点的条件！", buf, sizeof(buf)));
-      	return;
-   }
-#endif
    for (i = 1; i <= MANORNUM; i++) {
    	if (((strcmp(fmpks[i * MAX_SCHEDULE + 1].guest_name,
    		CHAR_getChar(meindex, CHAR_FMNAME)) == 0))
@@ -2105,7 +1984,7 @@ void ACSetFMPoint(int ret, int r, int clifd)
    			sprintf(message, "您的家族人数未达申请标准唷！");
    }
    else if (ret == 1)
-	sprintf(message, "申请家族据点ＯＫ！");
+			sprintf(message, "申请家族据点ＯＫ！");
    
    lssproto_WN_send( clifd, WINDOW_MESSAGETYPE_MESSAGE,
    	WINDOW_BUTTONTYPE_OK,
@@ -2147,8 +2026,7 @@ void ACFMAnnounce(int ret, char *fmname, int fmindex, int index,
                CHAR_talkToCli( chindex , -1, "由於您的家族在七天之内没有召收到１０名家族成员，所以被迫解散了！",
                		CHAR_COLORRED);
             }
-         }
-         else
+         }else
             familyMemberIndex[index][i] = -1;
       }
    }
@@ -2160,6 +2038,18 @@ void ACFMAnnounce(int ret, char *fmname, int fmindex, int index,
       meindex = CONNECT_getCharaindex(clifd);
       if (!CHAR_CHECKINDEX(meindex))	return;
       CHAR_talkToCli(meindex, -1, data, CHAR_COLORRED);
+      if(strstr(data,"已经审核完毕您的加入申请！")!=NULL){
+
+			}else if(strstr(data,"已经将你踢出家族了！")!=NULL){
+				CHAR_setInt( meindex , CHAR_RIDEPET, -1 );
+				CHAR_setInt( meindex , CHAR_BASEIMAGENUMBER , CHAR_getInt( meindex , CHAR_BASEBASEIMAGENUMBER) );
+				CHAR_complianceParameter( meindex );
+				CHAR_sendCToArroundCharacter( CHAR_getWorkInt( meindex, CHAR_WORKOBJINDEX ));
+				CHAR_send_P_StatusString( meindex , CHAR_P_STRING_RIDEPET);
+#ifdef _FM_METAMO
+				CHAR_ReMetamo(meindex);
+#endif
+			}
    }
    if (kindflag == 4)
    {
@@ -2349,26 +2239,6 @@ void JoinMemberIndex( int meindex, int fmindexi )
 			break;
 		}
 	}
-#ifdef _CHANNEL_MODIFY
-	i = 0;
-	// 先清掉旧的频道记录
-	while(i < FAMILY_MAXMEMBER){
-	 if(channelMember[fmindexi][0][i] == meindex){
-		 channelMember[fmindexi][0][i] = -1;
-	 }
-	 i++;
-	}
-	i = 0;
-	// 加入频道
-	while(i < FAMILY_MAXMEMBER){
-	 if(channelMember[fmindexi][0][i] == -1){
-		 channelMember[fmindexi][0][i] = meindex;
-		 CHAR_setWorkInt(meindex,CHAR_WORKFMCHANNEL,0);
-		 break;
-	 }
-	 i++;
-	}
-#endif
 }
 
 void LeaveMemberIndex( int meindex, int fmindexi )
@@ -2378,16 +2248,6 @@ void LeaveMemberIndex( int meindex, int fmindexi )
   for( i = 0 ; i < FAMILY_MAXMEMBER; i++){
     if( familyMemberIndex[fmindexi][i] == meindex ) familyMemberIndex[fmindexi][i] = -1;
   }
-#ifdef _CHANNEL_MODIFY
-	i = 0;
-	// 清掉旧的频道记录
-	while(i < FAMILY_MAXMEMBER){
-	 if(channelMember[fmindexi][0][i] == meindex){
-		 channelMember[fmindexi][0][i] = -1;
-	 }
-	 i++;
-	}
-#endif
 }
 
 void FAMILY_RidePet( int fd, int meindex, char* message )
@@ -2396,48 +2256,77 @@ void FAMILY_RidePet( int fd, int meindex, char* message )
 	int petindex, rideGraNo = 0, leaderimageNo;
 	// Arminius 8.25 recover
 	int i;
-#ifndef _NEW_RIDEPETS
 	int big4fm = 0;
-#endif
-	if (!CHAR_CHECKINDEX(meindex))return;
+	if (!CHAR_CHECKINDEX(meindex))return 0;
 
 	// Robin fix 战斗中不可骑
-	if( CHAR_getWorkInt( meindex, CHAR_WORKBATTLEMODE) != BATTLE_CHARMODE_NONE )	return;
-
+	if( CHAR_getWorkInt( meindex, CHAR_WORKBATTLEMODE) != BATTLE_CHARMODE_NONE )
+	{
+		CHAR_talkToCli( meindex, -1, "战斗中不可骑宠！", CHAR_COLORYELLOW );
+		return 0;
+	}
+	// Robin fix 交易中不可骑
+	if( CHAR_getWorkInt(meindex, CHAR_WORKTRADEMODE) != CHAR_TRADE_FREE){
+		CHAR_talkToCli( meindex, -1, "交易中不可骑宠！", CHAR_COLORYELLOW );
+		return 0;
+	}
 #ifdef _PETSKILL_BECOMEPIG
     if( CHAR_getInt( meindex, CHAR_BECOMEPIG) > -1 ){ //处於乌力化状态
 	    CHAR_setInt( meindex, CHAR_RIDEPET, -1 );
 		//宠物选项的状态依然为"骑乘",这里修正过来 
 		CHAR_complianceParameter( meindex );
 		CHAR_send_P_StatusString( meindex, CHAR_P_STRING_RIDEPET);
-		return;
+		CHAR_talkToCli( meindex, -1, "目前你处于乌力化状态，不能骑乘宠物。", CHAR_COLORYELLOW );
+		return 0;
 	}
 #endif
-
-	if( CHAR_getWorkInt( meindex, CHAR_WORKBATTLEMODE) != BATTLE_CHARMODE_NONE) return;
-
-	if (getStringFromIndexWithDelim(message, "|", 2, token, sizeof(token)) == FALSE)	return;
-
+	if (getStringFromIndexWithDelim(message, "|", 2, token, sizeof(token)) == FALSE)	return 0;
 	if( strcmp( token, "P") == 0) {
 		if (getStringFromIndexWithDelim(message, "|", 3, token2, sizeof(token2)) == FALSE)
-			return;
-
+			return 0;
 		if( atoi(token2) != -1 ) {
 			petindex = CHAR_getCharPet( meindex, atoi( token2 ) );
 			if(!CHAR_CHECKINDEX(petindex))return;
 		
-			if( CHAR_getInt( meindex, CHAR_DEFAULTPET ) == atoi( token2 ) )	return;
-			if( CHAR_getInt( meindex, CHAR_RIDEPET) != -1 ) return;
-			if( CHAR_getInt( meindex, CHAR_LEARNRIDE) < CHAR_getInt( petindex, CHAR_LV )  ) return;	
-			if( CHAR_getWorkInt( petindex, CHAR_WORKFIXAI ) < 100 )return;
-			if( CHAR_getInt( meindex, CHAR_LV)+5 < CHAR_getInt( petindex, CHAR_LV )  ) return;
+			if( CHAR_getInt( meindex, CHAR_DEFAULTPET ) == atoi( token2 ) )	return 0;
+			if( CHAR_getInt( meindex, CHAR_RIDEPET) != -1 ) return 0;
+			if( CHAR_getInt( meindex, CHAR_LEARNRIDE) < CHAR_getInt( petindex, CHAR_LV )  )
+			{ 
+				char buff[255];
+				sprintf(buff,"你目前只能骑乘等级小于%d级的宠。",CHAR_getInt( meindex, CHAR_LEARNRIDE));
+				CHAR_talkToCli( meindex, -1, buff, CHAR_COLORYELLOW );
+				return 0;
+			}	
+			if( CHAR_getWorkInt( petindex, CHAR_WORKFIXAI ) < 100 )
+			{
+				CHAR_talkToCli( meindex, -1, "该骑宠的忠小于100", CHAR_COLORYELLOW );
+				return 0;
+			}
+			printf("%d\n",__LINE__);
+#ifdef _RIDELEVEL
+			if( CHAR_getInt( meindex, CHAR_LV)+getRideLevel() < CHAR_getInt( petindex, CHAR_LV )  )
+			{ 
+				char buff[255];
+				sprintf(buff,"你最高只能骑宠等级比你大%d级的宠。",getRideLevel());
+				CHAR_talkToCli( meindex, -1, buff, CHAR_COLORYELLOW );
+				return 0;
+			}	
+#else
+			if( CHAR_getInt( meindex, CHAR_LV)+5 < CHAR_getInt( petindex, CHAR_LV )  ) return 0;
+			{ 
+				char buff[255];
+				sprintf(buff,"你最高只能骑宠等级比你大5级的宠。");
+				CHAR_talkToCli( meindex, -1, buff, CHAR_COLORYELLOW );
+				return;
+			}	
+#endif
+			printf("%d\n",__LINE__);
 #ifdef _PET_2TRANS
-			if( CHAR_getInt( petindex, CHAR_TRANSMIGRATION) > 1 ) return;
+			if( CHAR_getInt( petindex, CHAR_TRANSMIGRATION) > 2 ) return 0;
 #endif
 			leaderimageNo = 100700
 				+ ((CHAR_getInt( meindex, CHAR_BASEBASEIMAGENUMBER)-100000)/20)*10
 				+ CHAR_getInt( meindex, CHAR_FMSPRITE)*5;	
-#ifndef _NEW_RIDEPETS
 			switch( CHAR_getWorkInt( meindex, CHAR_WORKFMFLOOR) ){
 				case 1041:
 					big4fm = 1;
@@ -2454,7 +2343,6 @@ void FAMILY_RidePet( int fd, int meindex, char* message )
 				default:
 					big4fm = 0;
 			}
-#endif
 		// Arminius 8.25 recover
 			for( i=0; i< arraysizeof(ridePetTable) ; i++ ){
 #ifdef _NEW_RIDEPETS
@@ -2473,12 +2361,13 @@ void FAMILY_RidePet( int fd, int meindex, char* message )
 #ifdef _EVERYONE_RIDE
 					&& big4fm != 0
 					&& CHAR_getInt( meindex, CHAR_FMLEADERFLAG ) != FMMEMBER_NONE
-					&& CHAR_getInt( meindex, CHAR_FMLEADERFLAG ) != FMMEMBER_APPLY ){
+					&& CHAR_getInt( meindex, CHAR_FMLEADERFLAG ) != FMMEMBER_APPLY )
 #else
-					&& CHAR_getInt( meindex, CHAR_FMLEADERFLAG ) == FMMEMBER_LEADER ){
+					&& CHAR_getInt( meindex, CHAR_FMLEADERFLAG ) == FMMEMBER_LEADER )
 #endif
-					rideGraNo = ridePetTable[i].rideNo;
-					break;
+				{
+						rideGraNo = ridePetTable[i].rideNo;
+						break;
 				}
 #endif				
 			}
@@ -2488,9 +2377,14 @@ void FAMILY_RidePet( int fd, int meindex, char* message )
 				int ti=-1, index, image=-1;
 				int petNo = CHAR_getInt( petindex, CHAR_BASEBASEIMAGENUMBER);
 				int playerNo = CHAR_getInt( meindex, CHAR_BASEBASEIMAGENUMBER);
-
 				int playerlowsride = CHAR_getInt( meindex, CHAR_LOWRIDEPETS);
-				if( (ti = RIDEPET_getPETindex( petNo, playerlowsride )) >= 0 )	{
+#ifdef _RIDE_CF
+				int playerlowsride1 = CHAR_getInt( meindex, CHAR_LOWRIDEPETS1);
+				if( (ti = RIDEPET_getPETindex( petNo, playerlowsride, playerlowsride1 )) >= 0 )
+#else
+				if( (ti = RIDEPET_getPETindex( petNo, playerlowsride )) >= 0 )
+#endif
+				{
 					if( (index = RIDEPET_getNOindex( playerNo)) >= 0 ){
 						if( (image = RIDEPET_getRIDEno( index,ti)) >= 0 )	{
 							rideGraNo = image;
@@ -2499,7 +2393,6 @@ void FAMILY_RidePet( int fd, int meindex, char* message )
 				}
 			}
 #endif
-
 			if( rideGraNo != 0 ){
 #ifdef _ITEM_METAMO
 			//	CHAR_setWorkInt( meindex, CHAR_WORKITEMMETAMO, 0);
@@ -2509,8 +2402,104 @@ void FAMILY_RidePet( int fd, int meindex, char* message )
 				CHAR_complianceParameter( meindex );
 				CHAR_sendCToArroundCharacter( CHAR_getWorkInt( meindex, CHAR_WORKOBJINDEX ));
 				CHAR_send_P_StatusString( meindex, CHAR_P_STRING_RIDEPET );
-			}else
+				return 1;
+			}else{
+				printf("%d\n",__LINE__);
 				return;
+				int floor = CHAR_getWorkInt( meindex, CHAR_WORKFMFLOOR);
+				if( floor !=-1 && CHAR_getInt( meindex, CHAR_FMLEADERFLAG ) != FMMEMBER_NONE
+					&& CHAR_getInt( meindex, CHAR_FMLEADERFLAG ) != FMMEMBER_APPLY){
+#ifdef _FM_LEADER_RIDE
+					if(CHAR_FmLeaderRide( meindex, atoi( token2 )))return 1;
+#endif
+#ifdef _RIDEMODE_20
+		 		if(getRideMode()>0){
+					int ti=-1, index, image=-1;
+					int petNo = CHAR_getInt( petindex, CHAR_BASEBASEIMAGENUMBER);
+					int playerNo = CHAR_getInt( meindex, CHAR_BASEBASEIMAGENUMBER);
+					int petindex = CHAR_getCharPet( meindex, atoi( token2 ));
+					if(getRideMode()==1 || getRideMode()==2 ){
+						if(floor == 1041 || floor == 2031 || floor == 3031 || floor == 4031 
+							|| floor == 5031 || floor == 6031 || floor == 7031 
+							|| floor == 8031 || floor == 9031 || floor == 10031){
+							if( CHAR_getInt( meindex, CHAR_FMSPRITE ) == 0){
+								if(petNo==100372){
+#ifdef _RIDE_CF
+									if( (ti = RIDEPET_getPETindex( petNo, RIDE_PET8, 0 )) >= 0 )
+#else
+									if( (ti = RIDEPET_getPETindex( petNo, RIDE_PET8 )) >= 0 )
+#endif
+									{
+										if( (index = RIDEPET_getNOindex( playerNo)) >= 0 ){
+											if( (image = RIDEPET_getRIDEno( index,ti)) >= 0 ){
+												CHAR_setInt( meindex , CHAR_BASEIMAGENUMBER , image );
+											}
+										}
+									}
+								}
+							}else if( CHAR_getInt( meindex, CHAR_FMSPRITE ) == 1){
+								if(petNo==100373){
+#ifdef _RIDE_CF
+									if( (ti = RIDEPET_getPETindex( petNo, RIDE_PET9, 0 )) >= 0 )
+#else
+									if( (ti = RIDEPET_getPETindex( petNo, RIDE_PET9 )) >= 0 )
+#endif
+									{
+										if( (index = RIDEPET_getNOindex( playerNo)) >= 0 ){
+											if( (image = RIDEPET_getRIDEno( index,ti)) >= 0 ){
+												CHAR_setInt( meindex , CHAR_BASEIMAGENUMBER , image );
+											}
+										}
+									}
+								}
+							}
+						}
+					}else{
+#ifdef _RIDE_CF
+						if( (ti = RIDEPET_getPETindex( petNo, RIDE_PET_ALL, 0 )) >= 0 )
+#else
+						if( (ti = RIDEPET_getPETindex( petNo, RIDE_PET_ALL )) >= 0 )
+#endif
+						{
+							if( (index = RIDEPET_getNOindex( playerNo)) >= 0 ){
+								if( (image = RIDEPET_getRIDEno( index,ti)) >= 0 ){
+									CHAR_setInt( meindex , CHAR_BASEIMAGENUMBER , image );
+								}
+							}
+						}
+					}
+					if(image!=-1){
+						CHAR_setInt( meindex , CHAR_RIDEPET, atoi( token2 ) );
+						CHAR_complianceParameter( meindex );
+						CHAR_sendCToArroundCharacter( CHAR_getWorkInt( meindex, CHAR_WORKOBJINDEX ));
+						CHAR_send_P_StatusString( meindex, CHAR_P_STRING_RIDEPET );
+						return 1;
+					}
+				}
+#endif
+			}
+#ifdef _ITEM_RIDE
+				{
+					int itemindex = CHAR_getItemIndex( meindex, 0 );
+					if(!ITEM_CHECKINDEX(itemindex)) return 0;
+					if( !strcmp( ITEM_getChar( itemindex, ITEM_USEFUNC), "ITEM_RIDE") ) {
+						char petmetamo[12],ridemetamo[12];
+						char *itemarg = ITEM_getChar( itemindex, ITEM_ARGUMENT);
+						getStringFromIndexWithDelim( itemarg, "|", 1, petmetamo, sizeof(petmetamo));
+						getStringFromIndexWithDelim( itemarg, "|", 2, ridemetamo, sizeof(ridemetamo));
+						int metamo= CHAR_getInt( petindex , CHAR_BASEIMAGENUMBER);
+						if(metamo==atoi(petmetamo)){
+							CHAR_setInt( meindex , CHAR_RIDEPET, atoi( token2 ) );
+							CHAR_setInt( meindex , CHAR_BASEIMAGENUMBER , atoi( ridemetamo ) );
+							CHAR_complianceParameter( meindex );
+							CHAR_sendCToArroundCharacter( CHAR_getWorkInt( meindex, CHAR_WORKOBJINDEX ));
+							CHAR_send_P_StatusString( meindex, CHAR_P_STRING_RIDEPET );
+							return 1;
+						}
+					}
+				}
+#endif
+			}
 		}else    {	//还原人物 basebaseimage
 			CHAR_setInt( meindex , CHAR_RIDEPET, -1 );
 			CHAR_setInt( meindex , CHAR_BASEIMAGENUMBER , CHAR_getInt( meindex , CHAR_BASEBASEIMAGENUMBER) );
@@ -2519,7 +2508,7 @@ void FAMILY_RidePet( int fd, int meindex, char* message )
 			CHAR_send_P_StatusString( meindex , CHAR_P_STRING_RIDEPET);
 		}
 	}
-
+	return 0;
 }
 
 void ACFixFMPK(int winindex, int loseindex, int data)
@@ -2555,20 +2544,6 @@ void getNewFMList()
 
 //int     channelMember[FAMILY_MAXNUM][FAMILY_MAXCHANNEL][FAMILY_MAXMEMBER];
 //int     familyMemberIndex[FAMILY_MAXNUM][FAMILY_MAXMEMBER];
-
-
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-int get_fm_leader_index( int fm1 )
-{
-	int charindex = -1;
-
-	charindex = familyMemberIndex[fm1][0];
-	
-	return charindex;
-
-}
-#endif
-
 
 void checkFamilyIndex( void )
 {
@@ -2612,12 +2587,12 @@ void checkFamilyIndex( void )
 			}
 	}
 	
-	if( err1 )
-		print(" familyIndexFoundError:%d ", err1);
-	if( err2 )
-		print(" channelMemberFoundError:%d ", err2);
+//	if( err1 )
+//		print("家族索引建立错误:%d\n", err1);
+//	if( err2 )
+//		print("成员建立错误:%d\n", err2);
 	if( ! (err1&&err2) )
-		print("ok!");
+		print("ok!\n");
 
 }
 
@@ -2666,11 +2641,7 @@ void FAMILY_LeaderFunc( int fd, int meindex, char *message )
        lssproto_WN_send( fd, WINDOW_MESSAGETYPE_MESSAGE,
 	                 WINDOW_BUTTONTYPE_OK,
 	                 CHAR_WINDOWTYPE_FM_MESSAGE2,
-#ifndef _FM_MODIFY
 	                 CHAR_getWorkInt( leaderdengonindex, CHAR_WORKOBJINDEX),
-#else
-						 -1,
-#endif
 	                 makeEscapeString( sendbuf, buf, sizeof(buf)));
    }
    if( strcmp( token, "L") == 0 ){
@@ -2705,18 +2676,6 @@ void FAMILY_LeaderFunc( int fd, int meindex, char *message )
 				letterNo = 19003;	break;
 				case 4:
 				letterNo = 19004;	break;
-#ifdef _NEW_RIDEPETS
-				case 5:
-					letterNo = 20229; break;
-				case 6:
-					letterNo = 20230; break;
-				case 7:
-					letterNo = 20231; break;
-				case 8:
-					letterNo = 20232; break;
-				case 9:
-					letterNo = 20233; break;
-#endif
 				}
 			} else
 			if( kind == 2 ) {
@@ -2729,18 +2688,6 @@ void FAMILY_LeaderFunc( int fd, int meindex, char *message )
 				letterNo = 19007;	break;
 				case 4:
 				letterNo = 19008;	break;
-#ifdef _NEW_RIDEPETS
-				case 5:
-					letterNo = 20224; break;
-				case 6:
-					letterNo = 20225; break;
-				case 7:
-					letterNo = 20226; break;
-				case 8:
-					letterNo = 20227; break;
-				case 9:
-					letterNo = 20228; break;
-#endif
 				}			
 			}
 		}	
@@ -2752,8 +2699,7 @@ void FAMILY_LeaderFunc( int fd, int meindex, char *message )
 			-1, -1,
 			makeEscapeString("\n只有拥有庄园的族长，才能制作唷！", buf, sizeof(buf)));
       		return;
-	}
-	else {
+	}else {
 		int emptyitemindexinchara = CHAR_findEmptyItemBox( meindex );
 		int itemindex = ITEM_makeItemAndRegist( letterNo );
 		
@@ -2767,42 +2713,10 @@ void FAMILY_LeaderFunc( int fd, int meindex, char *message )
 		ITEM_setWorkInt( itemindex, ITEM_WORKOBJINDEX,-1);
 		ITEM_setWorkInt( itemindex, ITEM_WORKCHARAINDEX, meindex);
 		CHAR_sendItemDataOne( meindex, emptyitemindexinchara);
-		snprintf( buf, sizeof( buf), "制作%s成功。",
-			ITEM_getChar( itemindex, ITEM_NAME));
+		snprintf( buf, sizeof( buf), "制作%s成功。",ITEM_getChar( itemindex, ITEM_NAME));
 		CHAR_talkToCli( meindex, -1, buf, CHAR_COLORWHITE);
 	}
-   }
-
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收
-   if( strcmp( token, "FMTAX") == 0 ){
-		int i;
-		char msg[256];
-		memset( msg, 0, sizeof( msg));
-   		if( getStringFromIndexWithDelim( message, "|", 3, msg, sizeof(msg)) == FALSE)
-			return;
-		if( strcmp( msg, "W") == 0 ){
-			for( i=0 ; i<FAMILY_MAXHOME ; i++ ) { // 检查是否为庄园的家族
-				if( getStringFromIndexWithDelim( fmpointlist.pointlistarray[i], "|", 5, msg, sizeof(msg)) == FALSE )
-					continue;
-				if( CHAR_getInt(meindex, CHAR_FMINDEX) == atoi(msg) ){
-					sprintf( msg, "修改庄园税率\n");
-					lssproto_WN_send( fd, WINDOWS_MESSAGETYPE_FAMILY_TAX,
-						     WINDOW_BUTTONTYPE_OK,
-							 CHAR_WINDOWTYPE_FAMILY_TAX,
-							 CHAR_getWorkInt( leaderdengonindex, CHAR_WORKOBJINDEX),
-							 makeEscapeString( msg, buf, sizeof(buf) ) );
-					return;
-				}
-			}
-				sprintf(msg, "\n你没有拥有庄园，所以不能修改税率" );
-				CHAR_talkToCli( meindex , -1, msg, CHAR_COLORYELLOW);				
-		}
-   }
-   if( strcmp( token, "TAX") == 0 ){
-		FAMILY_FIX_TAX( acfd, meindex, message);
-   }
-#endif
-
+  }
    if( strcmp( token, "CHANGE") == 0 ){
    	int fmindexi, j, num=0;
    	char subbuf[2048], sendbuf[2048];
@@ -3027,69 +2941,7 @@ void ACFMJob( int fd, int ret, char* data1, char* data2 )
 			CHAR_getChar(charaindex, CHAR_NAME),
 			CHAR_getChar(charaindex, CHAR_CDKEY),
 			"LEADERCHANGE(族长让位)",
-			buf
-		);
-		
-        }
-
+			buf);
+  }
 }
 
-
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-
-FM_PK_STRUCT	fm_pk_struct;
-
-void setInt_fm_pk_struct( int index, int type, int num )
-{
-	switch( type ){
-	case FM_INDEX:
-		fm_pk_struct.fm_index[index] = num;	
-		break;
-	case FM_WIN:
-		fm_pk_struct.fm_win[index] = num;	
-		break;
-	case FM_LOSE:
-		fm_pk_struct.fm_lose[index] = num;	
-		break;
-	case FM_SCORE:
-		fm_pk_struct.fm_score[index] = num;	
-		break;
-	}
-}
-
-void setChar_fm_pk_struct( int index, int type, char *msg )
-{
-	switch( type ){
-	case FM_NAME:
-		strcpy( fm_pk_struct.fm_name[index], msg );
-		break;
-	}
-}
-
-int getInt_fm_pk_struct( int index, int type )
-{
-	switch( type ){
-	case FM_INDEX:
-		return fm_pk_struct.fm_index[index];		
-	case FM_WIN:
-		return fm_pk_struct.fm_win[index];	
-	case FM_LOSE:
-		return fm_pk_struct.fm_lose[index];
-	case FM_SCORE:
-		return fm_pk_struct.fm_score[index];
-	}
-
-	return -1;
-}
-
-char *getChar_fm_pk_struct( int index, int type )
-{
-	switch( type ){
-	case FM_NAME:
-		return fm_pk_struct.fm_name[index];	
-	}
-
-	return NULL;
-}
-
-#endif

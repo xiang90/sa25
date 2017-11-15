@@ -40,7 +40,6 @@ enum {
 //static int NPC_Windowman_restoreButtontype( char *data );
 
 /*********************************
-* 赓渝质  
 *********************************/
 BOOL NPC_WindowmanInit( int meindex )
 {
@@ -72,7 +71,6 @@ BOOL NPC_WindowmanInit( int meindex )
 
 
 /*********************************
-*   仄井仃日木凶凛及质  
 *********************************/
 void NPC_WindowmanTalked( int meindex , int talkerindex , char *szMes ,int color )
 {
@@ -81,7 +79,6 @@ void NPC_WindowmanTalked( int meindex , int talkerindex , char *szMes ,int color
 	
 }
 /*********************************
-* 苇日木凶凛及质  
 *********************************/
 void NPC_WindowmanLooked( int meindex , int lookedindex)
 {
@@ -96,11 +93,9 @@ void NPC_WindowmanLooked( int meindex , int lookedindex)
 	int		fd;
 	char	buf[256];
 	
-	/* 皿伊奶乩□卞覆仄化分仃  杀允月 */
 	if( CHAR_getInt( toindex , CHAR_WHICHTYPE ) != CHAR_TYPEPLAYER ) {
 		return;
 	}
-	/* ㄠ弘伉永玉动  及心 */
 	if( !NPC_Util_charIsInFrontOfChar( toindex, meindex, 1 )) return; 
 
 	if( !NPC_Windowman_readData( meindex, num, FALSE) ) {
@@ -223,10 +218,8 @@ BOOL NPC_Windowman_readData( int meindex, int windowno, BOOL chkflg)
 	char	firstToken[1024];
 	char	secondToken[1024];
 	
-	/* 它奴件玉它及涩烂毛  曰  戈厌瞻   */
 	
 	NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
-	/* 涩烂白央奶伙  潸   */
 	if( NPC_Util_GetStrFromStrWithDelim( argstr, "conff", filename, sizeof( filename)) == NULL )	{
 		print("\n err:NOT FIND [conff] ");
 		return FALSE;
@@ -280,15 +273,12 @@ BOOL NPC_Windowman_readData( int meindex, int windowno, BOOL chkflg)
 			
 			linenum ++;
 			
-			/* 戊丢件玄反  骰 */
 			if( line[0] == '#' || line[0] == '\n') continue;
 			/* 荼垫潸月 */
 			chomp( line );
 			
 			/*  垫毛帮溥允月    */
-			/*  引内 tab 毛 " " 卞  五晶尹月    */
 			replaceString( line, '\t' , ' ' );
-			/* 燮  及旦矢□旦毛潸月［*/
 			for( i = 0; i < strlen( line); i ++) {
 				if( line[i] != ' ' ) {
 					break;
@@ -297,7 +287,6 @@ BOOL NPC_Windowman_readData( int meindex, int windowno, BOOL chkflg)
 			}
 			if( i != 0 ) strcpy( line, buf);
 
-			/* delim "=" 匹  赓(1)及玄□弁件毛  月*/
 			ret = getStringFromIndexWithDelim( line, "=",  1, firstToken,
 											   sizeof( firstToken ) );
 			if( ret == FALSE ){
@@ -305,7 +294,6 @@ BOOL NPC_Windowman_readData( int meindex, int windowno, BOOL chkflg)
 					   filename , linenum);
 				continue;
 			}
-			/* delim "=" 匹2    及玄□弁件毛  月*/
 			ret = getStringFromIndexWithDelim( line, "=", 2, secondToken,
 											   sizeof( secondToken ) );
 			if( ret == FALSE ){
@@ -326,7 +314,6 @@ BOOL NPC_Windowman_readData( int meindex, int windowno, BOOL chkflg)
 				winno = atoi( secondToken);
 				continue;
 			}
-			/* 它奴件玉它No 互瑁引匀化中卅中凛及垫反  骰允月 */
 			if( winno == -1 ) {
 				print( "windowman:winno 尚未定义，资料却已设定。\n");
 				print( "filename:[%s] line[%d]\n", filename, linenum);
@@ -334,8 +321,6 @@ BOOL NPC_Windowman_readData( int meindex, int windowno, BOOL chkflg)
 				errflg = FALSE;
 				break;
 			}
-			/* 它奴件玉它No 互域谯仄凶凛反椭瘀毛  戈［
-			 * 公木动陆反  骰允月 */
 			if( (chkflg == FALSE && winno == windowno )||
 				chkflg == TRUE) 
 			{
@@ -363,7 +348,6 @@ BOOL NPC_Windowman_readData( int meindex, int windowno, BOOL chkflg)
 								errflg = TRUE;
 							}
 							else {
-								/* 升匀切井井凶匀吊分仃匹手涩烂今木化中木壬     */
 								if( !((buttonproc[b_mode].checkhaveitem != -1 && 
 									   buttonproc[b_mode].checkhaveitemgotowin != -1)
 									 || (buttonproc[b_mode].checkdonthaveitem != -1 && 
@@ -519,7 +503,6 @@ BOOL NPC_Windowman_readData( int meindex, int windowno, BOOL chkflg)
 	return TRUE;
 }
 /*
- * buttontype=匹隙烂仄凶  侬  毛醒袄卞  晶允月［
  *
  */
 /*static*/ int NPC_Windowman_restoreButtontype( char *data )

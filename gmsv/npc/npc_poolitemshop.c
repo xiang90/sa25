@@ -79,7 +79,7 @@ BOOL NPC_DepotItem_gettItem( int meindex, int talkerindex, int num);
 int othertime=0;
 BOOL NPC_PoolItemShopInit( int meindex)
 {
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	int cost;
 	NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
 	cost = NPC_Util_GetNumFromStrWithDelim( argstr, "cost");
@@ -300,18 +300,11 @@ void NPC_DepotItem_MakeItemString( int meindex, int talkerindex, char *retstring
 			poolflg = TRUE;
 		}
 		snprintf( buff, sizeof( buff), 
-#ifdef _ITEM_PILENUMS
-			"%s|%d|%d|%d|%s|%d|%d|",
-#else
 			"%s|%d|%d|%d|%s|%d|",
-#endif
 			ITEM_getChar( itemindex, ITEM_SECRETNAME),
 			poolflg,CHAR_getWorkInt( meindex, NPC_WORK_COST),
 			ITEM_getInt( itemindex, ITEM_BASEIMAGENUMBER),
 			ITEM_getChar( itemindex, ITEM_EFFECTSTRING),
-#ifdef _ITEM_PILENUMS
-			ITEM_getInt( itemindex, ITEM_USEPILENUMS),
-#endif
 			i + 1 );
 
 		if( pos +strlen( buff)>= retstringlen) {
@@ -325,9 +318,9 @@ void NPC_DepotItem_MakeItemString( int meindex, int talkerindex, char *retstring
 
 void NPC_DepotItem_Item_printWindow( int meindex, int talkerindex)
 {
-	char	itemstring[65536-1024];
-	char	sendstring[65536];
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char	itemstring[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
+	char	sendstring[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
+	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	char	buff2[1024];
 	char	buff3[1024];
 	char	buff4[1024];
@@ -368,20 +361,13 @@ void NPC_DepotItem_MakeDepotString( int meindex, int talkerindex, char *retstrin
 		itemindex = CHAR_getDepotItemIndex( talkerindex, i);
 		if( !ITEM_CHECKINDEX( itemindex)) continue;
 		snprintf( buff, sizeof( buff),
-#ifdef _ITEM_PILENUMS
-			"%s|%d|%d|%d|%d|%s|%d|",
-#else
 			"%s|%d|%d|%d|%d|%s|",
-#endif
 			ITEM_getChar( itemindex, ITEM_SECRETNAME),
 			poolflg,
 			ITEM_getInt( itemindex, ITEM_LEVEL),
 			ITEM_getInt( itemindex, ITEM_COST),
 			ITEM_getInt( itemindex, ITEM_BASEIMAGENUMBER),
 			ITEM_getChar( itemindex, ITEM_EFFECTSTRING)
-#ifdef _ITEM_PILENUMS
-			,ITEM_getInt( itemindex, ITEM_USEPILENUMS)
-#endif
 			);
 		if( pos +strlen( buff)>= retstringlen) {
 			fprint( "buffer over err\n");
@@ -395,9 +381,9 @@ void NPC_DepotItem_MakeDepotString( int meindex, int talkerindex, char *retstrin
 
 void NPC_DepotItem_Depot_printWindow( int meindex, int talkerindex)
 {
-	char	itemstring[65536-1024];
-	char	sendstring[65536];
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char	itemstring[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
+	char	sendstring[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
+	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	char	buff[1024];
 	char	buff2[1024];
 	char	buff3[1024];
@@ -615,9 +601,9 @@ static void NPC_PoolItemShop_printWindow_HaveItemFull( int meindex, int talkerin
 
 static void NPC_PoolItemShop_printWindow_Pool( int meindex, int talkerindex)
 {
-	char	itemstring[65536-1024];
-	char	sendstring[65536];
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char	itemstring[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
+	char	sendstring[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
+	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	char	buff2[1024];
 	char	buff3[1024];
 	char	buff4[1024];
@@ -654,9 +640,9 @@ static void NPC_PoolItemShop_printWindow_Pool( int meindex, int talkerindex)
 
 static void NPC_PoolItemShop_printWindow_Draw( int meindex, int talkerindex)
 {
-	char	itemstring[65536-1024];
-	char	sendstring[65536];
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char	itemstring[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
+	char	sendstring[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
+	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	char	buff[1024];
 	char	buff2[1024];
 	char	buff3[1024];
@@ -694,7 +680,7 @@ static char *NPC_PoolItemShop_getMsg_noarg( int tablenum,
 								char *argstr, char *retstring, int retstringlen)
 {
 	char	buf[1024];
-	if( tablenum < 0 || tablenum >= arraysizeof( poolshopmsg)) return NULL;
+	if( tablenum < 0 || tablenum >= arraysizeof( poolshopmsg)) return "\0";
 	
 	if( NPC_Util_GetStrFromStrWithDelim( argstr, poolshopmsg[tablenum].option, buf, sizeof( buf)) != NULL ) {
 		strcpysafe( retstring, retstringlen, buf);
@@ -723,18 +709,11 @@ static void NPC_PoolItemShop_MakeItemString_Pool( int meindex, int talkerindex,
 				poolflg = TRUE;
 			}
 			snprintf( buff, sizeof( buff), 
-#ifdef _ITEM_PILENUMS
-				"%s|%d|%d|%d|%s|%d|%d|",
-#else
 						"%s|%d|%d|%d|%s|%d|",
-#endif
 						ITEM_getChar( itemindex, ITEM_SECRETNAME),
 						poolflg,CHAR_getWorkInt( meindex, NPC_WORK_COST),
 						ITEM_getInt( itemindex, ITEM_BASEIMAGENUMBER),
 						ITEM_getChar( itemindex, ITEM_EFFECTSTRING),
-#ifdef _ITEM_PILENUMS
-						ITEM_getInt( itemindex, ITEM_USEPILENUMS),
-#endif
 						i + 1 );
 			if( pos +strlen( buff)>= retstringlen) {
 				fprint( "buffer over err\n");
@@ -760,21 +739,13 @@ static void NPC_PoolItemShop_MakeItemString_Draw( int meindex, int talkerindex,
 		if( ITEM_CHECKINDEX( itemindex)) {
 			int poolflg = FALSE;
 			snprintf( buff, sizeof( buff),
-#ifdef _ITEM_PILENUMS
-				"%s|%d|%d|%d|%d|%s|%d|",
-
-#else
 						"%s|%d|%d|%d|%d|%s|",
-#endif
 						ITEM_getChar( itemindex, ITEM_SECRETNAME),
 						poolflg,
 						ITEM_getInt( itemindex, ITEM_LEVEL),
 						ITEM_getInt( itemindex, ITEM_COST),
 						ITEM_getInt( itemindex, ITEM_BASEIMAGENUMBER),
 						ITEM_getChar( itemindex, ITEM_EFFECTSTRING)
-#ifdef _ITEM_PILENUMS
-						,ITEM_getInt( itemindex, ITEM_USEPILENUMS)
-#endif
 						);
 			if( pos +strlen( buff)>= retstringlen) {
 				fprint( "buffer over err\n");
@@ -802,16 +773,6 @@ static BOOL NPC_PoolItemShop_PoolItem( int meindex, int talkerindex, int num)
 		fprint( "err");
 		return FALSE;
 	}
-
-#if 1 //
-	if( ITEM_getInt( itemindex, ITEM_DROPATLOGOUT) || // 登出後消失
-		ITEM_getInt( itemindex, ITEM_VANISHATDROP) || // 丢弃後消失
-		!ITEM_getInt( itemindex, ITEM_CANPETMAIL)) { // 不可宠邮寄
-		print("\n 改封包!!非法存放道具:%s ", CHAR_getChar( talkerindex, CHAR_CDKEY) );
-		return FALSE;
-	}
-#endif
-
 	CHAR_DelGold( talkerindex, cost );
 
 	CHAR_setPoolItemIndex( talkerindex, emptyindex, itemindex);
@@ -837,30 +798,6 @@ static BOOL NPC_PoolItemShop_PoolItem( int meindex, int talkerindex, int num)
 				ITEM_getInt( itemindex, ITEM_ID)
 
 	);
-
-#ifdef _CHECK_FORCEPOOL
-	int i, cnt = 0;
-	int work[CHAR_MAXPOOLITEMHAVE];
-	
-	for (i = 0; i < CHAR_MAXPOOLITEMHAVE; i++) {
-		work[i] = -1;
-	}
-	
-	for (i = 0; i < CHAR_MAXPOOLITEMHAVE; i++) {
-		itemindex = CHAR_getPoolItemIndex( talkerindex, i);
-		if (itemindex >= ITEM_SAMU_STONE_1 && itemindex <= ITEM_HERO_BLESS) {
-			print("\n 改封包!!非法存放道具:%s ITEMINDEX:%d\n", CHAR_getChar( talkerindex, CHAR_CDKEY), itemindex );
-			continue;
-		}
-		work[cnt++] = itemindex;
-	}
-	
-	for (i = 0; i< CHAR_MAXPOOLITEMHAVE; i++) {
-		CHAR_setPoolItemIndex( talkerindex, i, work[i]);
-	}
-	
-#endif
-
 	return TRUE;
 }
 
@@ -874,28 +811,6 @@ static BOOL NPC_PoolItemShop_DrawItem( int meindex, int talkerindex, int num)
 
 	emptyindex = CHAR_findEmptyItemBox( talkerindex);
 	if( emptyindex == -1 ) return FALSE;
-
-#ifdef _CHECK_FORCEPOOL
-	cnt = 0;
-	
-	for (i = 0; i < CHAR_MAXPOOLITEMHAVE; i++) {
-		work[i] = -1;
-	}
-	
-	for (i = 0; i < CHAR_MAXPOOLITEMHAVE; i++) {
-		itemindex = CHAR_getPoolItemIndex( talkerindex, i);
-		if (itemindex >= ITEM_SAMU_STONE_1 && itemindex <= ITEM_HERO_BLESS) {
-			print("\n 改封包!!非法存放道具:%s ITEMINDEX:%d\n", CHAR_getChar( talkerindex, CHAR_CDKEY), itemindex );
-			continue;
-		}
-		work[cnt++] = itemindex;
-	}
-	
-	for (i = 0; i< CHAR_MAXPOOLITEMHAVE; i++) {
-		CHAR_setPoolItemIndex( talkerindex, i, work[i]);
-	}
-	
-#endif
 	
 	itemindex = CHAR_getPoolItemIndex( talkerindex, num);
 	if( !ITEM_CHECKINDEX( itemindex)) {

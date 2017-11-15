@@ -417,7 +417,7 @@ int NPC_GambleBank_DoGold( int meindex, int toindex, int Gold, int flg)
 
 		CHAR_AddGold( toindex, Gold);
 
-		sprintf( buf1,"取款：%d ，手续费：%d，银行剩馀：%d 。", Gold, stone_def, CHAR_getInt( toindex, CHAR_PERSONAGOLD ));
+		sprintf( buf1,"取款：%d ，手续费：%d，银行剩余：%d 。", Gold, stone_def, CHAR_getInt( toindex, CHAR_PERSONAGOLD ));
 		CHAR_talkToCli( toindex, meindex, buf1,  CHAR_COLORYELLOW);
 		LogBankStone(    CHAR_getChar( toindex, CHAR_NAME ), CHAR_getChar( toindex, CHAR_CDKEY ),
 					toindex, Gold, 
@@ -438,7 +438,7 @@ int NPC_GambleBank_DoGold( int meindex, int toindex, int Gold, int flg)
 		CHAR_DelGold( toindex, Gold );
 
 		CHAR_setInt( toindex, CHAR_PERSONAGOLD, (CHAR_getInt( toindex, CHAR_PERSONAGOLD ) + Gold ) );
-		sprintf( buf1,"存款：%d ，银行剩馀：%d 。", Gold, CHAR_getInt( toindex, CHAR_PERSONAGOLD ));
+		sprintf( buf1,"存款：%d ，银行剩余：%d 。", Gold, CHAR_getInt( toindex, CHAR_PERSONAGOLD ));
 		CHAR_talkToCli( toindex, meindex, buf1,  CHAR_COLORYELLOW);
 		LogBankStone(    CHAR_getChar( toindex, CHAR_NAME ), CHAR_getChar( toindex, CHAR_CDKEY ),
 					toindex, Gold, 
@@ -506,7 +506,7 @@ BOOL NPC_GambleBank_AddItem( int meindex, int toindex, int itemId, int count)
 	CHAR_talkToCli( toindex, -1,token,CHAR_COLORWHITE);
 	CHAR_sendItemDataOne( toindex, ret);
 	CHAR_setInt( toindex, CHAR_GAMBLENUM, CHAR_getInt( toindex, CHAR_GAMBLENUM) - count);
-	sprintf( token,"游乐场积分剩馀： %d", CHAR_getInt( toindex, CHAR_GAMBLENUM));
+	sprintf( token,"游乐场积分剩余： %d", CHAR_getInt( toindex, CHAR_GAMBLENUM));
 	CHAR_talkToCli( toindex, -1,token,CHAR_COLORWHITE);
 	return TRUE;
 }

@@ -2,9 +2,6 @@
 #define __CHATMAGIC_H__
 #include "version.h"
 
-#ifdef _NEW_PETMAKE
-void CHAR_CHAT_DEBUG_newpetmake(int charaindex, char *message);
-#endif
 void CHAR_CHAT_DEBUG_hp( int charindex , char *message );
 void CHAR_CHAT_DEBUG_mp( int charindex , char *message );
 void CHAR_CHAT_DEBUG_setmp( int charindex , char *message );
@@ -67,22 +64,23 @@ void CHAR_CHAT_DEBUG_reloadmsip( int charaindex, char *message);
 void CHAR_CHAT_DEBUG_cleanfreepet(int charaindex, char *message);
 void CHAR_CHAT_DEBUG_engineer( int charindex, char *message);
 void CHAR_CHAT_DEBUG_waeikickall( int charindex, char* message );
-void CHAR_CHAT_DEBUG_remserver( int charaindex, char *message );
 void CHAR_CHAT_DEBUG_showMem(int charaindex, char *message);
 void CHAR_CHAT_DEBUG_playerspread( int charaindex, char *message);
 void CHAR_CHAT_DEBUG_reset( int charaindex, char* message );
 
+#ifdef _MAKE_MAP
+void CHAR_CHAT_DelMap( int charaindex, char* message );
+void CHAR_CHAT_GetMap( int charaindex, char* message );
+void CHAR_CHAT_Map( int charaindex, char* message );
+void CHAR_CHAT_Fixtile( int charaindex, char* message );
+void CHAR_CHAT_Fixobj( int charaindex, char* message );
+void CHAR_CHAT_Fukuwa( int charaindex, char* message );
+#endif
+
 #ifdef _GMRELOAD
 void CHAR_CHAT_DEBUG_gmreload(int charaindex, char *message);
 #endif
-#ifdef _CHAR_PROFESSION			// WON ADD 人物职业
-void CHAR_CHAT_DEBUG_addsk( int charaindex, char *message );
-void CHAR_CHAT_DEBUG_delsk( int charaindex, char *message );
-#endif
-#ifdef _TEST_PETCREATE
-void CHAR_CHAT_DEBUG_createpet( int charaindex, char *message );
-void TEST_CreatPet( );
-#endif
+
 void CHAR_CHAT_DEBUG_cleanfloor( int charaindex, char *message);
 
 #ifdef _GAMBLE_BANK
@@ -103,14 +101,7 @@ void CHAR_CHAT_DEBUG_SetDuck( int charaindex, char *message);
 #ifdef _TYPE_TOXICATION
 void CHAR_CHAT_DEBUG_Toxication( int charaindex, char *message);
 #endif
-#ifdef _ACTION_BULLSCR
-void CHAR_CHAT_DEBUG_setascore(int charindex, char *message);
-void CHAR_CHAT_DEBUG_getascore(int charindex, char *message);
-#endif
-#ifdef _NEW_PLAYERGOLD
-void CHAR_CHAT_DEBUG_acnewplayer(int charaindex, char *message);
-void CHAR_CHAT_DEBUG_loadnewplayer( int charaindex, char*message );
-#endif
+
 #ifdef _SEND_EFFECT	   	        // WON ADD AC送下雪、下雨等特效
 void CHAR_CHAT_DEBUG_sendeffect(int charaindex, char *message);
 #endif
@@ -119,81 +110,26 @@ void CHAR_CHAT_DEBUG_dropmypet( int charindex, char *message );
 void CHAR_CHAT_DEBUG_dropmyitem( int charindex , char *message );
 #endif
 
-#ifdef _ACTION_GMQUE
-void CHAR_CHAT_DEBUG_cleanqute( int charaindex, char *message);
-#endif
-
-#ifdef _CHAR_PROFESSION			// WON ADD 人物职业
-void CHAR_CHAT_DEBUG_show_profession( int charaindex, char*message );
-void CHAR_CHAT_DEBUG_set_regist( int charaindex, char*message );
-#endif
-
 void CHAR_CHAT_DEBUG_checktrade( int charaindex, char*message);
 
 void CHAR_CHAT_DEBUG_checktime( int charaindex, char *message);
 void CHAR_CHAT_DEBUG_samecode( int charaindex, char *message);
 void CHAR_CHAT_DEBUG_silent(int charindex ,char *message);
 void CHAR_CHAT_DEBUG_help( int charindex, char *message);
-#ifdef _EQUIT_ARRANGE
-void CHAR_CHAT_DEBUG_arrange( int charindex , char *message );
-#endif
 
 #ifdef _EQUIT_SEQUENCE
 void CHAR_CHAT_DEBUG_sequence( int charindex , char *message );
 #endif
 
-#ifdef _GM_IDENTIFY
-void CHAR_CHAR_DEBUG_gmidentify( int charindex , char *message );
-#endif
-
-void CHAR_CHAT_DEBUG_showtemp( int charaindex, char*message );
-
 #ifdef _EQUIT_NEGLECTGUARD
 void CHAR_CHAT_DEBUG_setneguard( int charaindex, char* message );
 #endif
 
-#ifdef _DEATH_CONTEND
-void CHAR_CHAT_DEBUG_updatepklist( int charaindex, char* message );
-#endif
-
 void CHAR_CHAT_DEBUG_petlevelup( int charaindex, char* message );
+void CHAR_CHAT_DEBUG_petexpup( int charaindex, char* message );
 
 void CHAR_CHAT_DEBUG_reloadpkteamlist( int charaindex, char *message);
 void CHAR_CHAT_DEBUG_setBattle( int charaindex, char *message );
-
-
-#ifdef _CHAR_POOLITEM
-void CHAR_CHAT_DEBUG_saveditem(int charaindex, char *message);
-void CHAR_CHAT_DEBUG_insertditem(int charaindex, char *message);
-void CHAR_CHAT_DEBUG_ShowMyDepotItems( int charaindex, char *message );
-void CHAR_CHAT_DEBUG_InSideMyDepotItems( int charaindex, char *message );
-#endif
-
-#ifdef _CHAR_POOLPET
-void CHAR_CHAT_DEBUG_savedpet(int charaindex, char *message);
-void CHAR_CHAT_DEBUG_insertdpet(int charaindex, char *message);
-void CHAR_CHAT_DEBUG_ShowMyDepotPets( int charaindex, char *message );
-void CHAR_CHAT_DEBUG_InSideMyDepotPets( int charaindex, char *message );
-#endif
-
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-void CHAR_CHAR_DEBUG_reloadfm( int charaindex, char* message );
-void CHAR_CHAR_DEBUG_fmpk( int charaindex, char* message );
-void CHAR_CHAR_DEBUG_fmpk_clean( int charaindex, char* message );
-#endif
-
-#ifdef _NEW_MANOR_LAW
-void CHAR_CHAT_DEBUG_set_momentum( int charaindex, char* message );
-void CHAR_CHAT_DEBUG_set_manor_owner( int charindex, char* message );
-void CHAR_CHAT_DEBUG_set_schedule_time( int charindex, char* message );
-#endif
-
-#ifdef _ANGEL_SUMMON
-void CHAR_CHAT_DEBUG_angelinfo(int charindex ,char *message);
-void CHAR_CHAT_DEBUG_angelclean(int charindex ,char *message);
-void CHAR_CHAT_DEBUG_angelcreate(int charindex ,char *message);
-void CHAR_CHAT_DEBUG_missionreload(int charindex ,char *message);
-#endif
 
 void CHAR_CHAT_DEBUG_itemreload(int charindex ,char *message);
 
@@ -201,10 +137,6 @@ void CHAR_CHAT_DEBUG_skywalker(int charaindex ,char *message);
 
 #ifdef _ITEM_ADDEXP
 void CHAR_CHAT_DEBUG_itemaddexp(int charaindex ,char *message);
-#endif
-
-#ifdef _DEF_FMFREETIME
-void CHAR_CHAT_DEBUG_fmfreetime(int charaindex,char *message);
 #endif
 
 #ifdef _DEF_GETYOU 
@@ -219,16 +151,48 @@ void CHAR_CHAT_DEBUG_newsend(int charindex ,char *message);
 void CHAR_CHAT_DEBUG_supersend(int charindex ,char *message);
 #endif
 
-#ifdef _FONT_SIZE
-void CHAR_CHAT_DEBUG_fsize(int charindex ,char *message);
+#ifdef _CREATE_MM_1_2
+void CHAR_CHAT_DEBUG_MM(int charaindex , char *message );
 #endif
 
-#ifdef _JOBDAILY
-void CHAR_CHAT_DEBUG_rejobdaily(int charindex ,char *message);
+#ifdef _SendTo
+void CHAR_CHAT_DEBUG_Sendto( int charaindex , char *message );
 #endif
 
-#ifdef _RACEMAN
-void CHAR_CHAT_DEBUG_changeask(int charindex ,char *message);
+void CHAR_CHAT_printcount( int charaindex, char* message );
+
+#ifdef _GM_ITEM
+void CHAR_CHAT_DEBUG_GMFUNCTION( int charindex , char *message );
 #endif
 
+#ifdef _GM_RIDE
+void CHAR_CHAT_DEBUG_SETRIDE( int charindex , char *message );
+void CHAR_CHAT_DEBUG_MVRIDE( int charindex , char *message );
+#endif
+
+#ifdef _LOCK_IP
+void CHAR_CHAT_DEBUG_ADD_LOCK( int charindex , char *message );
+void CHAR_CHAT_DEBUG_DEL_LOCK( int charindex , char *message );
+void CHAR_CHAT_DEBUG_SHOWIP( int charindex , char *message );
+#endif
+void CHAR_CHAT_DEBUG_SET_FAME( int charaindex, char* message );
+#ifdef _AUTO_PK
+void CHAR_CHAT_DEBUG_SET_AUTOPK( int charaindex, char* message );
+#endif
+
+#ifdef _PLAYER_NUM
+void CHAR_CHAT_DEBUG_SET_PLAYERNUM( int charaindex, char* message );
+#endif
+#ifdef _RELOAD_CF
+void CHAR_CHAT_DEBUG_SET_RELOADCF( int charaindex, char* message );
+#endif
+#ifdef _TRANS
+void CHAR_CHAT_DEBUG_Trans( int charaindex, char *message);
+#endif
+#ifdef _MAKE_PET_CF
+void CHAR_CHAT_DEBUG_petmakecf( int charaindex, char* message );
+#endif
+#ifdef _MAKE_PET_ABILITY
+void CHAR_CHAT_DEBUG_petmakeabi( int charaindex, char* message );
+#endif
 #endif

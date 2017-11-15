@@ -39,7 +39,7 @@ typedef enum
     NPC_CREATEIGNOREINVINCIBLE,
     NPC_CREATEFAMILY,		// Robin 0731 Family
 #ifdef _ADD_ACTION          //jeffrey 1231 npcaction
-	NPC_CREATEACTION,
+		NPC_CREATEACTION,
 #endif
     NPC_CREATEINTNUM,
     

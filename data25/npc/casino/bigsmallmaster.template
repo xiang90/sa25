@@ -1,9 +1,0 @@
-NPCTEMPLATE
-#比大小主持人
-{
-templatename=bigsmallmaster
-makeatnobody=1
-makeatnosee=1
-type=SPR_sslma_1
-functionset=BigSmallMaster
-}

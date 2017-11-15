@@ -41,11 +41,7 @@ static int ITEM_getTableNum( int num);
 #define         ITEM_ATOMIND_FM_MAX     4000
 
 #define		ITEM_RANDRANGEDOM		1000
-#ifdef _MERGE_NEW_8	// 1st
-#define		ITEM_RANDRANGEDOM_BASE	600
-#else
 #define		ITEM_RANDRANGEDOM_BASE	0
-#endif
 // shan add
 #define         ITEM_FM_RANDRANGEDOM            4000
 
@@ -125,7 +121,7 @@ struct item_atom
 
 struct item_atom *item_atoms;
 int item_atoms_size;
-#define MAX_ITEM_ATOMS_SIZE 256
+#define MAX_ITEM_ATOMS_SIZE 128
 
 struct item_ingindtable {
 	double data[MAX_ITEM_ATOMS_SIZE];
@@ -146,11 +142,8 @@ static int ITEM_getAtomIndexByName( char *nm ) // 从素材名称取得素材index
 	return -1;
 }
 
-#ifdef _ITEMTBL_STAIC
-extern ITEM_table ITEM_tbl[28000];
-#else
 extern ITEM_table *ITEM_tbl;
-#endif
+extern ITEM_index*  ITEM_idx;
 
 struct ingcache
 {
@@ -200,105 +193,26 @@ int ITEM_initRandTable( void)
 static struct ingcache *icache;
 int icache_num;
 
-#ifdef _IMPOROVE_ITEMTABLE
-int ADD_ICACHE_INGRED( int ItemID)
-{
-	char *itemarg;
-	int i, nk=0;
-
-	for( i=0; i<5; i++){
-		itemarg = ITEMTBL_getChar( ItemID, ITEM_INGNAME0+i);//成分名
-		if( itemarg == NULL ) continue;
-		if( itemarg[0] ){
-			icache[ItemID].ingind[nk] = ITEM_getAtomIndexByName( itemarg);
-			if( icache[ItemID].ingind[nk] < 0 ){
-
-				print( "fuck ing[%s][%d] for %d %s\n",
-					itemarg,
-					ITEMTBL_getInt( ItemID, ITEM_INGVALUE0+i),
-					ITEMTBL_getInt( ItemID, ITEM_ID),
-					ITEMTBL_getChar( ItemID, ITEM_NAME) );
-
-			}else {
-				icache[ItemID].ingval[nk] = ITEMTBL_getInt( ItemID, ITEM_INGVALUE0+i);
-				nk++;
-			}
-		}
-	}
-	return nk;
-}
-
 int ITEM_initItemIngCache( void )
 {
 	int i;
-	print ( "ITEM_initItemIngCache: tblen:%d\n", ITEM_getItemMaxIdNum( ) );
-	icache_num = ITEM_getMaxitemtblsFromTransList( );
-
-	icache = allocateMemory( sizeof( struct ingcache ) * icache_num );
-	if( icache == NULL ){
-		print( "ITEM_initItemIngCache: no mem\n" );
-		return FALSE;
-	}
-	print( "initItemIngCache: icache_num=%d\n", icache_num);
-	remove( "icache.txt");
-
-	memset( icache, 0, icache_num * sizeof( struct ingcache) );
-	for( i=0; i<icache_num; i++){
-		if( ITEM_CHECKITEMTABLE( i) ){
-			icache[i].inguse = ADD_ICACHE_INGRED( i);
-			if( icache[i].inguse == 0 ){
-				if( ITEMTBL_getInt( i, ITEM_CANMERGEFROM ) == TRUE ||
-					ITEMTBL_getInt( i, ITEM_CANMERGETO ) == TRUE ){
-					print( "道具 没设定成份:%d %d %s\n",
-						i,
-						ITEMTBL_getInt( i, ITEM_ID),
-						ITEMTBL_getChar( i, ITEM_NAME) );
-				}
-			}else{
-				FILE *fp;
-				icache[i].use = 1;
-				icache[i].canmergefrom = ITEMTBL_getInt( i, ITEM_CANMERGEFROM );
-				icache[i].canmergeto   = ITEMTBL_getInt( i, ITEM_CANMERGETO );
-
-				if( (fp = fopen( "icache.txt", "a+")) != NULL ){
-					fprintf( fp, "icache %4d %4d [%s] \t- %s %s %s %s %s\n",
-						i,
-						ITEMTBL_getInt( i, ITEM_ID),
-						ITEMTBL_getChar( i, ITEM_NAME),
-						ITEMTBL_getChar( i, ITEM_INGNAME0),
-						ITEMTBL_getChar( i, ITEM_INGNAME1),
-						ITEMTBL_getChar( i, ITEM_INGNAME2),
-						ITEMTBL_getChar( i, ITEM_INGNAME3),
-						ITEMTBL_getChar( i, ITEM_INGNAME4)
-						);
-					fclose( fp);
-				}else {
-					print("Can't a+ %s!!\n", "icache.txt");
-				}
-			}
-		}
-	}
-	return TRUE;
-}
-#else
-
-int ITEM_initItemIngCache( void )
-{
-	int i;
-	print ( "\nITEM_initItemIngCache: tblen:%d ", ITEM_getItemMaxIdNum() );
+//	print ( "\n初始化物品缓冲: 物品最大数:%d ", ITEM_getItemMaxIdNum() );
 	icache_num = ITEM_getItemMaxIdNum( );
-	print(" icache_num:%d \n", icache_num);
-	icache = allocateMemory( sizeof( struct ingcache ) * icache_num );
+	print(" 缓冲数:%d ", icache_num);
+	icache = calloc(1, sizeof( struct ingcache ) * icache_num );
 	if( icache == NULL ){
-		print( "ITEM_initItemIngCache: no mem\n" );
+		print( "初始化物品缓冲: 没有物品\n" );
 		return FALSE;
 	}
-	remove( "old_icache.txt");
+	
+	print("分配 %4.2f MB 空间...", sizeof( struct ingcache ) * icache_num /1024.0/1024.0);
+	
+//	remove( "old_icache.txt");
 	memset( icache, 0, icache_num * sizeof( struct ingcache) );
 	for( i=0; i<icache_num; i++){
-		if( ITEM_tbl[i].use ){ //new
+		if( ITEM_idx[i].use ){ //new
 			int k=0;
-#define ADD_ICACHE_INGRED( nm, vl )	if( ITEM_tbl[i].itm.string[nm].string[0] ){icache[i].ingind[k] = ITEM_getAtomIndexByName(ITEM_tbl[i].itm.string[nm].string );if( icache[i].ingind[k] < 0 ){print( "fuck ing[%s][%d] for %d %s\n", ITEM_tbl[i].itm.string[nm].string,ITEM_tbl[i].itm.data[vl], ITEM_tbl[i].itm.data[ITEM_ID], ITEM_tbl[i].itm.string[ITEM_NAME].string );}else {icache[i].ingval[k] = ITEM_tbl[i].itm.data[vl];k++;}}
+#define ADD_ICACHE_INGRED( nm, vl )	if( ITEM_tbl[ITEM_idx[i].index].itm.string[nm].string[0] ){icache[i].ingind[k] = ITEM_getAtomIndexByName(ITEM_tbl[ITEM_idx[i].index].itm.string[nm].string );if( icache[i].ingind[k] < 0 ){print( "fuck ing[%s][%d] for %d %s\n", ITEM_tbl[ITEM_idx[i].index].itm.string[nm].string,ITEM_tbl[ITEM_idx[i].index].itm.data[vl], ITEM_tbl[i].itm.data[ITEM_ID], ITEM_tbl[ITEM_idx[i].index].itm.string[ITEM_NAME].string );}else {icache[i].ingval[k] = ITEM_tbl[ITEM_idx[i].index].itm.data[vl];k++;}}
 			ADD_ICACHE_INGRED( ITEM_INGNAME0, ITEM_INGVALUE0 );
 			ADD_ICACHE_INGRED( ITEM_INGNAME1, ITEM_INGVALUE1 );
 			ADD_ICACHE_INGRED( ITEM_INGNAME2, ITEM_INGVALUE2 );
@@ -307,18 +221,19 @@ int ITEM_initItemIngCache( void )
 			icache[i].inguse = k;
 
 			if( k == 0 ){
-				if( ITEM_tbl[i].itm.data[ITEM_CANMERGEFROM] == TRUE || //new
-					ITEM_tbl[i].itm.data[ITEM_CANMERGETO] == TRUE){//new
+				if( ITEM_tbl[ITEM_idx[i].index].itm.data[ITEM_CANMERGEFROM] == TRUE || //new
+					ITEM_tbl[ITEM_idx[i].index].itm.data[ITEM_CANMERGETO] == TRUE){//new
 					print( "ID%d (%s)尚未设定成分\n",
-						   ITEM_tbl[i].itm.data[ITEM_ID], //new
-						   ITEM_tbl[i].itm.string[ITEM_NAME].string ); //new
+						   ITEM_tbl[ITEM_idx[i].index].itm.data[ITEM_ID], //new
+						   ITEM_tbl[ITEM_idx[i].index].itm.string[ITEM_NAME].string ); //new
 				}
 			}else{
-				FILE *fp;
+				
 				icache[i].use = 1;
-				icache[i].canmergefrom = ITEM_tbl[i].itm.data[ITEM_CANMERGEFROM]; //new
-				icache[i].canmergeto   = ITEM_tbl[i].itm.data[ITEM_CANMERGETO]; //new
-
+				icache[i].canmergefrom = ITEM_tbl[ITEM_idx[i].index].itm.data[ITEM_CANMERGEFROM]; //new
+				icache[i].canmergeto   = ITEM_tbl[ITEM_idx[i].index].itm.data[ITEM_CANMERGETO]; //new
+/*
+				FILE *fp;
 				if( (fp = fopen( "old_icache.txt", "a+")) != NULL ){
 					fprintf( fp, "icache %4d %4d [%s] \t- %s %s %s %s %s\n",
 						i,
@@ -331,12 +246,12 @@ int ITEM_initItemIngCache( void )
 						ITEMTBL_getChar( i, ITEM_INGNAME4)	);
 					fclose( fp);
 				}
+*/
 			}
 		}
 	}
 	return TRUE;
 }
-#endif
 
 int ITEM_initItemAtom( char *fn )
 {
@@ -345,7 +260,7 @@ int ITEM_initItemAtom( char *fn )
 	
 	fp = fopen( fn , "r" );
 	if( fp == NULL ){
-		print( "cannot open %s\n", fn );
+		print( "打开文件失败 %s\n", fn );
 		return FALSE;
 	}
 
@@ -355,10 +270,10 @@ int ITEM_initItemAtom( char *fn )
 		if( fgets( line, sizeof( line ), fp ) == NULL )break;
 		if( line[0] != '#' && line[0] != '\n' )count++;
 	}
-	print( "initItemAtom: %d count\n", count );
+	print( "初始化物品成份: 总数 %d \n", count );
 
 	if( count == 0 ){
-		print( "ITEM_initItemAtom: no valid atom setting. abort.\n" );
+		print( "初始化物品成份: 无法正确设置物品成份. 异常中断.\n" );
 		return FALSE;
 	}
 	
@@ -366,7 +281,7 @@ int ITEM_initItemAtom( char *fn )
 	item_atoms = ( struct item_atom * ) allocateMemory( count *
 												sizeof( struct item_atom ));
 	if( item_atoms == NULL ){
-		print( "allocateMemory() failed\n" );
+		print( "分配内存失败\n" );
 		return FALSE;
 	}
 	memset( item_atoms, 0 , count * sizeof( struct item_atom));
@@ -399,12 +314,12 @@ int ITEM_initItemAtom( char *fn )
 	fclose(fp);
 
 	if( count >= MAX_ITEM_ATOMS_SIZE ){
-		print( "ITEM_initItemAtom: itemAtom too many\n" );
+		print( "初始化物品成份: 物品成份太多了\n" );
 		return FALSE;
 	}
 			   
 	item_atoms_size = count;
-	print( "ITEM_initItemAtom: read %d item_atoms.\n", count );
+	print( "初始化物品成份: 读取 %d 物品成份...", count );
 
 	return TRUE;
 }
@@ -427,10 +342,6 @@ ITEM_randRange( int base, int min_rate , int max_rate )
 	int maxnum;
 	int range;
 
-#ifdef _MERGE_LOG
-	print("\n ITEM_randRange( base:%d, min_rate:%d, max_rate:%d) ", base, min_rate, max_rate);
-#endif
-
 	if( min_rate > max_rate) {
 		int tmp;
 		tmp = min_rate;
@@ -444,11 +355,6 @@ ITEM_randRange( int base, int min_rate , int max_rate )
 	if( min_rate == max_rate && min_rate == 0 ) return 0;
 	if( range == 0 ) return base;
 	if( range < 0 ) return 0;
-
-#ifdef _MERGE_LOG
-	print("\n 最後下限:%d 最後上限:%d ", minnum, minnum+range);
-#endif
-
 	return minnum + RAND( 0, range);
 }
 
@@ -489,40 +395,7 @@ static void ITEM_simplify_atoms( struct item_ingindtable *inds, int num,
 		0.52,
 		0.53
 	};
-#if 0
-	double oddstable[] = {
-		0.08,
-		0.224,
-		0.315,
-		0.37,
-		0.395,
-		0.405,
-		0.415,
-		0.42,
-		0.425,
-		0.43,
-		0.435,
-		0.44,
-		0.445,
-		0.45
-	};
-	double oddstable[] = {
-		0.05,
-		0.175,
-		0.247,
-		0.305,
-		0.342,
-		0.361,
-		0.37,
-		0.375,
-		0.379,
-		0.382,
-		0.387,
-		0.39,
-		0.393,
-		0.396
-	};
-#endif
+
 	for( i = 0; i < num; i ++ ) {
 		int datacnt = (inds + i)->num;
 		if( datacnt > 1 ) {
@@ -541,25 +414,6 @@ static void ITEM_simplify_atoms( struct item_ingindtable *inds, int num,
 		*(retvals + i) = (int)( inds + i)->data[ datacnt-1];
 		// shan add begin
 		if( petindex != -1 ){
-#ifdef _MERGE_NEW_8
-			/*if( alchemist ) { // 使用守护兽精  时无上限 // 改:皆有上限
-				if (CHAR_getInt(petindex, CHAR_PETFAMILY) == 1){
-					if( *( retvals + i) > ITEM_ATOMIND_FM_MAX ){
-						*( retvals + i) = ITEM_ATOMIND_FM_MAX;
-					}
-				}else{
-					if( *( retvals + i) > ITEM_ATOMIND_MAX ){ 
-						*( retvals + i) = ITEM_ATOMIND_MAX;
-					}
-				}
-			}
-			else */
-			{ // 非精  时有上限 
-				if( *( retvals + i) > ITEM_ATOMIND_MAX ){ 
-					*( retvals + i) = ITEM_ATOMIND_MAX;
-				}
-			}
-#else
 			if (CHAR_getInt(petindex, CHAR_PETFAMILY) == 1){
 				if( *( retvals + i) > ITEM_ATOMIND_FM_MAX ){
 					*( retvals + i) = ITEM_ATOMIND_FM_MAX;
@@ -569,7 +423,6 @@ static void ITEM_simplify_atoms( struct item_ingindtable *inds, int num,
 					*( retvals + i) = ITEM_ATOMIND_MAX;
 				}
 			}
-#endif
 		}
 		// shan end
 	}
@@ -635,71 +488,6 @@ PET_ADD_INGRED( nm,vl1,vl2,vl3)
 }
 */
 
-
-#ifdef _MERGE_NEW_8
-int PET_ADD_INGRED( int nm, int vl1, int vl2, int vl3, 
-					int petindex, int petarray, int petid, int ingnum,
-					int *baseup, int *minadd, int *maxadd, int *fixatom )
-{
-	// 家族修正 守护兽时用
-	int	PetLv[] = { 0, 77, 108, 145, 188, 237, 292, 353, 420, 493, 572};
-	// 家族(个人)修正 非守护兽时用
-	//int	PetLvPersonal[] = { 0, 77, 108, 145, 188, 237, 292, 353, 420, 493, 572};
-
-	if( strlen( ENEMYTEMP_getChar( petarray, nm)) != 0 ) {
-		fixatom[ingnum] =ITEM_getAtomIndexByName( ENEMYTEMP_getChar( petarray, nm) );
-		if( fixatom[ingnum] < 0 ) {
-			print( "\nfucking atom:[%s] for pet id %d", ENEMYTEMP_getChar( petarray, nm), petid ); 
-			return 1; //continue;
-		} 
-		baseup[ingnum] = ENEMYTEMP_getInt( petarray, vl1); 
-		minadd[ingnum] = ITEM_RANDRANGEDOM_BASE + ENEMYTEMP_getInt( petarray, vl2); 
-		maxadd[ingnum] = ITEM_RANDRANGEDOM_BASE + ENEMYTEMP_getInt( petarray, vl3); 
-
-		if( petindex != -1) { 
-			int ownerindex = CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX); 
-			
-			if (!CHAR_CHECKINDEX(ownerindex)) {
-				print("ownerindex err!\n");
-				return 2; // just return;
-			}
-
-			if( CHAR_getInt(petindex, CHAR_PETFAMILY) == 1 ) { 
-				if( CHAR_getInt( ownerindex, CHAR_FMLEADERFLAG) != FMMEMBER_LEADER) {
-					print("\n Pet Ownerindex Error");
-					CHAR_talkToCli( ownerindex, -1, "非族长不能用守护兽加工唷！", CHAR_COLORYELLOW);
-					return 2; // just return;
-				}
-				baseup[ingnum] = PetLv[getFmLv(ownerindex)];
-			}
-			else { // 8.0新增
-				baseup[ingnum] = PetLv[getFameLv(ownerindex)];
-			}
-		}
-
-		if( minadd[ingnum] > maxadd[ingnum] ) {
-			int tmp = minadd[ingnum];
-			minadd[ingnum] = maxadd[ingnum];
-			maxadd[ingnum] = tmp;
-		}
-
-		if( CHAR_getInt(petid, CHAR_PETFAMILY) == 1 ) {
-			if( minadd[ingnum]<0 ) 
-				minadd[ingnum] = ITEM_FM_RANDRANGEDOM;
-			if( maxadd[ingnum]<0 )
-				maxadd[ingnum] = ITEM_FM_RANDRANGEDOM;
-		}
-		else {
-			if( minadd[ingnum]<0 ) 
-				minadd[ingnum] = ITEM_RANDRANGEDOM;
-			if( maxadd[ingnum]<0 ) 
-				maxadd[ingnum] = ITEM_RANDRANGEDOM;
-		}
-		ingnum++;
-	}
-}
-#endif
-
 /*
   矢永玄及ID井日｝刭醒及膜恳涩烂毛潸曰分允［
 
@@ -731,12 +519,7 @@ ITEM_merge_getPetFix( int petid, int *fixuse, int *fixatom,
         //    if(i==0) PetLv[i] = 0;
         //    else PetLv[i] = 3*pow(i,2)+10*i+20;
         //}
-#ifdef _MERGE_NEW_8	// 1st
-	//int	PetLv[] = { 0, 145, 188, 237, 292, 353, 420, 493, 572, 657, 748};
-	int	PetLv[] = { 0, 77, 108, 145, 188, 237, 292, 353, 420, 493, 572};
-#else
 	int	PetLv[] = { 0, 33, 52, 77, 108, 145, 188, 237, 292, 353, 420, 493};
-#endif
 	//int PetLv[] = { 0, 33, 52, 77, 108, 145, 188, 1100, 1300, 1500, 1700 };
 // shan end
 	
@@ -746,24 +529,10 @@ ITEM_merge_getPetFix( int petid, int *fixuse, int *fixatom,
 	}
 	petarray = ENEMYTEMP_getEnemyTempArrayFromTempNo( petid);
 	if( petarray == -1 ) {
-		print( "petarray error [%s][%d]\n", __FILE__, __LINE__);
+		print( "宠物队列错误 [%s][%d]\n", __FILE__, __LINE__);
 		return;
 	}
-#ifdef _MERGE_LOG
-	{
-		int ownerindex = CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX);
-		if( CHAR_getInt(petindex, CHAR_PETFAMILY) == 1 ) { 
-			print("\n 使用守护兽 家族声望:%d 家族等级:%d 家族修正:%d ",
-				CHAR_getWorkInt(ownerindex, CHAR_WORKFMDP), getFmLv(ownerindex), PetLv[getFmLv(ownerindex)]);
-		}
-		else {
-			print("\n 非使用守护兽 个人声望:%d 个人等级:%d 个人修正:%d ",
-				CHAR_getInt(ownerindex, CHAR_FAME), getFameLv(ownerindex), PetLv[getFameLv(ownerindex)]);
-		}
-	}
-#endif
 	for( i = 0; i < 5; i ++ ) {
-		int ret;
 #ifdef _FMVER21
 //#define PET_ADD_INGRED( nm,vl1,vl2,vl3)	if( strlen( ENEMYTEMP_getChar( petarray, nm)) != 0 ) { fixatom[ingnum] =ITEM_getAtomIndexByName( ENEMYTEMP_getChar( petarray, nm) ); if( fixatom[ingnum] < 0 ){	print( "\nfucking atom:[%s] for pet id %d", ENEMYTEMP_getChar( petarray, nm), petid ); continue;} baseup[ingnum] = ENEMYTEMP_getInt( petarray, vl1); minadd[ingnum] = ENEMYTEMP_getInt( petarray, vl2); maxadd[ingnum] = ENEMYTEMP_getInt( petarray, vl3); if( petindex != -1){ if( CHAR_getInt(petindex, CHAR_PETFAMILY) == 1 ){ int ownerindex = CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX); if (!CHAR_CHECKINDEX(ownerindex)){print("ownerindex err!\n");return;}if( CHAR_getInt( ownerindex, CHAR_FMLEADERFLAG) != FMMEMBER_LEADER){print("\n Pet Ownerindex Error");return;}baseup[ingnum] = PetLv[getFmLv(ownerindex)];}}if( minadd[ingnum] > maxadd[ingnum] ) {	int tmp = minadd[ingnum];minadd[ingnum] = maxadd[ingnum];maxadd[ingnum] = tmp;}if( CHAR_getInt(petid, CHAR_PETFAMILY) == 1 ){if( minadd[ingnum]<0 ) minadd[ingnum] = ITEM_FM_RANDRANGEDOM;if( maxadd[ingnum]<0 ) maxadd[ingnum] = ITEM_FM_RANDRANGEDOM;}else{if( minadd[ingnum]<0 ) minadd[ingnum] = ITEM_RANDRANGEDOM;if( maxadd[ingnum]<0 ) maxadd[ingnum] = ITEM_RANDRANGEDOM;}ingnum++;}
 #define PET_ADD_INGRED( nm,vl1,vl2,vl3)	if( strlen( ENEMYTEMP_getChar( petarray, nm)) != 0 ) { fixatom[ingnum] =ITEM_getAtomIndexByName( ENEMYTEMP_getChar( petarray, nm) ); if( fixatom[ingnum] < 0 ){	print( "\nfucking atom:[%s] for pet id %d", ENEMYTEMP_getChar( petarray, nm), petid ); continue;} baseup[ingnum] = ENEMYTEMP_getInt( petarray, vl1); minadd[ingnum] = ITEM_RANDRANGEDOM_BASE + ENEMYTEMP_getInt( petarray, vl2); maxadd[ingnum] = ITEM_RANDRANGEDOM_BASE + ENEMYTEMP_getInt( petarray, vl3); if( petindex != -1){ if( CHAR_getInt(petindex, CHAR_PETFAMILY) == 1 ){ int ownerindex = CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX); if (!CHAR_CHECKINDEX(ownerindex)){print("ownerindex err!\n");return;}if( CHAR_getInt( ownerindex, CHAR_FMLEADERFLAG) != FMMEMBER_LEADER){print("\n Pet Ownerindex Error");return;}baseup[ingnum] = PetLv[getFmLv(ownerindex)];}}if( minadd[ingnum] > maxadd[ingnum] ) {	int tmp = minadd[ingnum];minadd[ingnum] = maxadd[ingnum];maxadd[ingnum] = tmp;}if( CHAR_getInt(petid, CHAR_PETFAMILY) == 1 ){if( minadd[ingnum]<0 ) minadd[ingnum] = ITEM_FM_RANDRANGEDOM;if( maxadd[ingnum]<0 ) maxadd[ingnum] = ITEM_FM_RANDRANGEDOM;}else{if( minadd[ingnum]<0 ) minadd[ingnum] = ITEM_RANDRANGEDOM;if( maxadd[ingnum]<0 ) maxadd[ingnum] = ITEM_RANDRANGEDOM;}ingnum++;}
@@ -771,30 +540,11 @@ ITEM_merge_getPetFix( int petid, int *fixuse, int *fixatom,
 #define PET_ADD_INGRED( nm,vl1,vl2,vl3) if( strlen( ENEMYTEMP_getChar( petarray, nm)) != 0 ) { fixatom[ingnum] =ITEM_getAtomIndexByName( ENEMYTEMP_getChar( petarray, nm) ); if( fixatom[ingnum] < 0 ){ print( "\nfucking atom:[%s] for pet id %d", ENEMYTEMP_getChar( petarray, nm), petid ); continue;} baseup[ingnum] = ENEMYTEMP_getInt( petarray, vl1); minadd[ingnum] = ENEMYTEMP_getInt( petarray, vl2);	maxadd[ingnum] = ENEMYTEMP_getInt( petarray, vl3); if( petindex != -1){ if( CHAR_getInt(petindex, CHAR_PETFAMILY) == 1 ){ int ownerindex = CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX); if (!CHAR_CHECKINDEX(ownerindex)){print("ownerindex err!\n");return;}if( CHAR_getInt( ownerindex, CHAR_FMLEADERFLAG) != 1){print("\n Pet Ownerindex Error");return;}baseup[ingnum] = PetLv[getFmLv(ownerindex)];}}if( minadd[ingnum] > maxadd[ingnum] ) {int tmp = minadd[ingnum];minadd[ingnum] = maxadd[ingnum];maxadd[ingnum] = tmp;}if( CHAR_getInt(petid, CHAR_PETFAMILY) == 1 ){if( minadd[ingnum]<0 ) minadd[ingnum] = ITEM_FM_RANDRANGEDOM;if( maxadd[ingnum]<0 ) maxadd[ingnum] = ITEM_FM_RANDRANGEDOM;}else{if( minadd[ingnum]<0 ) minadd[ingnum] = ITEM_RANDRANGEDOM;if( maxadd[ingnum]<0 ) maxadd[ingnum] = ITEM_RANDRANGEDOM;}ingnum++;}
 #endif
 
-#ifdef _MERGE_NEW_8
-#undef PET_ADD_INGRED
-		ret = PET_ADD_INGRED( E_T_ATOMFIXNAME1, E_T_ATOMBASEADD1, E_T_ATOMFIXMIN1, E_T_ATOMFIXMAX1, petindex, petarray, petid, ingnum, baseup, minadd, maxadd, fixatom );
-		if( ret == 1 ) continue; else if( ret == 2 ) return;
-		ret = PET_ADD_INGRED( E_T_ATOMFIXNAME2, E_T_ATOMBASEADD2, E_T_ATOMFIXMIN2, E_T_ATOMFIXMAX2, petindex, petarray, petid, ingnum, baseup, minadd, maxadd, fixatom );
-		if( ret == 1 ) continue; else if( ret == 2 ) return;
-		ret = PET_ADD_INGRED( E_T_ATOMFIXNAME3, E_T_ATOMBASEADD3, E_T_ATOMFIXMIN3, E_T_ATOMFIXMAX3, petindex, petarray, petid, ingnum, baseup, minadd, maxadd, fixatom );
-		if( ret == 1 ) continue; else if( ret == 2 ) return;
-		ret = PET_ADD_INGRED( E_T_ATOMFIXNAME4, E_T_ATOMBASEADD4, E_T_ATOMFIXMIN4, E_T_ATOMFIXMAX4, petindex, petarray, petid, ingnum, baseup, minadd, maxadd, fixatom );
-		if( ret == 1 ) continue; else if( ret == 2 ) return;
-		ret = PET_ADD_INGRED( E_T_ATOMFIXNAME5, E_T_ATOMBASEADD5, E_T_ATOMFIXMIN5, E_T_ATOMFIXMAX5, petindex, petarray, petid, ingnum, baseup, minadd, maxadd, fixatom );
-		if( ret == 1 ) continue; else if( ret == 2 ) return;
-#else
 		PET_ADD_INGRED( E_T_ATOMFIXNAME1, E_T_ATOMBASEADD1, E_T_ATOMFIXMIN1, E_T_ATOMFIXMAX1);
 		PET_ADD_INGRED( E_T_ATOMFIXNAME2, E_T_ATOMBASEADD2, E_T_ATOMFIXMIN2, E_T_ATOMFIXMAX2);
 		PET_ADD_INGRED( E_T_ATOMFIXNAME3, E_T_ATOMBASEADD3, E_T_ATOMFIXMIN3, E_T_ATOMFIXMAX3);
 		PET_ADD_INGRED( E_T_ATOMFIXNAME4, E_T_ATOMBASEADD4, E_T_ATOMFIXMIN4, E_T_ATOMFIXMAX4);
 		PET_ADD_INGRED( E_T_ATOMFIXNAME5, E_T_ATOMBASEADD5, E_T_ATOMFIXMIN5, E_T_ATOMFIXMAX5);
-#endif
-
-#ifdef _MERGE_LOG
-		print("\n %d.[ me:%s, min%d, b:%d, max:%d]", i, ENEMYTEMP_getChar( petarray, E_T_ATOMFIXNAME1+i),
-				minadd[i], baseup[i], maxadd[i]);
-#endif
 	}
 	
 	if( CHAR_getInt(petindex, CHAR_PETFAMILY) == 1 ) { 
@@ -840,8 +590,6 @@ static int ITEM_merge_with_retry( ITEM_Item *items,int itemsnum,
 #define MAXMATCH 2048
 	int matchid[MAXMATCH];
 	int		i,j,k;
-	
-	
 	if( ingnum > 5 ) ideal = 5;	
 	else			 ideal = ingnum;
 	memset( endflg, 0, sizeof( endflg));
@@ -876,7 +624,7 @@ static int ITEM_merge_with_retry( ITEM_Item *items,int itemsnum,
 											int ownerindex = CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX);
 											int familyLevel = getFmLv(ownerindex);
 											if (!CHAR_CHECKINDEX(ownerindex)){
-												print("ownerindex err!\n");
+												print("主人索引错误!\n");
 												return -1;
 											}
 #ifdef _FMVER21									         
@@ -884,7 +632,7 @@ static int ITEM_merge_with_retry( ITEM_Item *items,int itemsnum,
 #else
 											if( CHAR_getInt( ownerindex, CHAR_FMLEADERFLAG) != 1){
 #endif									         
-												print("\n Pet Ownerindex Error");
+												print("\n 宠物主人索引错误");
 												return -1;
 											}
 											// 需符合上下限  
@@ -912,7 +660,7 @@ static int ITEM_merge_with_retry( ITEM_Item *items,int itemsnum,
 										int ownerindex = CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX);
 										int familyLevel = getFmLv(ownerindex);
 										if (!CHAR_CHECKINDEX(ownerindex)){
-											print("ownerindex err!\n");
+											print("主人索引错误!\n");
 											return -1;
 										}
 #ifdef _FMVER21
@@ -920,7 +668,7 @@ static int ITEM_merge_with_retry( ITEM_Item *items,int itemsnum,
 #else
 										if( CHAR_getInt( ownerindex, CHAR_FMLEADERFLAG) != 1){
 #endif
-											print("\n Pet Ownerindex Error");
+											print("\n 宠物主人索引错误");
 											return -1;
 										}
 										if( ingtable[k] > ItemRandTableForItem[familyLevel+9].maxnum / 
@@ -966,38 +714,6 @@ static int ITEM_merge_with_retry( ITEM_Item *items,int itemsnum,
 				}
 			}
 		}
-#ifdef _MERGE_LOG
-		print("\n 必须符合的材料数(乱数):%d \n", extractnum);
-
-		{
-			int j;
-
-			for( j =0; j <ingnum; j++) {
-				int tablenum = ITEM_getTableNum( ingtable[j]);
-				print(" [%s 下限:%d 上限:%d]",
-						item_atoms[ ingindtable[j]].name,
-						(int)(ingtable[j]*(1/ItemRandTableForItem[tablenum].rate)),
-						(int)(ingtable[j]*ItemRandTableForItem[tablenum].rate) );
-			}
-		}
-
-		if( match > 0 ) {
-			int i;
-
-			print("\n matchid[%d]={",match);
-			for( i=0; i<match; i++)	{
-				print(" %d,", matchid[i]);
-				
-			}
-			print("} ");
-
-		
-		
-		}
-		else {
-			print("\n 失败重试... ");
-		}
-#endif
 		if( match > 0 ) {
 			return matchid[ random() % match ];
 		}else {
@@ -1008,14 +724,9 @@ static int ITEM_merge_with_retry( ITEM_Item *items,int itemsnum,
 	
 }
 
-#ifdef _NEW_MANOR_LAW
-extern  struct  FM_POINTLIST fmpointlist;
-#endif
-
 int ITEM_mergeItem( int charaindex, ITEM_Item *items, int num , int money, int petid, int searchtable, int petindex, int alchemist)
 {
 	int i;
-
         // shan add
 	int item_type = -1;
 	int ingnum =0;
@@ -1029,19 +740,17 @@ int ITEM_mergeItem( int charaindex, ITEM_Item *items, int num , int money, int p
 	int  pet_maxadd[MAX_ITEM_ATOMS_SIZE];
 	int pet_fixuse = MAX_ITEM_ATOMS_SIZE;
 	int fm_fix;
-
 	int nowtime;
 
 	nowtime = time( NULL);
 	// 如果合成封包过於频繁...
 	if( nowtime - CHAR_getWorkInt( charaindex, CHAR_WORKLASTMERGETIME) < 5+(num-2) ) {
 		CHAR_setWorkInt( charaindex, CHAR_WORKLASTMERGETIME, nowtime);
-		//CHAR_talkToCli( charaindex, -1 ,"合成料理过於频繁，休息一下比较好哟。", CHAR_COLORRED);
-		print(" 合成频繁 ");
+		CHAR_talkToCli( charaindex, -1 ,"合成料理过於频繁，休息一下比较好哟。", CHAR_COLORRED);
+		//print(" 合成频繁 ");
 		return items[RAND( 0, (num-1))].data[ITEM_ID];
 	}
 	CHAR_setWorkInt( charaindex, CHAR_WORKLASTMERGETIME, nowtime);
-
 	for( i = 0; i < arraysizeof( ingindtable); i ++ ) {
 		int		j;
 		for( j = 0; j < MAX_ITEM_ATOMS_SIZE; j ++ ) {
@@ -1064,24 +773,6 @@ int ITEM_mergeItem( int charaindex, ITEM_Item *items, int num , int money, int p
 			if( items[i].data[ITEM_TYPE] == 20 )
 				return -10;
 		}
-
-#ifdef _MERGE_LOG
-		print( "\nmergeItem:name:[%s] \t0:[%s][%d] 1:[%s][%d] "
-			"2:[%s][%d] 3:[%s][%d] 4:[%s][%d]",
-			items[i].string[ITEM_NAME].string,
-			items[i].string[ITEM_INGNAME0].string,
-			items[i].data[ITEM_INGVALUE0],
-			items[i].string[ITEM_INGNAME1].string,
-			items[i].data[ITEM_INGVALUE1],
-			items[i].string[ITEM_INGNAME2].string,
-			items[i].data[ITEM_INGVALUE2],
-			items[i].string[ITEM_INGNAME3].string,
-			items[i].data[ITEM_INGVALUE3],
-			items[i].string[ITEM_INGNAME4].string,
-			items[i].data[ITEM_INGVALUE4]
-			);
-#endif
-		
 #define ADD_INGRED( nm,vl) if( items[i].string[nm].string[0] ){ int	j; int index = ITEM_getAtomIndexByName( items[i].string[nm].string ); if( index < 0 ){ print( "\nfucking atom:[%s] for item id %d", items[i].string[nm].string, items[i].data[ITEM_ID] ); continue;}for( j = 0; j < ingnum; j ++ ) {if( ingindtable[j].index == index ){break;}}if( j == ingnum ) ingnum++; ingindtable[j].data[ingindtable[j].num] = items[i].data[vl]; ingindtable[j].index = index; ingindtable[j].num++;}
 		ADD_INGRED( ITEM_INGNAME0, ITEM_INGVALUE0 );
 		ADD_INGRED( ITEM_INGNAME1, ITEM_INGVALUE1 );
@@ -1089,35 +780,7 @@ int ITEM_mergeItem( int charaindex, ITEM_Item *items, int num , int money, int p
 		ADD_INGRED( ITEM_INGNAME3, ITEM_INGVALUE3 );
 		ADD_INGRED( ITEM_INGNAME4, ITEM_INGVALUE4 );
 	}
-
-#ifdef _MERGE_LOG
-	{
-		int k,m;
-		//char mergech[][256] = {"石","木","骨","牙","皮","线","贝壳","壳","材9","材10","材11","材12","材13","材14","材15","材16"};
-		for( k=0;k<5;k++)	{
-			print("\n merger(材料): %d.[ %s,", k, /*mergech[ ingindtable[k].index]*/item_atoms[ ingindtable[k].index].name );
-			for(m=0;m<5;m++)	{
-				print(" %f,", ingindtable[k].data[m]);
-			}
-			print(" ...");
-		}
-	}
-
-	memset( sortedingtable, 0, sizeof( sortedingtable));
-	memset( sortedingindtable, 0, sizeof( sortedingindtable));
-#endif
 	ITEM_simplify_atoms( ingindtable, ingnum, sortedingindtable, sortedingtable, petindex, alchemist);
-#ifdef _MERGE_LOG
-	{
-		int k;
-		//char mergech[][256] = {"石","木","骨","牙","皮","线","贝壳","壳","材9","材10","材11","材12","材13","材14","材15","材16"};
-		print("\n 重复材料混合後...");
-		for( k=0;k<5;k++)	{
-			print("\n merger(材料): %d.[ %s, %d]",
-				k, /*mergech[ sortedingindtable[k]]*/item_atoms[ sortedingindtable[k]].name, sortedingtable[k]);
-		}
-	}
-#endif
 	for(i=0;i<MAX_ITEM_ATOMS_SIZE;i++){
 		pet_fixatom[i] = -1;
 		pet_baseup[i] = pet_minadd[i] = pet_maxadd[i] = 0;
@@ -1142,30 +805,13 @@ int ITEM_mergeItem( int charaindex, ITEM_Item *items, int num , int money, int p
 					int fixedmax = pet_maxadd[j];
 					if( fixedmin < 0 ) fixedmin = 0;
 					if( fixedmax < 0 ) fixedmax = 0;
-#ifdef _MERGE_LOG
-					{
-						//char mergech[][256] = {"石","木","骨","牙","皮","线","贝壳","壳","材9","材10","材11","材12","材13","材14","材15","材16"};
-						print("\n merger#(拿手材料): 层级:%d.[i:%d,j:%d] , [ %s, %d]",
-							tablenum, i, j,
-							/*mergech[ sortedingindtable[i]]*/item_atoms[ sortedingindtable[i]].name, sortedingtable[i]
-							);
-					}
-#endif
 					if( searchtable == 0 ) {//合成
 						sortedingtable[i] = 
-#ifdef _MERGE_NEW_8	// 1st
-							ITEM_randRange( sortedingtable[i],
-							(((1*ItemRandTableForItem[tablenum].rate)*ITEM_MERGE_RANGEWIDTH_FORMIN)
-							* (fixedmin/(double)ITEM_RANDRANGEDOM))*ITEM_RANDRANGEDOM, 
-							((ItemRandTableForItem[tablenum].rate*ITEM_MERGE_RANGEWIDTH_FORMAX) 
-							* (fixedmax/(double)ITEM_RANDRANGEDOM))*ITEM_RANDRANGEDOM );					    
-#else
 						ITEM_randRange( sortedingtable[i] + pet_baseup[j],
 							(((1/ItemRandTableForItem[tablenum].rate)*ITEM_MERGE_RANGEWIDTH_FORMIN)
 							* (fixedmin/(double)ITEM_RANDRANGEDOM))*ITEM_RANDRANGEDOM, 
 							((ItemRandTableForItem[tablenum].rate*ITEM_MERGE_RANGEWIDTH_FORMAX) 
 							* (fixedmax/(double)ITEM_RANDRANGEDOM))*ITEM_RANDRANGEDOM );					    
-#endif
 					}else {//料理
 						sortedingtable[i] = 
 							ITEM_randRange( sortedingtable[i] + pet_baseup[j],
@@ -1176,29 +822,12 @@ int ITEM_mergeItem( int charaindex, ITEM_Item *items, int num , int money, int p
 				}
 			}
 			if( j == pet_fixuse ) { //如该素材成分与宠物特性不符
-#ifdef _MERGE_LOG
-				{
-					//char mergech[][256] = {"石","木","骨","牙","皮","线","贝壳","壳","材9","材10","材11","材12","材13","材14","材15","材16"};
-					print("\n merger#(不拿手材料): 层级:%d.[i:%d,j:%d] , [ %s, %d] 家族修正=%d",
-						tablenum, i, j,
-						/*mergech[ sortedingindtable[i]]*/item_atoms[ sortedingindtable[i]].name, sortedingtable[i], fm_fix
-						);
-				}
-#endif
 				if( searchtable == 0 ) {
-#ifdef _MERGE_NEW_8	// 1st
-					sortedingtable[i] = ITEM_randRange( sortedingtable[i], 
-						((1/ItemRandTableForItem[tablenum].rate)*ITEM_MERGE_RANGEWIDTH_FORMIN)
-						* ITEM_RANDRANGEDOM *0.8 + fm_fix,
-						ItemRandTableForItem[tablenum].rate * ITEM_MERGE_RANGEWIDTH_FORMAX 
-						* ITEM_RANDRANGEDOM *0.8 + fm_fix );
-#else
 					sortedingtable[i] = ITEM_randRange( sortedingtable[i],
 						((1/ItemRandTableForItem[tablenum].rate)*ITEM_MERGE_RANGEWIDTH_FORMIN)
 						* ITEM_RANDRANGEDOM,
 						ItemRandTableForItem[tablenum].rate * ITEM_MERGE_RANGEWIDTH_FORMAX 
 						* ITEM_RANDRANGEDOM);
-#endif
 				}
 				else {
 					sortedingtable[i] = ITEM_randRange( sortedingtable[i], 
@@ -1256,16 +885,6 @@ int ITEM_mergeItem( int charaindex, ITEM_Item *items, int num , int money, int p
 				// shan end
 			}
 		}
-#ifdef _MERGE_LOG
-		{
-			int k;
-			//char mergech[][256] = {"石","木","骨","牙","皮","线","贝壳","壳","材9","材10","材11","材12","材13","材14","材15","材16"};
-			for( k=0;k<5;k++)	{
-				print("\n merger(宠物能力配上)(材料): %d.[ %s, %d]",
-					k, /*mergech[ sortedingindtable[k]]*/item_atoms[ sortedingindtable[k]].name, sortedingtable[k]);
-			}
-		}
-#endif
 		
 		if( ingnum == 0 )
 			return -1;
@@ -1284,7 +903,7 @@ int ITEM_mergeItem( int charaindex, ITEM_Item *items, int num , int money, int p
 							int kind_num = 0;
 							int syndp  = 0;
 							int fooddp = 0;
-							char buf[64];
+							char buf[1024];
 							int ownerindex = CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX);
 							if (!CHAR_CHECKINDEX(ownerindex)){
 								print("ownerindex err!\n");
@@ -1303,86 +922,81 @@ int ITEM_mergeItem( int charaindex, ITEM_Item *items, int num , int money, int p
 									ITEMTBL_getInt( created, ITEM_INGVALUE2) +
 									ITEMTBL_getInt( created, ITEM_INGVALUE3) +
 									ITEMTBL_getInt( created, ITEM_INGVALUE4);
-#ifndef _NEW_MANOR_LAW
-	#ifdef _PERSONAL_FAME	// Arminius: 家族个人声望
-								fooddp = sqrt(fooddp) * pow(2,kind_num-2) * RAND(0,6) / 200;
-	#else		                             
-								fooddp = sqrt(fooddp) * pow(2,kind_num-2) * RAND(0,6) / 100;
-	#endif
-								//print("FoodDP: num->%d sumdp->%d", kind_num, fooddp);
-								sprintf(buf, "%d", fooddp);
-								
-	#ifdef _PERSONAL_FAME	// Arminius 8.30: 家族个人声望
-								CHAR_earnFame(ownerindex, fooddp);
-	#endif
-								
-	#ifdef _FMVER21
-								if( CHAR_getInt( CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX), CHAR_FMLEADERFLAG ) > 0 && 
-									CHAR_getInt( CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX), CHAR_FMLEADERFLAG ) != FMMEMBER_APPLY )
-								{
-									// CoolFish: 2001/10/03
-									int fd = getfdFromCharaIndex(ownerindex);
-									saacproto_ACFixFMData_send(acfd,
-										CHAR_getChar(ownerindex, CHAR_FMNAME),
-										CHAR_getInt(ownerindex, CHAR_FMINDEX),
-										CHAR_getWorkInt(ownerindex, CHAR_WORKFMINDEXI),
-										FM_FIX_FMDEALFOOD, buf, "",
-										// CoolFish: 2001/10/03
-										CHAR_getWorkInt(ownerindex, CHAR_WORKFMCHARINDEX),
-										CONNECT_getFdid(fd));
-									// CHAR_getWorkInt(ownerindex, CHAR_WORKFMCHARINDEX), 0);
-								}
-	#else
+#ifdef _PERSONAL_FAME	// Arminius: 家族个人声望
+							fooddp = sqrt(fooddp) * pow(2,kind_num-2) * RAND(0,6) / 200;
+#else		                             
+							fooddp = sqrt(fooddp) * pow(2,kind_num-2) * RAND(0,6) / 100;
+#endif
+							print("FoodDP: num->%d sumdp->%d", kind_num, fooddp);
+							sprintf(buf, "%d", fooddp);
+							
+#ifdef _PERSONAL_FAME	// Arminius 8.30: 家族个人声望
+							CHAR_earnFame(ownerindex, fooddp);
+#endif
+							
+#ifdef _FMVER21
+							if( CHAR_getInt( CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX), CHAR_FMLEADERFLAG ) > 0 && 
+								CHAR_getInt( CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX), CHAR_FMLEADERFLAG ) != FMMEMBER_APPLY )
+							{
+								// CoolFish: 2001/10/03
+								int fd = getfdFromCharaIndex(ownerindex);
 								saacproto_ACFixFMData_send(acfd,
 									CHAR_getChar(ownerindex, CHAR_FMNAME),
 									CHAR_getInt(ownerindex, CHAR_FMINDEX),
 									CHAR_getWorkInt(ownerindex, CHAR_WORKFMINDEXI),
 									FM_FIX_FMDEALFOOD, buf, "",
-									CHAR_getWorkInt(ownerindex, CHAR_WORKFMCHARINDEX), 0);
-	#endif
+									// CoolFish: 2001/10/03
+									CHAR_getWorkInt(ownerindex, CHAR_WORKFMCHARINDEX),
+									CONNECT_getFdid(fd));
+								// CHAR_getWorkInt(ownerindex, CHAR_WORKFMCHARINDEX), 0);
+							}
+#else
+							saacproto_ACFixFMData_send(acfd,
+								CHAR_getChar(ownerindex, CHAR_FMNAME),
+								CHAR_getInt(ownerindex, CHAR_FMINDEX),
+								CHAR_getWorkInt(ownerindex, CHAR_WORKFMINDEXI),
+								FM_FIX_FMDEALFOOD, buf, "",
+								CHAR_getWorkInt(ownerindex, CHAR_WORKFMCHARINDEX), 0);
 #endif
 							}else{
-								int ownerindex = CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX);
 								syndp = ITEMTBL_getInt( created, ITEM_INGVALUE0) +
 									ITEMTBL_getInt( created, ITEM_INGVALUE1) +
 									ITEMTBL_getInt( created, ITEM_INGVALUE2) +
 									ITEMTBL_getInt( created, ITEM_INGVALUE3) +
-									ITEMTBL_getInt( created, ITEM_INGVALUE4);
-#ifndef _NEW_MANOR_LAW								
-	#ifdef _PERSONAL_FAME	// Arminius: 家族个人声望
-								syndp = syndp / 200;
-	#else
-								syndp = syndp / 100;
-	#endif
-								sprintf(buf, "%d", syndp);
-								
-	#ifdef _PERSONAL_FAME	// Arminius 8.30: 家族个人声望
-								CHAR_earnFame(ownerindex, syndp);
-	#endif
-								
-	#ifdef _FMVER21
-								if( CHAR_getInt( CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX), CHAR_FMLEADERFLAG ) > 0 && 
-									CHAR_getInt( CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX), CHAR_FMLEADERFLAG ) != FMMEMBER_APPLY )
-								{
-									// CoolFish: 2001/10/03
-									int fd = getfdFromCharaIndex(ownerindex);
-									saacproto_ACFixFMData_send(acfd,
-										CHAR_getChar(ownerindex, CHAR_FMNAME),
-										CHAR_getInt(ownerindex, CHAR_FMINDEX),
-										CHAR_getWorkInt(ownerindex, CHAR_WORKFMINDEXI),
-										FM_FIX_FMSYNTHESIZE, buf, "",
-										// CoolFish: 2001/10/03
-										CHAR_getWorkInt(ownerindex, CHAR_WORKFMCHARINDEX),
-										CONNECT_getFdid(fd));
-								}
-	#else
+									ITEMTBL_getInt( created, ITEM_INGVALUE4);							
+#ifdef _PERSONAL_FAME	// Arminius: 家族个人声望
+							syndp = syndp / 200;
+#else
+							syndp = syndp / 100;
+#endif
+							sprintf(buf, "%d", syndp);
+							
+#ifdef _PERSONAL_FAME	// Arminius 8.30: 家族个人声望
+							CHAR_earnFame(ownerindex, syndp);
+#endif
+							
+#ifdef _FMVER21
+							if( CHAR_getInt( CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX), CHAR_FMLEADERFLAG ) > 0 && 
+								CHAR_getInt( CHAR_getWorkInt(petindex, CHAR_WORKPLAYERINDEX), CHAR_FMLEADERFLAG ) != FMMEMBER_APPLY )
+							{
+								// CoolFish: 2001/10/03
+								int fd = getfdFromCharaIndex(ownerindex);
 								saacproto_ACFixFMData_send(acfd,
 									CHAR_getChar(ownerindex, CHAR_FMNAME),
 									CHAR_getInt(ownerindex, CHAR_FMINDEX),
 									CHAR_getWorkInt(ownerindex, CHAR_WORKFMINDEXI),
 									FM_FIX_FMSYNTHESIZE, buf, "",
-									CHAR_getWorkInt(ownerindex, CHAR_WORKFMCHARINDEX), 0);
-	#endif
+									// CoolFish: 2001/10/03
+									CHAR_getWorkInt(ownerindex, CHAR_WORKFMCHARINDEX),
+									CONNECT_getFdid(fd));
+							}
+#else
+							saacproto_ACFixFMData_send(acfd,
+								CHAR_getChar(ownerindex, CHAR_FMNAME),
+								CHAR_getInt(ownerindex, CHAR_FMINDEX),
+								CHAR_getWorkInt(ownerindex, CHAR_WORKFMINDEXI),
+								FM_FIX_FMSYNTHESIZE, buf, "",
+								CHAR_getWorkInt(ownerindex, CHAR_WORKFMCHARINDEX), 0);
 #endif
 							}
 #ifdef _FMVER21
@@ -1390,44 +1004,6 @@ int ITEM_mergeItem( int charaindex, ITEM_Item *items, int num , int money, int p
 					}
 #endif		            
 				}
-				// shan end			        
-#ifdef _MERGE_LOG
-				print( "\nANDY merged: item[%s] atom[%s]:[%d] [%s]:[%d] [%s]:[%d] [%s]:[%d] [%s]:[%d]",
-					ITEMTBL_getChar( created, ITEM_NAME),
-					ITEMTBL_getChar( created, ITEM_INGNAME0),
-					ITEMTBL_getInt( created, ITEM_INGVALUE0),
-					ITEMTBL_getChar( created, ITEM_INGNAME1),
-					ITEMTBL_getInt( created, ITEM_INGVALUE1),
-					ITEMTBL_getChar( created, ITEM_INGNAME2),
-					ITEMTBL_getInt( created, ITEM_INGVALUE2),
-					ITEMTBL_getChar( created, ITEM_INGNAME3),
-					ITEMTBL_getInt( created, ITEM_INGVALUE3),
-					ITEMTBL_getChar( created, ITEM_INGNAME4),
-					ITEMTBL_getInt( created, ITEM_INGVALUE4) );
-#endif
-					/*
-					#ifdef _ACTION_BULLSCR
-					if( CHAR_CHECKINDEX( charaindex) && (CHAR_getInt( charaindex, CHAR_ABULLSTART) == 10) ){
-					int cTableLevel=0, adScore=0;
-					char buf1[256];
-					int Myscore = CHAR_getInt( charaindex, CHAR_ABULLSCORE);
-					memset( buf1, 0, sizeof( buf1));
-					cTableLevel = ITEM_getTableNum( ITEMTBL_getInt( created, ITEM_INGVALUE0));
-					if( cTableLevel >= 15 ) adScore = 4;
-					else if( cTableLevel >= 6 ) adScore = 1;
-					else adScore = 0;
-					if( adScore > 0 ){
-					sprintf( buf1, "合成料理等级：%d，增加绩分：%d，总共绩分：%d。",
-					cTableLevel, adScore, Myscore+adScore);
-					CHAR_setInt( charaindex, CHAR_ABULLSCORE, Myscore+adScore);
-					}else{
-					sprintf( buf1, "合成料理等级:%d，需等级6以上才加分。",
-					cTableLevel);
-					}
-					CHAR_talkToCli( charaindex, -1, buf1, CHAR_COLORYELLOW);
-					}
-					#endif
-				*/
 				return created;
 			}
 		}
@@ -1501,7 +1077,7 @@ int ITEM_mergeItem_merge( int charaindex, int petid, char *data, int petindex, i
 			if( ITEM_CHECKINDEX( itemindex)) {
 #ifdef _ITEM_INSLAY
 				char *code;
-				if( (code = ITEM_getChar( itemindex, ITEM_TYPECODE)) == NULL )	{
+				if( (code = ITEM_getChar( itemindex, ITEM_TYPECODE)) == "\0" )	{
 					if( strcmp( code, "\0") )	{
 						char token[256];
 						snprintf( token, sizeof( token), "似乎对%s没有兴趣。",
@@ -1551,19 +1127,10 @@ int ITEM_mergeItem_merge( int charaindex, int petid, char *data, int petindex, i
 		if( ret == -10)
 			CHAR_talkToCli( charaindex, -1, "非法的合成方法", CHAR_COLORWHITE);
 		CHAR_setInt( charaindex, CHAR_MERGEITEMCOUNT,
-			CHAR_getInt( charaindex, CHAR_MERGEITEMCOUNT)+1);
-		
+		CHAR_getInt( charaindex, CHAR_MERGEITEMCOUNT)+1);
 		for( i = 0; i < cnt; i ++ ) {
-#ifdef _ITEM_PILENUMS
-			int pilenum=0;
-			int itemindex = CHAR_getItemIndex( charaindex, haveitemindexs[i]);
-			if( !ITEM_CHECKINDEX( itemindex) ) continue;
-			pilenum = ITEM_getInt( itemindex, ITEM_USEPILENUMS);
-			pilenum -= 1;
-			ITEM_setInt( itemindex, ITEM_USEPILENUMS, pilenum);
-			if( pilenum <= 0 ){
-#endif
 				CHAR_setItemIndex( charaindex, haveitemindexs[i], -1);
+				CHAR_sendItemDataOne( charaindex, haveitemindexs[i]);
 				LogItem(
 					CHAR_getChar( charaindex, CHAR_NAME ), /* 平乓仿   */
 					CHAR_getChar( charaindex, CHAR_CDKEY ),
@@ -1580,21 +1147,12 @@ int ITEM_mergeItem_merge( int charaindex, int petid, char *data, int petindex, i
 					ITEM_getChar( itemindexs[i], ITEM_NAME),
 					ITEM_getInt( itemindexs[i], ITEM_ID)
 					);
-				
 				ITEM_endExistItemsOne( itemindexs[i]);	
-#ifdef _ITEM_PILENUMS
-			}
-#endif
 		}
 		CHAR_sendItemData( charaindex, haveitemindexs, cnt);
-		
 		if( ret >= 0 ) {
 			int rc;
 			int createitemindex = ITEM_makeItemAndRegist( ret);
-#ifdef _MERGE_LOG
-			print("\n merge[ret:%d]", ret);
-			print("\n merge[createitemindex:%d]", createitemindex);
-#endif
 			// shan begin			
 			if( createitemindex != -1 ){				
 				if( petindex != -1){					
@@ -1611,12 +1169,12 @@ int ITEM_mergeItem_merge( int charaindex, int petid, char *data, int petindex, i
 #endif			            
 								print("\n Pet Ownerindex Error");
 								return -1;
-							}						
+							}
 							if( randtable == 1){
 								char *p;
 								char charbuf1[512]="",charbuf2[1024]="",charbuf[128]="";
 								char argbuf[256];
-								int  arg1 = 0, arg2 = 0;						
+								int  arg1 = 0, arg2 = 0;
 								if( ITEM_getInt( createitemindex, ITEM_TYPE) == 20){								
 									if( (p = strstr( ITEM_getChar(createitemindex, ITEM_ARGUMENT), "气")) ){									
 										strcpy( argbuf, (p+2));
@@ -1695,7 +1253,7 @@ static int ITEM_getTableNum( int num)
 #ifdef _ITEM_INSLAY
 int PETSKILL_ITEM_inslay( int charindex, int inslayindex, int itemindex)
 {
-	char *inslaystr , *code;
+	char *inslaystr , *code=NULL;
 	char buf1[256], buf2[256];
 	char codeTemp[][32]={ "NULL", "NULL", "NULL"};
 	char TypeName[][256]={
@@ -1716,12 +1274,12 @@ int PETSKILL_ITEM_inslay( int charindex, int inslayindex, int itemindex)
 	if( !ITEM_CHECKINDEX( inslayindex) ) return FALSE;
 	if( !ITEM_CHECKINDEX( itemindex) ) return FALSE;
 	if( itemindex == inslayindex ) return FALSE;
-	if( (code = ITEM_getChar( itemindex, ITEM_TYPECODE)) == NULL )	{
+	if( (code = ITEM_getChar( itemindex, ITEM_TYPECODE)) == "\0" )	{
 		print(" ITEM_TYPECODE == NULL error !!\n");
 		return FALSE;
 	}
-	if( !strcmp( code, "\0") || !strcmp( code, "NULL" ) ) return FALSE;
-	if( (inslaystr = ITEM_getChar( inslayindex, ITEM_INLAYCODE)) == NULL )	{
+	if( !strcmp( code, "NULL" ) ) return FALSE;
+	if( (inslaystr = ITEM_getChar( inslayindex, ITEM_INLAYCODE)) == "\0" )	{
 		print(" ITEM_INLAYCODE == NULL error !!\n");
 		return FALSE;
 	}
@@ -1747,7 +1305,7 @@ int PETSKILL_ITEM_inslay( int charindex, int inslayindex, int itemindex)
 	}
 	memset( buf2, 0, sizeof( buf2));
 	sprintf( buf2, "%s|%s|%s", codeTemp[0], codeTemp[1], codeTemp[2]);
-	print("buf2:%s\n", buf2);
+//	print("buf2:%s\n", buf2);
 	ITEM_setChar( inslayindex, ITEM_INLAYCODE, buf2);
 
 	for( i=0; i<arraysizeof( worktyp)-1; i++)	{
@@ -1829,7 +1387,7 @@ int PETSKILL_ITEM_FixItem( int charindex, int fixindex, int *itemindex)
 		return FALSE;
 	}
 
-	if( (buf2 = ITEM_getChar( index, ITEM_INGNAME0) ) == NULL ) return FALSE;
+	if( (buf2 = ITEM_getChar( index, ITEM_INGNAME0) ) == "\0" ) return FALSE;
 
 	for( i=0; i<5; i++ )	{//ITEM_INGVALUE0
 		char *buf1;
@@ -1842,7 +1400,7 @@ int PETSKILL_ITEM_FixItem( int charindex, int fixindex, int *itemindex)
 	if( i >= 5 ){
 #ifdef _ITEM_FIXALLBASE
 		char *ITEM_ARG = ITEM_getChar( index, ITEM_ARGUMENT);
-		if( ITEM_ARG != NULL && !strcmp( ITEM_ARG, "FIXITEMALL") ){
+		if( ITEM_ARG != "\0" && !strcmp( ITEM_ARG, "FIXITEMALL") ){
 		}else{
 #endif
 			CHAR_talkToCli( charindex, -1, "材料不符", CHAR_COLORYELLOW);

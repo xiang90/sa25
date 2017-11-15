@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <dirent.h>
 
+#include "handletime.h"
+
 #include "common.h"
 #include "object.h"
 #include "char_base.h"
@@ -18,20 +20,18 @@
 static Object *obj;
 static int objnum;
 
-#ifndef _SIMPLIFY_ITEMSTRING
-static int Restored = FALSE;
-#endif
-
 BOOL initObjectArray( int num )
 {
     int     i;
     objnum = num;
     obj = allocateMemory( sizeof( Object ) * objnum );
+    
     if( obj == NULL ) return FALSE;
     for( i = 0 ; i < objnum ; i ++ ){
         memset( &obj[i], 0 , sizeof( Object ));
         obj[i].type = OBJTYPE_NOUSE;
     }
+    print( "分配 %.2f MB MB 空间...", sizeof( Object ) * objnum / 1024.0 / 1024.0 );
     return TRUE;
 }
 
@@ -83,7 +83,7 @@ void endObjectOne( int index )
 
     if( MAP_removeObj(obj[index].floor,obj[index].x, obj[index].y,
                       index) == FALSE){
-        fprint( "REMOVE OBJ ERROR\n" );
+//        fprint( "REMOVE OBJ ERROR  floor:%d  x:%d  y:%d\n",obj[index].floor,obj[index].x, obj[index].y );
     }
     obj[index].type = OBJTYPE_NOUSE;
 }
@@ -105,26 +105,6 @@ INLINE int OBJECT_getType( int index )
 {
     return obj[index].type;
 }
-
-#ifdef _NPCSERVER_NEW
-INLINE int OBJECT_getNpcIndex( int index )
-{
-    return obj[index].npcsindex;
-}
-INLINE char* OBJECT_getName( int index )
-{
-    return obj[index].objname;
-}//imagenum
-INLINE int OBJECT_getNpcImage( int index )
-{
-    return obj[index].imagenum;
-}
-INLINE int OBJECT_getNpcdir( int index )
-{
-    return obj[index].dir;
-}
-
-#endif
 
 INLINE int OBJECT_getchartype( int index )
 {
@@ -279,110 +259,6 @@ int searchObjectFromCharaIndex( int index )
 #define STOREGOLDID         "GOLD"
 #define	STORECHARID			"CHAR"
 
-#ifndef _SIMPLIFY_ITEMSTRING
-static BOOL checkObjectStoreFile( char* line, Object* one, char** stringstart)
-{
-    char    token[16];
-    int     ret;
-    int     i;
-
-    ret = getStringFromIndexWithDelim(line,"|" ,1 , token, sizeof( token ) );
-    if( ret == FALSE )return FALSE;
-    if( strcmp( token , STOREITEMID ) == 0 )
-        one->type = OBJTYPE_ITEM;
-    else if( strcmp( token , STOREGOLDID ) == 0 )
-        one->type = OBJTYPE_GOLD;
-	else if( strcmp( token, STORECHARID) == 0 )
-		one->type = OBJTYPE_CHARA;
-    for(  i = 2 ; i < 5 ; i ++ ){
-        char    first[64];
-        char    second[64];
-        ret = getStringFromIndexWithDelim(line,"|" ,i,
-                                          token,sizeof( token ));
-        if( ret == FALSE )return FALSE;
-
-        ret = getStringFromIndexWithDelim(token,"=" ,1, first,sizeof( first ));
-        if( ret == FALSE )return FALSE;
-        ret = getStringFromIndexWithDelim(token,"=" ,2, second,sizeof( second ));
-        if( ret == FALSE )return FALSE;
-
-        if( strcmp( first , "x" ) == 0 )
-            one->x = atoi( second );
-        else if( strcmp( first , "y" ) == 0 )
-            one->y = atoi( second );
-        else if( strcmp( first , "floor" ) == 0 )
-            one->floor = atoi( second );
-    }
-    {
-        char*   findex = nindex( line , '|' , 4);
-        *stringstart = findex + 1;
-    }
-    return TRUE;
-}
-
-BOOL storeObjects( char* dirname )
-{
-    int i;
-    FILE*   igfile;
-    char    igfilename[256];
-	
-	if( Restored == TRUE ){
-    	snprintf( igfilename ,sizeof( igfilename ) ,"%s/%s" ,dirname ,
-              ITEMGOLDSTOREFILENAME );
-	}else{
-    	snprintf( igfilename ,sizeof( igfilename ) ,"%s/%s_extra" ,dirname ,
-              ITEMGOLDSTOREFILENAME );
-
-                print( "\n---- Saving didn't do  with gmsv. ----- \n");
-                print( "---- It is because gmsv stopped before reading . ----- \n");
-                print( "---- It is kept with a name of (%s) just in case. ----- \n", igfilename );
-	}
-    igfile = fopen( igfilename , "w" );
-    if( igfile == NULL ){
-        print( "\n\n---- ERR:can not open (%s) for backup items. ----- \n\n", igfilename );
-    	return FALSE;
-    }
-
-    print( "Store Objects ...");
-    for( i = 0 ; i < objnum ; i ++ ){
-        switch( obj[i].type ){
-        case OBJTYPE_ITEM:
-        {
-            fprintf( igfile , STOREITEMID "|x=%d|y=%d|floor=%d|%s\n" ,
-                     obj[i].x , obj[i].y ,obj[i].floor,
-                     ITEM_makeStringFromItemIndex( obj[i].index,0 ) );
-            break;
-        }
-        case OBJTYPE_GOLD:
-        {
-            fprintf( igfile , STOREGOLDID  "|x=%d|y=%d|floor=%d|%d\n" ,
-                     obj[i].x , obj[i].y ,obj[i].floor, obj[i].index );
-            break;
-        }
-        case OBJTYPE_CHARA:
-        {
-        	int	petindex = obj[i].index;
-        	if( CHAR_CHECKINDEX( petindex) ) {
-	        	if( CHAR_getInt( obj[i].index, CHAR_WHICHTYPE) == CHAR_TYPEPET){
-		            fprintf( igfile , STORECHARID "|x=%d|y=%d|floor=%d|%s\n" ,
-		                     obj[i].x , obj[i].y ,obj[i].floor,
-		                     CHAR_makePetStringFromPetIndex( obj[i].index ) );
-				}
-        	}
-        	break;
-        }
-        default:
-            break;
-        }
-    }
-    fclose( igfile );
-    print( "done\n");
-system( "./itemda.pl" );
-    print( "item backup end\n");
-    return TRUE;
-}
-#endif
-
 int detectStoreFile( char*  filename )
 {
     FILE*   f;
@@ -405,79 +281,3 @@ int detectStoreFile( char*  filename )
     return 3;
 }
 
-#ifndef _SIMPLIFY_ITEMSTRING
-BOOL restoreObjects( char* dirname )
-{
-    char    igfilename[512];
-    FILE*   file;
-    char    line[2048];
-
-    snprintf( igfilename, sizeof(igfilename), "%s/%s", dirname, ITEMGOLDSTOREFILENAME );
-    file = fopen( igfilename , "r" );
-    if( file == NULL ){
-		Restored = TRUE;
-    	return FALSE;
-    }
-    while(  fgets( line, sizeof( line ), file ) != NULL ){
-        Object  one;
-        char    *string;
-        chomp( line );
-        if( checkObjectStoreFile( line, &one ,&string ) == FALSE )
-            continue;
-        switch( one.type ){
-        case OBJTYPE_ITEM:
-        {
-            ITEM_Item   itmone;
-            BOOL ret;
-            int     objindex;
-            ret = ITEM_makeExistItemsFromStringToArg( string, &itmone, 0 );
-            if( ret == TRUE ){
-                one.index = ITEM_initExistItemsOne( &itmone );
-                if( one.index == -1 )   break;
-                objindex = initObjectOne( &one );
-                ITEM_setWorkInt(one.index,ITEM_WORKCHARAINDEX,-1);
-                ITEM_setWorkInt(one.index,ITEM_WORKOBJINDEX,objindex);
-            }
-            break;
-        }
-
-        case OBJTYPE_GOLD:
-            one.index = atoi( string );
-            initObjectOne( &one );
-            break;
-		case OBJTYPE_CHARA:
-		{
-			Char	ch;
-			int		ret;
-			ret = CHAR_makePetFromStringToArg(string,&ch, -1);
-			if( ret ) {
-			    Object object;
-			    int objindex;
-		        int petindex = PET_initCharOneArray( &ch );
-		        if( petindex < 0 ) {
-		        	print( "宠物制作失败。\n");
-		        }
-			    object.type = OBJTYPE_CHARA;
-			    object.index = petindex;
-			    object.x = ch.data[CHAR_X];
-			    object.y = ch.data[CHAR_Y];
-			    object.floor = ch.data[CHAR_FLOOR];
-			    objindex = initObjectOne( &object );
-				if( objindex == -1 ) {
-	                CHAR_endCharOneArray( petindex );
-				}else {
-				    CHAR_setWorkInt( petindex,CHAR_WORKOBJINDEX,objindex );
-				}
-			}
-			break;
-        }
-        default:
-            break;
-        }
-    }
-    fclose( file );
-	Restored = TRUE;
-
-    return TRUE;
-}
-#endif

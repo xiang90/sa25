@@ -36,7 +36,7 @@ static int              GROUP_groupnum;
 int                     ENEMY_indextable[ENEMY_INDEXTABLEMAXSIZE];
 
 #ifdef _ENEMY_FALLGROUND
-extern	tagRidePetTable ridePetTable[122];
+extern	tagRidePetTable ridePetTable[296];
 #endif
 
 INLINE BOOL ENEMY_CHECKINDEX( int index)
@@ -77,8 +77,8 @@ INLINE int ENEMY_setInt( int index, ENEMY_DATAINT element, int data)
 
 INLINE char *ENEMY_getChar( int index, ENEMY_DATACHAR element)
 {
-    if(!ENEMY_CHECKINDEX(index))return NULL;
-    if(!ENEMY_CHECKCHARDATAINDEX(element))return NULL;
+    if(!ENEMY_CHECKINDEX(index))return "\0";
+    if(!ENEMY_CHECKCHARDATAINDEX(element))return "\0";
 
     return ENEMY_enemy[index].chardata[element].string;
 }
@@ -131,8 +131,8 @@ INLINE int ENEMYTEMP_setInt( int index, ENEMYTEMP_DATAINT element, int data)
 
 INLINE char *ENEMYTEMP_getChar( int index, ENEMYTEMP_DATACHAR element)
 {
-    if(!ENEMYTEMP_CHECKINDEX(index))return NULL;
-    if(!ENEMYTEMP_CHECKCHARDATAINDEX(element))return NULL;
+    if(!ENEMYTEMP_CHECKINDEX(index))return "\0";
+    if(!ENEMYTEMP_CHECKCHARDATAINDEX(element))return "\0";
 
     return ENEMYTEMP_enemy[index].chardata[element].string;
 }
@@ -185,8 +185,8 @@ INLINE int GROUP_setInt( int index, GROUP_DATAINT element, int data)
 
 INLINE char *GROUP_getChar( int index, GROUP_DATACHAR element)
 {
-    if(!GROUP_CHECKINDEX(index))return NULL;
-    if(!GROUP_CHECKCHARDATAINDEX(element))return NULL;
+    if(!GROUP_CHECKINDEX(index))return "\0";
+    if(!GROUP_CHECKCHARDATAINDEX(element))return "\0";
 
     return GROUP_group[index].chardata[element].string;
 }
@@ -213,14 +213,9 @@ BOOL ENEMYTEMP_initEnemy( char* filename )
     int     linenum=0;
     int     enemytemp_readlen=0;
 	int		i,j;
-
-#ifdef _ENEMYTEMP_OPTIMUM
-	int		max_enemytempid =0;
-	char	token[256];
-#endif
     f = fopen(filename,"r");
     if( f == NULL ){
-        print( "file open error\n");
+        print( "文件打开失败\n");
         return FALSE;
     }
 
@@ -233,13 +228,6 @@ BOOL ENEMYTEMP_initEnemy( char* filename )
         if( line[0] == '\n' )continue;       /* none    */
         chomp( line );
 
-#ifdef _ENEMYTEMP_OPTIMUM // Robin 取出最大ENEMYTEMP ID
-		if( getStringFromIndexWithDelim( line, ",", E_T_DATACHARNUM+E_T_TEMPNO+1,
-				token, sizeof(token)) == FALSE )
-			continue;
-		max_enemytempid = max( atoi( token), max_enemytempid);
-#endif
-
         ENEMYTEMP_enemynum++;
     }
 
@@ -248,16 +236,10 @@ BOOL ENEMYTEMP_initEnemy( char* filename )
         fclose(f);
         return FALSE;
     }
-
-#ifdef _ENEMYTEMP_OPTIMUM
-	print("\n 有效EBT:%d 最大EBT:%d \n", ENEMYTEMP_enemynum, max_enemytempid);
-	ENEMYTEMP_enemynum = max_enemytempid +1;
-#endif
-
     ENEMYTEMP_enemy = allocateMemory( sizeof(struct tagENEMYTEMP_Table)
                                    * ENEMYTEMP_enemynum );
     if( ENEMYTEMP_enemy == NULL ){
-        fprint( "Can't allocate Memory %d\n" ,
+        fprint( "无法分配内存 %d\n" ,
                 sizeof(struct tagENEMYTEMP_Table)*ENEMYTEMP_enemynum);
         fclose( f );
         return FALSE;
@@ -291,28 +273,11 @@ BOOL ENEMYTEMP_initEnemy( char* filename )
 {
         char    token[256];
         int     ret;
-
-#ifdef _ENEMYTEMP_OPTIMUM
-		if( getStringFromIndexWithDelim( line, ",", E_T_DATACHARNUM+E_T_TEMPNO+1,
-				token, sizeof(token)) == FALSE )
-			continue;
-		enemytemp_readlen = atoi(token);
-#endif
-
-#if 0
-        ret = getStringFromIndexWithDelim( line,",",1,token,
-                                           sizeof(token));
-        if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
-            continue;
-        }
-        ENEMYTEMP_setChar( enemytemp_readlen, E_T_NAME, token);
-#endif
 		for( i = 0; i < E_T_DATACHARNUM; i ++ ) {
 	        ret = getStringFromIndexWithDelim( line,",",i+1,token,
 	                                           sizeof(token));
 	        if( ret==FALSE ){
-	            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+	            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
 	            continue;
 	        }
 	        ENEMYTEMP_setChar( enemytemp_readlen, E_T_NAME + i, token);
@@ -323,7 +288,7 @@ BOOL ENEMYTEMP_initEnemy( char* filename )
             ret = getStringFromIndexWithDelim( line,",",i,token,
                                                sizeof(token));
             if( ret==FALSE ){
-                fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+                fprint("文件语法错误:%s 第%d行\n",filename,linenum);
                 break;
             }
             if( strlen( token) != 0 ) {
@@ -340,20 +305,8 @@ BOOL ENEMYTEMP_initEnemy( char* filename )
 
     ENEMYTEMP_enemynum = enemytemp_readlen;
 
-    print( "Valid enenytemp Num is %d...", ENEMYTEMP_enemynum );
+    print( "有效宠物基本状态数是 %d...", ENEMYTEMP_enemynum );
 
-#if 0
-
-    for( i=0; i <ENEMYTEMP_enemynum ; i++ ){
-        for( j = 0; j < E_T_DATACHARNUM; j ++ ) {
-	        print( "%s ", ENEMYTEMP_getChar( i, j));
-        }
-        for( j = 0; j < E_T_DATAINTNUM; j ++ ) {
-            print( "%d ", ENEMYTEMP_getInt( i, j));
-        }
-        print( "\n");
-    }
-#endif
     return TRUE;
 }
 
@@ -371,17 +324,12 @@ int ENEMYTEMP_getEnemyTempArray( int enemyindex)
 
 int ENEMYTEMP_getEnemyTempArrayFromTempNo( int EnemyTempNo)
 {
-#ifdef _ENEMYTEMP_OPTIMUM
-	if( EnemyTempNo >= 0 && EnemyTempNo < ENEMYTEMP_enemynum )
-		return	EnemyTempNo;
-#else
 	int		i;
 	for( i = 0; i < ENEMYTEMP_enemynum; i ++ ) {
 		if( ENEMYTEMP_getInt( i, E_T_TEMPNO) == EnemyTempNo) {
 			return i;
 		}
 	}
-#endif
 	return -1;
 }
 
@@ -403,14 +351,9 @@ BOOL ENEMY_initEnemy( char* filename )
     int     linenum=0;
     int     enemy_readlen=0;
 	int		i,j;
-#ifdef _ENEMY_OPTIMUM
-	int		max_enemyid =0;
-	char	token[256];
-#endif
-
     f = fopen(filename,"r");
     if( f == NULL ){
-        print( "file open error\n");
+        print( "文件打开失败\n");
         return FALSE;
     }
 
@@ -421,31 +364,19 @@ BOOL ENEMY_initEnemy( char* filename )
         if( line[0] == '\n' )continue;       /* none    */
         chomp( line );
 
-#ifdef _ENEMY_OPTIMUM // Robin 取出最大ENEMY ID
-		if( getStringFromIndexWithDelim( line, ",", ENEMY_DATACHARNUM+ENEMY_ID+1,
-				token, sizeof(token)) == FALSE )
-			continue;
-		max_enemyid = max( atoi( token), max_enemyid);
-#endif
-
         ENEMY_enemynum++;
     }
 
     if( fseek( f, 0, SEEK_SET ) == -1 ){
-        fprint( "Seek Error\n" );
+        fprint( "寻找失败\n" );
         fclose(f);
         return FALSE;
     }
 
-#ifdef _ENEMY_OPTIMUM
-	print("\n 有效ET:%d 最大ET:%d \n", ENEMY_enemynum, max_enemyid);
-	ENEMY_enemynum = max_enemyid +1;
-#endif
-
     ENEMY_enemy = allocateMemory( sizeof(struct tagENEMY_EnemyTable)
                                    * ENEMY_enemynum );
     if( ENEMY_enemy == NULL ){
-        fprint( "Can't allocate Memory %d\n" ,
+        fprint( "无法分配内存 %d\n" ,
                 sizeof(struct tagENEMY_EnemyTable)*ENEMY_enemynum);
         fclose( f );
         return FALSE;
@@ -478,29 +409,22 @@ BOOL ENEMY_initEnemy( char* filename )
         char    token[256];
         int     ret;
 
-#ifdef _ENEMY_OPTIMUM
-		if( getStringFromIndexWithDelim( line, ",", ENEMY_DATACHARNUM+ENEMY_ID+1,
-				token, sizeof(token)) == FALSE )
-			continue;
-		enemy_readlen = atoi(token);
-#endif
-
         ret = getStringFromIndexWithDelim( line,",",1,token,sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         ENEMY_setChar( enemy_readlen, ENEMY_NAME, token);
         ret = getStringFromIndexWithDelim( line,",",2,token,sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         ENEMY_setChar( enemy_readlen, ENEMY_TACTICSOPTION, token);
 #ifdef _BATTLENPC_WARP_PLAYER
 	    ret = getStringFromIndexWithDelim( line, ",", 3, token, sizeof(token));
         if(ret==FALSE){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         ENEMY_setChar( enemy_readlen, ENEMY_ACT_CONDITION, token);
@@ -515,7 +439,7 @@ BOOL ENEMY_initEnemy( char* filename )
         for( i = ENEMY_STARTINTNUM; i < ENEMY_DATAINTNUM+ENEMY_STARTINTNUM; i ++ ) {
             ret = getStringFromIndexWithDelim( line,",",i,token,sizeof(token));
             if( ret==FALSE ){
-                fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+                fprint("文件语法错误:%s 第%d行\n",filename,linenum);
                 break;
             }
             ENEMY_setInt( enemy_readlen, i - ENEMY_STARTINTNUM, atoi( token));
@@ -527,7 +451,7 @@ BOOL ENEMY_initEnemy( char* filename )
 			}
 		}
 		if( i == ENEMYTEMP_enemynum) {
-            fprint("no such template file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
 			continue;
 		}
 		ENEMY_enemy[enemy_readlen].enemytemparray = i;
@@ -546,21 +470,8 @@ BOOL ENEMY_initEnemy( char* filename )
     }
     fclose(f);
     ENEMY_enemynum = enemy_readlen;
-    print( "Valid eneny Num is %d..", ENEMY_enemynum );
+    print( "有效宠物数是 %d..", ENEMY_enemynum );
 
-#if 0
-    {
-        for( i=0; i <ENEMY_enemynum ; i++ ){
-            print( "%s ", ENEMY_getChar( i, ENEMY_NAME));
-            print( "%s ", ENEMY_getChar( i, ENEMY_TACTICSOPTION));
-            for( j = 0; j < ENEMY_DATAINTNUM; j ++ ) {
-                print( "%d ", ENEMY_getInt( i, j));
-            }
-            print( "[%d]", ENEMY_enemy[i].enemytemparray);
-            print( "\n");
-        }
-    }
-#endif
     return TRUE;
 }
 /*------------------------------------------------------------------------
@@ -586,17 +497,12 @@ int ENEMY_getEnemyArrayFromIndex( int groupindex, int index)
  *-----------------------------------------------------------------------*/
 int ENEMY_getEnemyArrayFromId( int EnemyId)
 {
-#ifdef _ENEMY_OPTIMUM
-	if( EnemyId >= 0 && EnemyId < ENEMY_enemynum )
-		return	EnemyId;
-#else
 	int		i;
 	for( i = 0; i < ENEMY_enemynum; i ++ ) {
 		if( ENEMY_getInt( i, ENEMY_ID) == EnemyId) {
 			return i;
 		}
 	}
-#endif
 	return -1;
 }
 
@@ -624,17 +530,12 @@ int ENEMY_getEnemyIdFromTempNo( int EnemyTempNo)
 
 int ENEMY_getEnemyTempNoFromId( int EnemyId)
 {
-#ifdef _ENEMY_OPTIMUM
-	if( EnemyId >= 0 && EnemyId < ENEMY_enemynum)
-		return ENEMY_getInt( EnemyId, ENEMY_TEMPNO);
-#else
 	int		i;
 	for( i = 0; i < ENEMY_enemynum; i ++ ) {
 		if( ENEMY_getInt( i, ENEMY_ID) == EnemyId) {
 			return ENEMY_getInt( i, ENEMY_TEMPNO);
 		}
 	}
-#endif
 	return -1;
 }
 
@@ -651,7 +552,7 @@ BOOL GROUP_initGroup( char* filename )
 
     f = fopen(filename,"r");
     if( f == NULL ){
-        print( "file open error\n");
+        print( "文件打开失败\n");
         return FALSE;
     }
 
@@ -668,7 +569,7 @@ BOOL GROUP_initGroup( char* filename )
     }
 
     if( fseek( f, 0, SEEK_SET ) == -1 ){
-        fprint( "Seek Error\n" );
+        fprint( "寻找失败\n" );
         fclose(f);
         return FALSE;
     }
@@ -676,7 +577,7 @@ BOOL GROUP_initGroup( char* filename )
     GROUP_group = allocateMemory( sizeof(struct tagGROUP_Table)
                                    * GROUP_groupnum );
     if( GROUP_group == NULL ){
-        fprint( "Can't allocate Memory %d\n" ,
+        fprint( "无法分配内存 %d\n" ,
                 sizeof(struct tagGROUP_Table)*GROUP_groupnum);
         fclose( f );
         return FALSE;
@@ -732,7 +633,7 @@ BOOL GROUP_initGroup( char* filename )
         ret = getStringFromIndexWithDelim( line,",",1,token,
                                            sizeof(token));
         if( ret==FALSE ){
-            fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+            fprint("文件语法错误:%s 第%d行\n",filename,linenum);
             continue;
         }
         GROUP_setChar( group_readlen, GROUP_NAME, token);
@@ -743,7 +644,7 @@ BOOL GROUP_initGroup( char* filename )
             ret = getStringFromIndexWithDelim( line,",",i,token,
                                                sizeof(token));
             if( ret==FALSE ){
-                fprint("Syntax Error file:%s line:%d\n",filename,linenum);
+                fprint("文件语法错误:%s 第%d行\n",filename,linenum);
                 break;
             }
             if( strlen( token) != 0 ) {
@@ -774,13 +675,13 @@ BOOL GROUP_initGroup( char* filename )
 				}
 			}
 			if( enemycnt == 0 ) {
-                fprint("error :团队设定中敌人尚未设定 file:%s line:%d\n",filename,linenum);
+                fprint("团队设定中敌人尚未设定 文件:%s 第%d行\n",filename,linenum);
 				continue;;
 			}
             if( checkRedundancy( &GROUP_group[group_readlen].intdata[ENEMY_ID1],
             			CREATEPROB1 - ENEMY_ID1))
             {
-                fprint("error :团队设定中敌人重复设定 file:%s line:%d\n",filename,linenum);
+                fprint("团队设定中敌人重复设定 文件:%s 第%d行\n",filename,linenum);
 				continue;;
 			}
 
@@ -794,22 +695,8 @@ BOOL GROUP_initGroup( char* filename )
 
     GROUP_groupnum = group_readlen;
 
-    print( "Valid group Num is %d...", GROUP_groupnum );
+    print( "有效遇敌组群数是 %d...", GROUP_groupnum );
 
-#if 0
-
-    for( i=0; i <GROUP_groupnum ; i++ ){
-        int j;
-        print( "%s ", GROUP_getChar( i, GROUP_NAME));
-        for( j = 0; j < GROUP_DATAINTNUM; j ++ ) {
-            print( "%d ", GROUP_getInt( i, j));
-        }
-        for( j = 0; j < 10; j ++ ) {
-	        print( "[%d] ",GROUP_group[i].enemyarray[j]);
-		}
-        print( "\n");
-    }
-#endif
 	return TRUE;
 }
 /*------------------------------------------------------------------------
@@ -973,9 +860,7 @@ static int EnemyGymSkill[] = {
 #ifdef _SKILL_BARRIER  
     PETSKILL_BARRIER,             //(546)魔障      vincent add 2002/07/16
 #endif
-#ifdef _SKILL_NOCAST  
-    PETSKILL_NOCAST,              //(547)沉默      vincent add 2002/07/16
-#endif
+
 #ifdef _SKILL_ROAR 
     PETSKILL_ROAR,                //(548)大吼      vincent add 2002/07/11
 #endif
@@ -995,10 +880,6 @@ static int EnemyGymSkill[] = {
 #endif
 #ifdef _PETSKILL_BECOMEPIG
     PETSKILL_BECOMEPIG,
-#endif
-#ifdef _PETSKILL_LER
-		PETSKILL_BATFLY,
-		PETSKILL_DIVIDEATTACK,
 #endif
 #ifdef _PETSKILL_BATTLE_MODEL
 		PETSKILL_BATTLE_MODEL,
@@ -1469,11 +1350,11 @@ int *ENEMY_getEnemy( int charaindex, int x, int y)
     }
     for( i = 0 ; i < ENEMY_INDEXTABLEMAXSIZE; i ++ ) {
         work[i] = -1;
-		wr[i] = -1;
+				wr[i] = -1;
     }
-	createenemynum = 0;
-	found = 0;
-	r_max = 0;
+		createenemynum = 0;
+		found = 0;
+		r_max = 0;
     for( i = ENEMY_ID1; i < CREATEPROB1; i ++ ) {
 		int newarray, enemywork;
 		e_array = ENEMY_getEnemyArrayFromIndex( g_array, i - ENEMY_ID1 );
@@ -1578,7 +1459,6 @@ int *ENEMY_getEnemy( int charaindex, int x, int y)
     }
     return found > 0 ? ENEMY_indextable : NULL;
 }
-
 int ENEMY_createPetFromEnemyIndex( int charaindex, int array)
 {
     Char    CharNew;
@@ -1645,7 +1525,7 @@ int ENEMY_createPetFromEnemyIndex( int charaindex, int array)
     CharNew.data[CHAR_SLOT]     = *(tp+ E_T_SLOT);
     CharNew.data[CHAR_MODAI]    = *(tp+ E_T_MODAI);
     CharNew.data[CHAR_VARIABLEAI]    = 0;
-	CharNew.data[CHAR_LV]       = level;
+		CharNew.data[CHAR_LV]       = level;
 	//CharNew.data[CHAR_LV]       = *(p+ ENEMY_LV);
     CharNew.data[CHAR_POISON]   = *(tp+ E_T_POISON);
     CharNew.data[CHAR_PARALYSIS]= *(tp+ E_T_PARALYSIS);
@@ -1659,9 +1539,6 @@ int ENEMY_createPetFromEnemyIndex( int charaindex, int array)
 	CharNew.data[CHAR_COUNTER]	= *(tp + E_T_COUNTER);
     // Arminius 8.6 limit lv
     CharNew.data[CHAR_LIMITLEVEL]	= *(tp + E_T_LIMITLEVEL);
-#ifdef _PET_FUSION
-	CharNew.data[CHAR_FUSIONCODE]	= *(tp + E_T_FUSIONCODE);
-#endif
 	CharNew.data[CHAR_PETMAILEFFECT] = RAND(0, PETMAIL_EFFECTMAX);
 	for( i = 0; i < CHAR_MAXPETSKILLHAVE; i ++ ) {
 		CharNew.unionTable.indexOfPetskill[i] = *(tp + E_T_PETSKILL1 + i);
@@ -1679,150 +1556,17 @@ int ENEMY_createPetFromEnemyIndex( int charaindex, int array)
         return -1;
     }
     CHAR_complianceParameter( newindex );
-	CHAR_setInt( newindex, CHAR_HP, CHAR_getWorkInt( newindex, CHAR_WORKMAXHP));
+	  CHAR_setInt( newindex, CHAR_HP, CHAR_getWorkInt( newindex, CHAR_WORKMAXHP));
     CHAR_setWorkInt( newindex, CHAR_WORKPLAYERINDEX, charaindex);
     CHAR_setCharPet( charaindex, havepetelement, newindex);
-	CHAR_setChar( newindex, CHAR_OWNERCDKEY,
-				CHAR_getChar( charaindex, CHAR_CDKEY));
-	CHAR_setChar( newindex, CHAR_OWNERCHARANAME,
-				CHAR_getChar( charaindex, CHAR_NAME));
+	  CHAR_setChar( newindex, CHAR_OWNERCDKEY,
+		CHAR_getChar( charaindex, CHAR_CDKEY));
+	  CHAR_setChar( newindex, CHAR_OWNERCHARANAME,
+		CHAR_getChar( charaindex, CHAR_NAME));
     return newindex;
 }
 
-#ifdef _NEW_PETMAKE
-int ENEMY_createPetFromEnemyIndex_new( int charaindex, int array, int HP, int STR, int TGH, int DEX)
-{
-    Char    CharNew;
-    int newindex;
-    int     *p;
-    int		tp[E_T_DATAINTNUM];
-    int		tarray, i;
-    int     havepetelement;
-	int		level;
-	int		enemyrank;
-	float   vital, str, tough, dex;
-
-    if( !ENEMY_CHECKINDEX( array)) return -1;
-    havepetelement = CHAR_getCharPetElement( charaindex);
-    if( havepetelement < 0 ) return -1;
-
-    p = ENEMY_enemy[array].intdata;
-	tarray = ENEMYTEMP_getEnemyTempArray( array);
-	if( !ENEMYTEMP_CHECKINDEX( tarray)) return -1;
-//    tp = ENEMYTEMP_enemy[tarray].intdata;
-	for( i = 0; i < E_T_DATAINTNUM; i ++ ){
-	    tp[i] = ENEMYTEMP_enemy[tarray].intdata[i];
-	}
-    memset( &CharNew, 0, sizeof( Char ) );
-    if( !CHAR_getDefaultChar( &CharNew,31010 ) )return -1;
-    CharNew.data[CHAR_BASEBASEIMAGENUMBER]
-        = CharNew.data[CHAR_BASEIMAGENUMBER] = *(tp+E_T_IMGNUMBER);
-    CharNew.data[CHAR_WHICHTYPE] = CHAR_TYPEPET;
-	level = RAND( (*(p + ENEMY_LV_MIN)), ( *(p+ ENEMY_LV_MAX)));
-
-#define		E_PAR( a)		(*(p + (a)))
-#define		ET_PAR( a)		(*(tp + (a)))
-#if 1
-#define		PARAM_CAL( l) 	(( level -1)*ET_PAR( E_T_LVUPPOINT)+ ET_PAR(E_T_INITNUM)) * ET_PAR( (l))
-#else
-#define		PARAM_CAL( l)	( (E_PAR(ENEMY_LV) -1)*ET_PAR( E_T_LVUPPOINT)+ ET_PAR(E_T_INITNUM))	* ET_PAR( (l))
-#endif
-	
-	tp[E_T_BASEVITAL] += RAND( 2, 5 ) - 2;
-	tp[E_T_BASESTR] += RAND( 2, 5 ) - 2;
-	tp[E_T_BASETGH] += RAND( 2, 5 ) - 2;
-	tp[E_T_BASEDEX] += RAND( 2, 5 ) - 2;
-    CharNew.data[CHAR_ALLOCPOINT]
-    = ( tp[E_T_BASEVITAL] << 24 )
-    + ( tp[E_T_BASESTR] << 16 )
-    + ( tp[E_T_BASETGH] << 8 )
-    + ( tp[E_T_BASEDEX] << 0 );
-
-	for( i = 0; i < 10; i ++ ){
-		int work = RAND( 0, 3 );
-		if( work == 0 )tp[E_T_BASEVITAL]++;
-		if( work == 1 )tp[E_T_BASESTR]++;
-		if( work == 2 )tp[E_T_BASETGH]++;
-		if( work == 3 )tp[E_T_BASEDEX]++;
-	}
-
-	str = (3900.0 * STR - 90.0 * HP - 90 * DEX - 300 * TGH) / 37.8;
-	vital = (90.0 * HP - 85.5 * DEX - 90.0 * TGH - 0.81 * str) / 3.51;
-	tough = 100.0 * HP - 100.0 * DEX - str - 4 * vital;
-	dex = 100 * DEX;
-
-    /* 由仿丢□正本永玄 */
-	if ((int)vital <= 0) {
-		CharNew.data[CHAR_VITAL]    = PARAM_CAL(E_T_BASEVITAL);
-		CharNew.data[CHAR_STR]      = PARAM_CAL(E_T_BASESTR);
-		CharNew.data[CHAR_TOUGH]    = PARAM_CAL(E_T_BASETGH);
-		CharNew.data[CHAR_DEX]      = PARAM_CAL(E_T_BASEDEX);
-	}
-	else {
-		CharNew.data[CHAR_VITAL]    = ((int)vital > 0) ? (int)vital : 0;
-		CharNew.data[CHAR_STR]      = ((int)str > 0) ? (int)str : 0;
-		CharNew.data[CHAR_TOUGH]    = ((int)tough > 0) ? (int)tough : 0;
-		CharNew.data[CHAR_DEX]      = ((int)dex > 0) ? (int)dex : 0;
-	}
-
-    CharNew.data[CHAR_FIREAT]   = *(tp+ E_T_FIREAT);
-    CharNew.data[CHAR_WATERAT]  = *(tp+ E_T_WATERAT);
-    CharNew.data[CHAR_EARTHAT]  = *(tp+ E_T_EARTHAT);
-    CharNew.data[CHAR_WINDAT]   = *(tp+ E_T_WINDAT);
-
-    CharNew.data[CHAR_SLOT]     = *(tp+ E_T_SLOT);
-    CharNew.data[CHAR_MODAI]    = *(tp+ E_T_MODAI);
-#ifdef _SET_PETAI
-	CharNew.data[CHAR_VARIABLEAI]    = 10000;
-#else
-    CharNew.data[CHAR_VARIABLEAI]    = 0;
-#endif
-	CharNew.data[CHAR_LV]       = level;
-	//CharNew.data[CHAR_LV]       = *(p+ ENEMY_LV);
-    CharNew.data[CHAR_POISON]   = *(tp+ E_T_POISON);
-    CharNew.data[CHAR_PARALYSIS]= *(tp+ E_T_PARALYSIS);
-    CharNew.data[CHAR_SLEEP]	= *(tp+ E_T_SLEEP);
-    CharNew.data[CHAR_STONE]	= *(tp+ E_T_STONE);
-    CharNew.data[CHAR_DRUNK]	= *(tp+ E_T_DRUNK);
-    CharNew.data[CHAR_CONFUSION]= *(tp+ E_T_CONFUSION);
-    CharNew.data[CHAR_RARE]     = *(tp+ E_T_RARE);
-	CharNew.data[CHAR_PETID]	= *(tp + E_T_TEMPNO);
-	CharNew.data[CHAR_CRITIAL]	= *(tp + E_T_CRITICAL);
-	CharNew.data[CHAR_COUNTER]	= *(tp + E_T_COUNTER);
-    // Arminius 8.6 limit lv
-    CharNew.data[CHAR_LIMITLEVEL]	= *(tp + E_T_LIMITLEVEL);
-#ifdef _PET_FUSION
-	CharNew.data[CHAR_FUSIONCODE]	= *(tp + E_T_FUSIONCODE);
-#endif
-	CharNew.data[CHAR_PETMAILEFFECT] = RAND(0, PETMAIL_EFFECTMAX);
-	for( i = 0; i < CHAR_MAXPETSKILLHAVE; i ++ ) {
-		CharNew.unionTable.indexOfPetskill[i] = *(tp + E_T_PETSKILL1 + i);
-	}
-	enemyrank = ENEMY_getRank( array, tarray );
-	CharNew.data[CHAR_PETRANK]	= enemyrank;
-#undef	E_PAR
-#undef	ET_PAR
-#undef	PARAM_CAL
-    strcpysafe( CharNew.string[CHAR_NAME].string,
-                sizeof(CharNew.string[CHAR_NAME].string),
-                (char *)ENEMYTEMP_enemy[tarray].chardata[E_T_NAME].string );
-    newindex = PET_initCharOneArray( &CharNew );
-    if( newindex < 0 ){
-        return -1;
-    }
-    CHAR_complianceParameter( newindex );
-	CHAR_setInt( newindex, CHAR_HP, CHAR_getWorkInt( newindex, CHAR_WORKMAXHP));
-    CHAR_setWorkInt( newindex, CHAR_WORKPLAYERINDEX, charaindex);
-    CHAR_setCharPet( charaindex, havepetelement, newindex);
-	CHAR_setChar( newindex, CHAR_OWNERCDKEY,
-				CHAR_getChar( charaindex, CHAR_CDKEY));
-	CHAR_setChar( newindex, CHAR_OWNERCHARANAME,
-				CHAR_getChar( charaindex, CHAR_NAME));
-    return newindex;
-}
-#endif
-
-#ifdef _TEST_PETCREATE
+#ifdef _TEST_DROPITEMS
 int ENEMY_TEST_createPetIndex( int array)
 {
     Char    CharNew;
@@ -1899,9 +1643,6 @@ int ENEMY_TEST_createPetIndex( int array)
 	CharNew.data[CHAR_COUNTER]	= *(tp + E_T_COUNTER);
     // Arminius 8.6 limit lv
     CharNew.data[CHAR_LIMITLEVEL]	= *(tp + E_T_LIMITLEVEL);
-#ifdef _PET_FUSION
-	CharNew.data[CHAR_FUSIONCODE]	= *(tp + E_T_FUSIONCODE);
-#endif
 	CharNew.data[CHAR_PETMAILEFFECT] = RAND(0, PETMAIL_EFFECTMAX);
 	for( i = 0; i < CHAR_MAXPETSKILLHAVE; i ++ ) {
 		CharNew.unionTable.indexOfPetskill[i] = *(tp + E_T_PETSKILL1 + i);
@@ -1927,668 +1668,6 @@ int ENEMY_TEST_createPetIndex( int array)
 //	CHAR_setChar( newindex, CHAR_OWNERCHARANAME,
 //	CHAR_getChar( charaindex, CHAR_NAME));
     return newindex;
-}
-#endif
-
-#ifdef _PET_EVOLUTION
-
-BOOL PETFUSION_getIndexForChar( int toindex, int *MainIndex, int *Subindex1, int *Subindex2, char *data)
-{
-	char buf1[256];
-	int pindex[3]={-1,-1,-1};
-	int i;
-	if( getStringFromIndexWithDelim( data, "|", 1, buf1, sizeof(buf1)) == FALSE )
-		return FALSE;
-	pindex[0] = atoi( buf1)-1;
-	if( getStringFromIndexWithDelim( data, "|", 2, buf1, sizeof(buf1)) == FALSE )
-		return FALSE;
-	pindex[1] = atoi( buf1)-1;
-	if( getStringFromIndexWithDelim( data, "|", 3, buf1, sizeof(buf1)) == FALSE )
-		return FALSE;
-	pindex[2] = atoi( buf1)-1;
-	for( i=0; i<3; i++)	{
-		int petindex;
-		if( pindex[i] < 0 ) continue;
-		petindex = CHAR_getCharPet( toindex, pindex[i]);
-		if( !CHAR_CHECKINDEX( petindex) ) continue;
-#ifdef _PET_2TRANS
-		if( CHAR_getInt( petindex, CHAR_TRANSMIGRATION ) > 1 ) {
-			CHAR_talkToCli( toindex, -1, "二转宠物不能融合。", CHAR_COLORYELLOW);
-			return FALSE;
-		}
-#endif
-		if( i == 0 ) {
-			*MainIndex = petindex;
-		}else if( i == 1)	{
-			*Subindex1 = petindex;
-		}else if( i == 2)	{
-			*Subindex2 = petindex;
-		}
-	}
-	return TRUE;
-}
-int NPC_getPetArrayForNo( int PetCode)
-{
-	int i;
-	int enemynum = ENEMY_getEnemyNum();
-	for( i = 0; i < enemynum; i ++ ) {//PetCode
-		if( ENEMY_getInt( i, ENEMY_TEMPNO ) == PetCode )
-		break;
-	}
-
-	if( i == enemynum ){
-		print("ANDY 2.err i == enemynum \n");
-		return -1;
-	}
-	return i;
-}
-int NPC_getFusionTableForBase( int charaindex, int petindex1, int petindex2 )
-{
-	int base1, base2;// 属性,PETCODE
-	if( !CHAR_CHECKINDEX( petindex1) ) return -1;
-	if( !CHAR_CHECKINDEX( petindex2) ) return -1;
-#ifdef _PET_EVOLUTION
-	if( (base2 = EVOLUTION_getPetTable( charaindex, petindex1, petindex2)) < 0 ){
-		print("ANDY err base2=%d\n", base2);
-		return -1;
-	}
-	if( (base1 = EVOLUTION_getPropertyTable( charaindex, petindex1, petindex2)) < 0 ){
-		print("ANDY err base1=%d\n", base1);
-		return -1;
-	}
-	return EVOLUTION_getFusionTable( charaindex, base2, base1); // get new pet IDNO
-#else
-	return -1;
-#endif
-}
-
-BOOL PET_getEvolutionAns( int petindex, int *base)
-{
-	int i, total1, total2, total;
-	int defwork = 50, defbase = 150;
-	int work[4]={0,0,0,0};
-
-	work[0] = CHAR_getInt( petindex, CHAR_EVOLUTIONBASEVTL);
-	work[1] = CHAR_getInt( petindex, CHAR_EVOLUTIONBASESTR);
-	work[2] = CHAR_getInt( petindex, CHAR_EVOLUTIONBASETGH);
-	work[3] = CHAR_getInt( petindex, CHAR_EVOLUTIONBASEDEX);
-	for( i=0; i<4; i++)	{
-		work[i] = (work[i]*0.7)/100;
-		if( work[i]<0 ) work[i] = 0;
-		if( work[i]>60 ) work[i] = 60;
-	}
-	total1 = work[0] + work[1] + work[2] + work[3];
-	for( i=0; i<4; i++)	{
-		if( base[i] < 0 ) base[i] = 5;
-		if( base[i] > 60 ) base[i] = 60;
-	}
-	total2 = base[0] + base[1] + base[2] + base[3];
-	if( total1 > defwork )	{
-		for( i=0; i<4; i++)	{
-			work[i] = ((work[i]*defwork)/total1);
-			if( work[i]<0 ) work[i] = 0;
-			if( work[i]>60 ) work[i] = 60;
-		}
-	}
-
-	total1 = work[0] + work[1] + work[2] + work[3];
-	total = (total1/2) + total2;
-
-	if( total > 0 ){
-		for( i=0; i<4; i++)	{
-			float fixwork=0.0;
-			fixwork = (base[i])+(float)(work[i]/2);
-			base[i] += (int)((fixwork/total) * total1);
-			if( base[i] < 1 ) base[i] = 1;
-			if( base[i] > 60 ) base[i] = 60;
-		}
-	}
-	total2 = base[0] + base[1] + base[2] + base[3];
-	if( total2 > defbase ){
-		for( i=0; i<4; i++)	{
-			base[i] = (base[i]*defbase)/total2;
-			if( base[i] < 1 ) base[i] = 1;
-			if( base[i] > 60 ) base[i] = 60;
-		}
-	}
-	total2 = base[0] + base[1] + base[2] + base[3];
-	if( base[0]<0 || base[1]<0 || base[2]<0 || base[3]<0 ){
-		print("ANDY err EVOLUTION base someone < 0 !!\n");
-	}
-	return TRUE;
-}
-
-int EVOLUTION_createPetFromEnemyIndex( int charaindex, int baseindex, int flg)
-{
-    Char    CharNew;
-    int newindex;
-    int     *p;
-    int		tp[E_T_DATAINTNUM];
-    int		tarray, i, havepetelement, enemynum, petID;
-	int		level, enemyrank, array;
-	int		petskill[7]={-1,-1,-1,-1,-1,-1,-1};
-	int		base[4]={0,0,0,0};
-	int		illegalpetskill[15] = {41,52,600,601,602,603,604,614,617,628,630,631,635,638,641};//不可遗传的宠技
-#define		E_PAR( a)		(*(p + (a)))
-#define		ET_PAR( a)		(*(tp + (a)))
-#define		PARAM_CAL( l) 	(( level -1)*ET_PAR( E_T_LVUPPOINT)+ ET_PAR(E_T_INITNUM)) * ET_PAR( (l))
-	havepetelement=-1;
-	petID = CHAR_getInt( baseindex, CHAR_FUSIONINDEX);
-	enemynum = ENEMY_getEnemyNum();
-	for( i = 0; i < enemynum; i ++ ) {
-		if( ENEMY_getInt( i, ENEMY_TEMPNO ) == petID ){
-			break;
-		}
-	}
-	if( i >= enemynum ) return -1;
-	array = i;
-    if( !ENEMY_CHECKINDEX( array)) return -1;
-//--------------------------------------------------------------------------
-    p = ENEMY_enemy[array].intdata;
-	tarray = ENEMYTEMP_getEnemyTempArray( array);
-	if( !ENEMYTEMP_CHECKINDEX( tarray)){
-		print( "ANDY !tarray\n");
-		return -1;
-	}
-	for( i = 0; i < E_T_DATAINTNUM; i ++ ){
-	    tp[i] = ENEMYTEMP_enemy[tarray].intdata[i];
-	}
-    memset( &CharNew, 0, sizeof( Char ) );
-    if( !CHAR_getDefaultChar( &CharNew,31010 ) ){
-		print( "ANDY !CHAR_getDefaultChar( &CharNew,31010 )\n");
-		return -1;
-	}
-    CharNew.data[CHAR_BASEBASEIMAGENUMBER]
-        = CharNew.data[CHAR_BASEIMAGENUMBER] = *(tp+E_T_IMGNUMBER);
-    CharNew.data[CHAR_WHICHTYPE] = CHAR_TYPEPET;
-	level = RAND( (*(p + ENEMY_LV_MIN)), ( *(p+ ENEMY_LV_MAX)));
-//------------------------------------------------------
-	{
-		if( PET_getBaseAndSkill( charaindex, baseindex, base, petskill, 1) == FALSE ){
-			print( "ANDY err PET_getBaseAndSkill(%d) == FALSE \n", baseindex);
-			return -1;
-		}
-		if( PET_getEvolutionAns( baseindex, base) == FALSE ) return -1;
-		for( i=0; i < CHAR_MAXPETSKILLHAVE; i ++ ) {//宠技
-			int j;
-			for( j=0; j<15; j++)	{	//检查非法技能
-				if( illegalpetskill[j] == petskill[i] ){
-					petskill[i] = -1;
-					break;
-				}
-			}
-			CharNew.unionTable.indexOfPetskill[i] = petskill[i];
-		}
-		if( flg == 1 ){
-			if( CHAR_DelPetForIndex( charaindex, baseindex) == FALSE ) return FALSE;
-		}
-	}
-	if( flg == 1 ){
-		havepetelement = CHAR_getCharPetElement( charaindex);//找出宠物空位
-		if( havepetelement < 0 ) return -1;
-	}
-//------------------------------------------------------
-	tp[E_T_BASEVITAL] = base[0];
-	tp[E_T_BASESTR] = base[1];
-	tp[E_T_BASETGH] = base[2];
-	tp[E_T_BASEDEX] = base[3];
-    CharNew.data[CHAR_ALLOCPOINT] = (base[0]<<24)+(base[1]<<16)+(base[2]<<8)+(base[3]<<0);
-
-	for( i = 0; i < 10; i ++ ){
-		int work = RAND( 0, 3 );
-		if( work == 0 )tp[E_T_BASEVITAL]++;
-		if( work == 1 )tp[E_T_BASESTR]++;
-		if( work == 2 )tp[E_T_BASETGH]++;
-		if( work == 3 )tp[E_T_BASEDEX]++;
-	}
-//------------------------------------------------------
-    CharNew.data[CHAR_VITAL]    = PARAM_CAL(E_T_BASEVITAL);
-    CharNew.data[CHAR_STR]      = PARAM_CAL(E_T_BASESTR);
-    CharNew.data[CHAR_TOUGH]    = PARAM_CAL(E_T_BASETGH);
-    CharNew.data[CHAR_DEX]      = PARAM_CAL(E_T_BASEDEX);
-    CharNew.data[CHAR_FIREAT]   = *(tp+ E_T_FIREAT);
-    CharNew.data[CHAR_WATERAT]  = *(tp+ E_T_WATERAT);
-    CharNew.data[CHAR_EARTHAT]  = *(tp+ E_T_EARTHAT);
-    CharNew.data[CHAR_WINDAT]   = *(tp+ E_T_WINDAT);
-    CharNew.data[CHAR_SLOT]     = *(tp+ E_T_SLOT);
-    CharNew.data[CHAR_MODAI]    = *(tp+ E_T_MODAI);
-    CharNew.data[CHAR_VARIABLEAI]    = 0;
-	CharNew.data[CHAR_LV]       = level;
-    CharNew.data[CHAR_POISON]   = *(tp+ E_T_POISON);
-    CharNew.data[CHAR_PARALYSIS]= *(tp+ E_T_PARALYSIS);
-    CharNew.data[CHAR_SLEEP]	= *(tp+ E_T_SLEEP);
-    CharNew.data[CHAR_STONE]	= *(tp+ E_T_STONE);
-    CharNew.data[CHAR_DRUNK]	= *(tp+ E_T_DRUNK);
-    CharNew.data[CHAR_CONFUSION]= *(tp+ E_T_CONFUSION);
-    CharNew.data[CHAR_RARE]     = *(tp+ E_T_RARE);
-	CharNew.data[CHAR_PETID]	= *(tp + E_T_TEMPNO);
-	CharNew.data[CHAR_CRITIAL]	= *(tp + E_T_CRITICAL);
-	CharNew.data[CHAR_COUNTER]	= *(tp + E_T_COUNTER);
-    CharNew.data[CHAR_LIMITLEVEL]	= *(tp + E_T_LIMITLEVEL);
-	CharNew.data[CHAR_FUSIONCODE]	= *(tp + E_T_FUSIONCODE);
-	CharNew.data[CHAR_PETMAILEFFECT] = RAND(0, PETMAIL_EFFECTMAX);
-//------------------------------------------------------
-
-	enemyrank = ENEMY_getRank( array, tarray );
-	CharNew.data[CHAR_PETRANK]	= enemyrank;
-#undef	E_PAR
-#undef	ET_PAR
-#undef	PARAM_CAL
-    strcpysafe( CharNew.string[CHAR_NAME].string,
-                sizeof(CharNew.string[CHAR_NAME].string),
-                (char *)ENEMYTEMP_enemy[tarray].chardata[E_T_NAME].string );
-    newindex = PET_initCharOneArray( &CharNew );
-    if( newindex < 0 ){
-		print( "ANDY err newindex=%d\n", newindex);
-        return -1;
-    }
-//------------------------------------------------------
-    CHAR_complianceParameter( newindex );
-	CHAR_setInt( newindex, CHAR_HP, CHAR_getWorkInt( newindex, CHAR_WORKMAXHP));
-	CHAR_setInt ( newindex, CHAR_WHICHTYPE , CHAR_TYPEPET);
-#ifdef _PET_2TRANS
-	CHAR_setInt ( newindex, CHAR_TRANSMIGRATION, 2);
-#else
-	CHAR_setInt ( newindex, CHAR_TRANSMIGRATION, 1);
-#endif
-	CHAR_setInt ( newindex, CHAR_FUSIONBEIT, 1);
-	CHAR_setInt ( newindex, CHAR_FUSIONRAISE, 0);
-	if( flg == 1 ){
-		CHAR_setWorkInt( newindex, CHAR_WORKPLAYERINDEX, charaindex);
-		CHAR_setCharPet( charaindex, havepetelement, newindex);
-		CHAR_setChar( newindex, CHAR_OWNERCDKEY, CHAR_getChar( charaindex, CHAR_CDKEY));
-		CHAR_setChar( newindex, CHAR_OWNERCHARANAME, CHAR_getChar( charaindex, CHAR_NAME));
-		{
-		char msgbuf[256];
-		snprintf( msgbuf, sizeof( msgbuf ), "K%d", havepetelement );
-		CHAR_sendStatusString( charaindex, msgbuf );
-		snprintf( msgbuf, sizeof( msgbuf ), "W%d", havepetelement );
-		CHAR_sendStatusString( charaindex, msgbuf );
-		}
-	}
-    return newindex;
-}
-
-int PET_CheckIncubate( int charaindex)
-{
-#ifndef _USER_CHARLOOPS
-	int i;
-	static time_t checkeage;
-	int anhour = PETFEEDTIME;
-	checkeage = (int)time( NULL);
-	if( !CHAR_CHECKINDEX( charaindex) )return 0;
-
-	for(i=0 ; i < CHAR_MAXPETHAVE ; i++)	{
-		int time_l=0;
-		int petindex = CHAR_getCharPet( charaindex, i);
-		if( !CHAR_CHECKINDEX( petindex) ) continue;
-		if( CHAR_getInt( petindex, CHAR_FUSIONBEIT) != 1 ||
-			CHAR_getInt( petindex, CHAR_FUSIONRAISE) <= 0 )return;//检查是否为融合宠
-
-		time_l = CHAR_getInt( petindex, CHAR_FUSIONTIMELIMIT);
-		if( time_l < 0 || time_l > checkeage ){
-			CHAR_setInt( petindex, CHAR_FUSIONTIMELIMIT, checkeage);
-			continue;
-		}
-
-		if( (int)checkeage > (time_l+(anhour*2)) ){
-			char buf[256];
-			int levelup, vital, str, tgh, dex;
-			int raise = CHAR_getInt( petindex, CHAR_FUSIONRAISE);
-			//  养次数
-			raise++;
-			CHAR_setInt( petindex, CHAR_FUSIONTIMELIMIT, (int)time(NULL)+anhour-1);
-			if( raise < 0 ) raise = 0;
-			if( raise >= 40 ) raise = 30;
-			CHAR_setInt( petindex, CHAR_FUSIONRAISE, raise);
-			levelup = CHAR_getInt( petindex, CHAR_ALLOCPOINT);
-			vital = ((levelup>>24) & 0xFF) - 5;
-			str   = ((levelup>>16) & 0xFF) - 5;
-			tgh   = ((levelup>> 8) & 0xFF) - 5;
-			dex   = ((levelup>> 0) & 0xFF) - 5;
-			if( vital < 0 ) vital = 0;
-			if( str < 0 ) str = 0;
-			if( tgh < 0 ) tgh = 0;
-			if( dex < 0 ) dex = 0;
-			//扣属性
-			levelup = (vital<<24) + (str<<16) + (tgh<<8) + (dex<<0);
-			CHAR_setInt( petindex, CHAR_ALLOCPOINT, levelup);
-			sprintf( buf, "蛋〈%s〉的品质变差了。", CHAR_getUseName( petindex ));
-			CHAR_talkToCli( charaindex, -1, buf, CHAR_COLORYELLOW);
-
-			LogPetFeed(
-				CHAR_getChar( charaindex, CHAR_NAME),
-				CHAR_getChar( charaindex, CHAR_CDKEY),
-				CHAR_getChar( petindex, CHAR_NAME),
-				petindex,
-				CHAR_getInt( petindex, CHAR_LV),
-				"品质变差", // Key
-				CHAR_getInt( charaindex, CHAR_FLOOR),
-				CHAR_getInt( charaindex, CHAR_X),
-				CHAR_getInt( charaindex, CHAR_Y),
-				CHAR_getChar( petindex, CHAR_UNIQUECODE) );
-
-		}else if( (int)checkeage > (time_l+anhour)  ){
-
-			char buf[256];
-			sprintf( buf, "蛋〈%s〉呈现可  食状态。", CHAR_getUseName( petindex ));
-			CHAR_talkToCli( charaindex, -1, buf, CHAR_COLORYELLOW);
-		}
-	}
-	return 1;
-#else
-		int masterindex, time_l=0;
-		static time_t checkeage;
-		int anhour = PETFEEDTIME, i;
-		
-		if( !CHAR_CHECKINDEX( charaindex) )return 0;
-		masterindex = CHAR_getWorkInt( charaindex, CHAR_WORKPLAYERINDEX);
-		if( !CHAR_CHECKINDEX( masterindex) )return 0;
-
-		if( CHAR_getInt( charaindex, CHAR_FUSIONBEIT) != 1 ||
-			CHAR_getInt( charaindex, CHAR_FUSIONRAISE) <= 0 ) return 0;//检查是否为融合宠
-
-		for(i=0 ; i < CHAR_MAXPETHAVE ; i++)	{
-			if( charaindex != CHAR_getCharPet( masterindex, i) ) continue;
-			break;
-		}
-		if( i >= CHAR_MAXPETHAVE ) return 0;
-
-#ifdef _PET_FUSIONSHOWTIME
-		{
-
-			char caname[256], msgbuf[64];
-			int deftime;
-			int oldtime = CHAR_getInt( charaindex, CHAR_FUSIONTIMELIMIT);
-
-			for(i=0 ; i < CHAR_MAXPETHAVE ; i++)	{
-				if( charaindex != CHAR_getCharPet( masterindex, i) ) continue;
-				deftime = anhour - ( checkeage - oldtime);
-				if( deftime >= 0 ){
-					sprintf( caname, "宠物蛋(%d)", (int)(deftime/60));
-				}else{
-					deftime =  ( checkeage - oldtime) - anhour;
-					sprintf( caname, "宠物蛋(饿%d)", (int)(deftime/60));
-				}
-				CHAR_setChar( charaindex, CHAR_USERPETNAME, caname);
-				snprintf( msgbuf, sizeof( msgbuf ), "K%d", i );
-				CHAR_sendStatusString( masterindex, msgbuf );
-				snprintf( msgbuf, sizeof( msgbuf ), "W%d", i );
-				CHAR_sendStatusString( masterindex, msgbuf );
-				break;
-			}
-		}
-#endif
-		checkeage = (int)time( NULL);
-
-		time_l = CHAR_getInt( charaindex, CHAR_FUSIONTIMELIMIT);
-		if( time_l < 0 || time_l > checkeage ){
-			CHAR_setInt( charaindex, CHAR_FUSIONTIMELIMIT, checkeage);
-			return 0;
-		}
-		if( (int)checkeage > (time_l+(anhour*2.5)) ){
-			char buf[256];
-			int levelup, vital, str, tgh, dex;
-			int raise = CHAR_getInt( charaindex, CHAR_FUSIONRAISE);
-			raise++;
-			CHAR_setInt( charaindex, CHAR_FUSIONTIMELIMIT, (int)time(NULL)+anhour-1);
-			if( raise < 0 ) raise = 0;
-			if( raise >= 40 ) raise = 30;
-			CHAR_setInt( charaindex, CHAR_FUSIONRAISE, raise);
-			levelup = CHAR_getInt( charaindex, CHAR_ALLOCPOINT);
-			vital = ((levelup>>24) & 0xFF) - 6;
-			str   = ((levelup>>16) & 0xFF) - 6;
-			tgh   = ((levelup>> 8) & 0xFF) - 6;
-			dex   = ((levelup>> 0) & 0xFF) - 6;
-			if( vital < 0 ) vital = 0;
-			if( str < 0 ) str = 0;
-			if( tgh < 0 ) tgh = 0;
-			if( dex < 0 ) dex = 0;
-			//扣属性
-			levelup = (vital<<24) + (str<<16) + (tgh<<8) + (dex<<0);
-			CHAR_setInt( charaindex, CHAR_ALLOCPOINT, levelup);
-			sprintf( buf, "蛋〈%s〉的品质变差了。", CHAR_getUseName( charaindex ));
-			CHAR_talkToCli( masterindex, -1, buf, CHAR_COLORYELLOW);
-
-			LogPetFeed(
-				CHAR_getChar( masterindex, CHAR_NAME),
-				CHAR_getChar( masterindex, CHAR_CDKEY),
-				CHAR_getChar( charaindex, CHAR_NAME),
-				charaindex,
-				CHAR_getInt( charaindex, CHAR_LV),
-				"品质变差", // Key
-				CHAR_getInt( masterindex, CHAR_FLOOR),
-				CHAR_getInt( masterindex, CHAR_X),
-				CHAR_getInt( masterindex, CHAR_Y),
-				CHAR_getChar( charaindex, CHAR_UNIQUECODE) );
-
-		}else if( (int)checkeage > (time_l+anhour) ){
-			char buf[256];
-			sprintf( buf, "蛋〈%s〉呈现可  食状态。", CHAR_getUseName( charaindex ));
-			CHAR_talkToCli( masterindex, -1, buf, CHAR_COLORYELLOW);
-		}
-		return 1;
-#endif
-}
-#endif
-
-#ifdef _NPC_FUSION
-int PETFUSION_SetNewEgg( int toindex , int petindex, int array, int *work, int *skill1, int *skill2)
-{
-    int     *p;
-    int		tp[E_T_DATAINTNUM];
-    int		tarray, i;
-	int		level, workrank, petrank=0;
-	int		LevelUpPoint;
-	struct 	{
-    	int		num;
-    	float	rank;
-    }ranktbl[] = {
-    	{ 130, 2.5},
-    	{ 100, 2.0},
-    	{ 95, 1.5},
-    	{ 85, 1.0},
-    	{ 80, 0.5},
-    	{ 0, 0.0},
-    };
-    if( !ENEMY_CHECKINDEX( array))
-		return -1;
-	p = ENEMY_getIntdata( array);
-	if( p == NULL )	{
-		print("\n p = NULL" );
-		return -1;
-	}
-	tarray = ENEMYTEMP_getEnemyTempArray( array);
-	if( !ENEMYTEMP_CHECKINDEX( tarray))
-		return -1;
-	//print( "ANDY tarray/array=%d/%d-->%s \n", tarray, array,
-	//	ENEMYTEMP_getChar( tarray, E_T_NAME));
-	for( i = 0; i < E_T_DATAINTNUM; i ++ ){
-		tp[i] = ENEMYTEMP_getInt( tarray, i);
-	}
-	level = 1;
-#define RAND(x,y)   ((x-1)+1+ (int)( (double)(y-(x-1))*rand()/(RAND_MAX+1.0)) )
-#define	E_PAR( a)		(*(p + (a)))
-#define	ET_PAR( a)		(*(tp + (a)))
-#define	PARAM_CAL( l) 	( ( level -1) * ET_PAR( E_T_LVUPPOINT) + ET_PAR( E_T_INITNUM) )
-	work[0] += ( RAND(0,4) - 2 );
-	work[1] += ( RAND(0,4) - 2 );
-	work[2] += ( RAND(0,4) - 2 );
-	work[3] += ( RAND(0,4) - 2 );
-	LevelUpPoint = ( work[0] << 24 )
-		+ (work[1] << 16)
-		+ (work[2] << 8 )
-		+ (work[3] << 0 );
-
-	CHAR_setInt( petindex, CHAR_ALLOCPOINT, LevelUpPoint);
-	workrank = work[0]+work[1]+work[2]+work[3];
-	for( i = 0; i < arraysizeof( ranktbl); i ++ ) {
-		if(  workrank >= ranktbl[i].num ) {
-			petrank = i;
-			break;
-		}
-	}
-	if( i>= arraysizeof( ranktbl)) i = arraysizeof( ranktbl);
-	CHAR_setInt( petindex, CHAR_PETRANK, petrank);
-	for( i = 0; i < 10; i ++ ){
-		int rnt = RAND( 0, 3 );
-		if( rnt == 0 ) work[0]++;
-		if( rnt == 1 ) work[1]++;
-		if( rnt == 2 ) work[2]++;
-		if( rnt == 3 ) work[3]++;
-	}
-
-    CHAR_setInt( petindex, CHAR_VITAL, ( PARAM_CAL(E_T_BASEVITAL) * work[0] ));
-    CHAR_setInt( petindex, CHAR_STR , ( PARAM_CAL(E_T_BASESTR) * work[1] ));
-    CHAR_setInt( petindex, CHAR_TOUGH , ( PARAM_CAL(E_T_BASETGH) * work[2] ));
-    CHAR_setInt( petindex, CHAR_DEX , ( PARAM_CAL(E_T_BASEDEX) * work[3] ));
-	CHAR_setMaxExp( petindex, 0);
-	CHAR_setInt( petindex, CHAR_LV, level);
-
-	//宠物技能设为七技
-	CHAR_setInt( petindex, CHAR_SLOT, 7);
-	{
-		int j;
-		int	illegalpetskill[15] = {41,52,600,601,602,603,604,614,617,628,630,631,635,638,641};
-		for( i=0; i<CHAR_MAXPETSKILLHAVE; i++)	{
-			if( RAND( 0, 1 ) == 0 )	{
-				skill1[i] = skill2[i];
-			}
-			for( j=0; j<15; j++)	{	//检查非法技能
-				if( illegalpetskill[j] == skill1[i] ){
-					skill1[i] = -1;
-					break;
-				}
-			}
-		}
-	}
-	for( i=0; i<CHAR_MAXPETSKILLHAVE; i++)	{
-		CHAR_setPetSkill( petindex, i, skill1[i]);
-	}
-#undef	E_PAR
-#undef	ET_PAR
-#undef	PARAM_CAL
-    CHAR_complianceParameter( petindex );
-	CHAR_setInt( petindex, CHAR_HP, CHAR_getWorkInt( petindex, CHAR_WORKMAXHP));
-	if( CHAR_CHECKINDEX( toindex) ){
-		CHAR_setWorkInt( petindex, CHAR_WORKPLAYERINDEX, toindex);
-		CHAR_setChar( petindex, CHAR_OWNERCDKEY, CHAR_getChar( toindex, CHAR_CDKEY));
-		CHAR_setChar( petindex, CHAR_OWNERCHARANAME, CHAR_getChar( toindex, CHAR_NAME));
-	}
-	CHAR_setInt ( petindex, CHAR_WHICHTYPE , CHAR_TYPEPET);
-#ifdef _PET_2TRANS
-	CHAR_setInt ( petindex, CHAR_TRANSMIGRATION, 2);
-#else
-	CHAR_setInt ( petindex, CHAR_TRANSMIGRATION, 1);
-#endif
-	CHAR_setInt( petindex, CHAR_FUSIONCODE, -1);
-	CHAR_setInt( petindex, CHAR_FUSIONRAISE, 40);
-	CHAR_setInt( petindex, CHAR_FUSIONBEIT, 1);
-
-	CHAR_setInt( petindex, CHAR_FUSIONTIMELIMIT, (int)time(NULL));
-	CHAR_setInt( petindex, CHAR_EVOLUTIONBASEVTL, 0);
-	CHAR_setInt( petindex, CHAR_EVOLUTIONBASESTR, 0);
-	CHAR_setInt( petindex, CHAR_EVOLUTIONBASETGH, 0);
-	CHAR_setInt( petindex, CHAR_EVOLUTIONBASEDEX, 0);
-#ifdef _USER_CHARLOOPS
-	{
-		Char 	*ch;
-		ch  = CHAR_getCharPointer( petindex);
-		if( ch == NULL ) return 0;
-		//andy_log
-//		print("*CHAR_LOOPFUNCTEMP1:%s \n", "PET_CheckIncubateLoop");
-		strcpysafe( ch->charfunctable[CHAR_LOOPFUNCTEMP1].string,
-				sizeof( ch->charfunctable[CHAR_LOOPFUNCTEMP1]), "PET_CheckIncubateLoop");
-		ch->data[CHAR_LOOPINTERVAL] = 60000;
-		CHAR_constructFunctable( petindex);
-	}
-#endif
-	if( CHAR_CHECKINDEX( toindex) ){
-		for(i = 0; i < CHAR_MAXPETHAVE; i++){
-			char msgbuf[256];
-			int pindex = CHAR_getCharPet(toindex, i);
-			if( !CHAR_CHECKINDEX( pindex) )
-				continue;
-			memset( msgbuf, 0, sizeof( msgbuf));
-			snprintf( msgbuf, sizeof( msgbuf ), "K%d", i );
-			CHAR_sendStatusString( toindex, msgbuf );
-
-			CHAR_send_K_StatusString(toindex, i,CHAR_K_STRING_HP|CHAR_K_STRING_AI);
-		}
-	}
-    return petindex;
-}
-
-BOOL PETFUSION_AddEgg( int toindex, int petID, int PetCode)
-{
-	int	ret;
-	char msgbuf[64];
-	int	enemynum;
-	int	i,j;
-	int petindex, petindex2;
-	
-	//检查宠物栏是否有空位
-	for( i = 0 ;i < CHAR_MAXPETHAVE ; i++) {
-		petindex = CHAR_getCharPet( toindex, i);
-		if( petindex == -1  )
-			break;
-	}
-	if( i == CHAR_MAXPETHAVE )      {
-		snprintf( msgbuf,sizeof( msgbuf), "宠物已满！！");
-		CHAR_talkToCli( toindex, -1, msgbuf,  CHAR_COLORYELLOW);
-		return -1;
-	}
-	enemynum = ENEMY_getEnemyNum();
-	for( i = 0; i < enemynum; i ++ ) {//PetCode
-		if( ENEMY_getInt( i, ENEMY_ID ) == petID )
-		//if( ENEMY_getInt( i, ENEMY_TEMPNO ) == PetCode )
-			break;
-	}
-	if( i == enemynum ){
-		print("ANDY err i == enemynum \n");
-		return -1;
-	}
-	ret = ENEMY_createPetFromEnemyIndex( toindex, i);
-	for( i = 0; i < CHAR_MAXPETHAVE; i ++ )	{
-		if( CHAR_getCharPet( toindex, i ) == ret )
-			break;
-	}
-	if( i == CHAR_MAXPETHAVE )
-		i = 0;	
-	if( CHAR_CHECKINDEX( ret ) == TRUE ){
-		CHAR_setMaxExpFromLevel( ret, CHAR_getInt( ret, CHAR_LV ));
-	}
-	petindex2 = CHAR_getCharPet( toindex, i);
-	if( !CHAR_CHECKINDEX( petindex2) ){
-		print("ANDY petindex2=%d\n", petindex2);
-		return -1;
-	}
-	CHAR_setInt( petindex2, CHAR_FUSIONINDEX, PetCode);
-	snprintf( msgbuf,sizeof( msgbuf), "拿到%s。", CHAR_getChar(petindex2,CHAR_NAME));
-	CHAR_talkToCli( toindex, -1, msgbuf,  CHAR_COLORYELLOW);
-	for(j = 0; j < CHAR_MAXPETHAVE; j++){
-		petindex = CHAR_getCharPet(toindex, j);
-		if( !CHAR_CHECKINDEX( petindex) )
-			continue;
-		CHAR_complianceParameter( petindex );
-		snprintf( msgbuf, sizeof( msgbuf ), "K%d", j );
-		CHAR_sendStatusString( toindex, msgbuf );
-		snprintf( msgbuf, sizeof( msgbuf ), "W%d", j );
-		CHAR_sendStatusString( toindex, msgbuf );
-	}
-	LogPet(
-		CHAR_getChar( toindex, CHAR_NAME ),
-		CHAR_getChar( toindex, CHAR_CDKEY ),
-		CHAR_getChar( petindex2, CHAR_NAME),
-		CHAR_getInt( petindex2, CHAR_LV),
-		"TenseiGet",
-		CHAR_getInt( toindex,CHAR_FLOOR),
-		CHAR_getInt( toindex,CHAR_X ),
-		CHAR_getInt( toindex,CHAR_Y ),
-		CHAR_getChar( petindex2, CHAR_UNIQUECODE)   // shan 2001/12/14
-	);
-
-	return petindex2;
 }
 #endif
 
@@ -2668,7 +1747,8 @@ int GetNewPet( int toindex , int petindex, int array, int *work)
 	CHAR_setInt( petindex, CHAR_LV, level);
 	//宠物技能设为七技
 	CHAR_setInt( petindex, CHAR_SLOT, 7);
-/*	for( i=0; i<CHAR_MAXPETSKILLHAVE; i++)	{
+/*
+	for( i=0; i<CHAR_MAXPETSKILLHAVE; i++)	{
 		petskill = CHAR_getPetSkill( petindex, i);
 		print("\n petskill = %d ", petskill);
 		if( petskill == -1)	{

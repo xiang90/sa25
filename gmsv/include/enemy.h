@@ -58,9 +58,6 @@ typedef enum
 	E_T_ATOMFIXMIN5,
 	E_T_ATOMFIXMAX5,
     E_T_LIMITLEVEL,	// Arminius 7.30 limit level
-#ifdef _PET_FUSION
-	E_T_FUSIONCODE,
-#endif
     E_T_DATAINTNUM,
 }ENEMYTEMP_DATAINT;
 
@@ -199,15 +196,13 @@ BOOL ENEMY_reinitEnemy( void );
 int ENEMY_createEnemy( int array, int baselevel );
 int *ENEMY_getEnemy( int charaindex, int x, int y);
 int ENEMY_createPetFromEnemyIndex( int charaindex, int array);
-#ifdef _NEW_PETMAKE
-int ENEMY_createPetFromEnemyIndex_new (int, int, int, int, int, int);
-#endif
+
 int ENEMY_getEnemyArrayFromId( int EnemyId);
 int ENEMY_getEnemyArrayFromTempNo( int EnemyTempNo);
 int ENEMY_getEnemyIdFromTempNo( int EnemyTempNo);
 int ENEMY_getEnemyTempNoFromId( int EnemyId);
 
-#ifdef _TEST_PETCREATE
+#ifdef _TEST_DROPITEMS
 int ENEMY_TEST_createPetIndex( int array);
 #endif
 
@@ -235,15 +230,6 @@ BOOL ENEMYTEMP_initEnemy( char* filename );
 BOOL ENEMYTEMP_reinitEnemy( void );
 BOOL GROUP_initGroup( char* filename );
 BOOL GROUP_reinitGroup( void );
-
-#ifdef _PET_EVOLUTION
-int EVOLUTION_createPetFromEnemyIndex( int charaindex, int baseindex, int flg);
-int PET_CheckIncubate( int charaindex);
-BOOL PETFUSION_getIndexForChar( int toindex, int *MainIndex, int *Subindex1,int *Subindex2, char *data);
-int NPC_getFusionTableForBase( int charaindex, int petindex1, int petindex2 );
-int NPC_getPetArrayForNo( int PetCode);
-BOOL PET_getEvolutionAns( int petindex, int *base);
-#endif
 
 int PETFUSION_SetNewEgg( int toindex , int petindex, int array, int *work, int *skill1, int *skill2);
 BOOL PETFUSION_AddEgg(int toindex, int petID, int PetCode);

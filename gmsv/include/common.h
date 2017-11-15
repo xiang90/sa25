@@ -2,6 +2,7 @@
 #define __COMMON_H__
 
 #include <stdio.h>
+#include <errno.h>
 
 /* MACROS */
 #define RETURNFALSEIFFALSE(x) if(!x)return FALSE;
@@ -20,7 +21,7 @@
 #define TAB '\t'
 #define SPACE ' '
 
-/*Æ±¼° define ·½Ô»¶µòå±åÔÊÔÂ    */
+/*ç¥¨åŠ define æ–¹æ›°å…œèˆåžå…æœˆ    */
 /*#define min( x,y ) ((x)>(y)?(y):(x))
   #define max( x,y ) ((x)>(y)?(x):(y))*/
 #define min( x,y ) ({typeof(x) __x=(x),__y=(y);(__x < __y) ? __x : __y; })
@@ -28,10 +29,6 @@
 #define swap( x,y )({typeof(x) __x=(y);(y)=(x);(x)=__x;})
 #define SUCCESSFUL "successful"
 #define FAILED "failed"
-
-#ifdef _BAD_PLAYER             // WON ADD ËÍ»µÍæ¼ÒÈ¥¹Ø
-#define BADPLAYER "badplayer"
-#endif
 
 #define LOCK 1
 #define UNLOCK 0
@@ -59,6 +56,5 @@ extern int snprintf (char* , size_t, const char* , ...)
 #define FALSE 0
 #define TRUE  1
 #define INLINE inline
-#define USE_MTIO 1
 
 #endif

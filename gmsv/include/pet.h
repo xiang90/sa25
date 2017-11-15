@@ -7,8 +7,8 @@
 #include "version.h"
 #include "common.h"
 
-#define PETFEEDTIME	60*60	// 宠物蛋  养时间(秒)
-//#define PETFEEDTIME	5	// 宠物蛋  养时间(秒)
+#define PETFEEDTIME	60*60	// 宠物蛋喂养时间(秒)
+//#define PETFEEDTIME	5	// 宠物蛋喂养时间(秒)
 
 int PET_DEBUG_initPetOne( int charaindex);
 int PET_dropPet( int charaindex, int havepetindex);
@@ -24,9 +24,6 @@ BOOL PET_isPutPoint( int fl,int x, int y);
 BOOL PET_getBaseForAllocpoint( int toindex, int *work);
 void PET_showEditBaseMsg( int charaindex, int toindex, int itemindex, int *work);
 
-#ifdef _PET_EVOLUTION
-BOOL PET_getBaseAndSkill( int charaindex, int baseindex, int *base, int *skill, int flg);
-#endif
 BOOL CHAR_DelPetForIndex( int charaindex, int petindex);
 
 #endif

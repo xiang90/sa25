@@ -22,7 +22,6 @@ typedef enum
 	CHAR_COLORGRAY,
 	CHAR_COLORBLUE2,
 	CHAR_COLORGREEN2,
-
 }CHAR_COLOR;
 /*====================平乓仿及综岳卞楮允月楮醒====================*/
 void CHAR_createNewChar( int clifd, int dataplacenum,char* charname ,
@@ -33,11 +32,7 @@ void CHAR_createNewChar( int clifd, int dataplacenum,char* charname ,
 
 /*====================平乓仿及夫弘奶件====================*/
 
-#ifdef _BAD_PLAYER             // WON ADD 送坏玩家去关
-void CHAR_login( int clifd, char* data, int saveindex, int badplayer );
-#else
 void CHAR_login( int clifd, char* data, int saveindex );
-#endif
 
 #define		CHAR_warpToSpecificPoint( cindex, fl, x, y)	_CHAR_warpToSpecificPoint( __FILE__, __LINE__, cindex, fl, x, y)
 BOOL _CHAR_warpToSpecificPoint( char *file, int line, 
@@ -225,49 +220,13 @@ typedef enum
   WINDOW_MESSAGETYPE_AUCTIONSURVEY,
   WINDOW_MESSAGETYPE_AUCTIONMODIFY,
   WINDOW_MESSAGETYPE_AUCTIONLIST_MODIFY,
-#ifdef _BLACK_MARKET
-  WINDOW_MESSAGETYPE_BLACKMARKET,
-#endif
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收	
-  WINDOWS_MESSAGETYPE_FAMILY_TAX,
-#endif 
-#ifdef _NPC_FUSION
-	WINDOWS_MESSAGETYPE_PETFUSION,
-#endif
 
 #ifdef _PETSKILL_CANNEDFOOD
 	WINDOWS_MESSAGETYPE_PETSKILLSHOW,
 #endif
 
-#ifdef _NPC_SELLSTH
-	WINDOWS_MESSAGETYPE_SELLSTHMENU,
-	WINDOWS_MESSAGETYPE_SELLSTHVIEW,
-	WINDOWS_MESSAGETYPE_SELLSTHSELL,
-#endif
-
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-	WINDOW_MESSAGETYPE_PROFESSIONSHOP,
-#endif
-#ifdef _NPC_WELFARE_2				// WON ADD 职业NPC-2
-	WINDOW_MESSAGETYPE_PROFESSIONSHOP2,
-#endif
-#ifdef _NEW_MANOR_LAW
-	WINDOW_FMMESSAGETYPE_10_MEMONTUM,	// 十大气势家族
-	WINDOW_FMMESSAGETYPE_FM_MEMONTUM,	// 自己家族气势排名
-	WINDOW_FMMESSAGETYPE_MANOR_SCHEDULE,	// 挑战庄园排行
-#endif
-
-#ifdef _ANGEL_SUMMON
-	WINDOW_MESSAGETYPE_ANGELMESSAGE = 101,
-	WINDOW_MESSAGETYPE_ANGELASK,
-#endif
-
 #ifdef _MOUSE_DBL_CLICK
 	WINDOW_MESSAGETYPE_MOUSEGETNAME,
-#endif
-
-#ifdef _CONTRACT
-	WINDOW_MESSAGETYPE_CONTRACT,
 #endif
 
 #ifdef _RACEMAN
@@ -419,14 +378,6 @@ typedef enum
         CHAR_WINDOWTYPE_FM_DPTOP       = 377,     // 强者表(前叁十大列榜)
         CHAR_WINDOWTYPE_FM_DPME        = 378,     // 强者表(自己的列榜)
         CHAR_WINDOWTYPE_FM_DPSELECT    = 379,     // 强者表的选项视窗
-        
-// Terry 2001/08/31
-#ifdef _SERVICE
-        CHAR_WINDOWTYPE_SERVICE_START     = 380,    // 石器服务员确定视窗
-        CHAR_WINDOWTYPE_SERVICE_EXIT      = 381,    // 石器服务员取消视窗
-        CHAR_WINDOWTYPE_SERVICE_CONTINUE  = 382,    // 石器服务员继续视窗
-        CHAR_WINDOWTYPE_SERVICE_WAIT      = 383,    // 石器服务员等待视窗
-#endif       
 
 #ifdef _PET_TRANS
 		CHAR_WINDOWTYPE_PETTRANS_START		= 384,
@@ -458,22 +409,8 @@ typedef enum
 	WINDOWTYPE_GAMBLEROULETTE_END,
 #endif
 
-#ifdef _AUCTIONEER
-  CHAR_WINDOWTYPE_AUCTIONEER_START = 420,
-  CHAR_WINDOWTYPE_AUCTIONEER_NEW,
-  CHAR_WINDOWTYPE_AUCTIONEER_LIST_BUY,
-  CHAR_WINDOWTYPE_AUCTIONEER_SURVEY,
-  CHAR_WINDOWTYPE_AUCTIONEER_MODIFY,
-  CHAR_WINDOWTYPE_AUCTIONEER_LIST_MODIFY,
-  CHAR_WINDOWTYPE_AUCTIONEER_END,
-#endif
-
 #ifdef _NEWEVENT
   CHAR_WINDOWTYPE_WINDOWEVENT_ACCTHANKNEW = 430,
-#endif
-
-#ifdef _BLACK_MARKET
-  CHAR_WINDOWTYPE_BLACKMARKET = 435,
 #endif
 
 #ifdef _TRANSER_MAN
@@ -491,14 +428,7 @@ typedef enum
 #ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收
 	CHAR_WINDOWTYPE_FAMILY_TAX = 450,
 #endif
-#ifdef _PAUCTION_MAN
-	NPC_PAUCTION_START,
-	NPC_PAUCTION_SELECT,
-	NPC_PAUCTION_BUY,
-	NPC_PAUCTION_SELL,
-	NPC_PAUCTION_WARP,
-	NPC_PAUCTION_END,
-#endif
+
 #ifdef _ALLDOMAN // (不可开) Syu ADD 排行榜NPC
 	NPC_ALLDOMAN_START = 460,
 	NPC_ALLDOMAN_START2,
@@ -515,64 +445,6 @@ typedef enum
 	ITEM_WINDOWTYPE_SELECTPETSKILL_END,
 #endif
 
-#ifdef _NPC_WELFARE
-    NPC_WELFARE_START = 480,
-	NPC_WELFARE_END,
-#endif
-
-#ifdef _NPC_VERYWELFARE
-    NPC_VERYWELFARE_START = 490,
-	NPC_VERYWELFARE_NO1,
-	NPC_VERYWELFARE_NO2,
-	NPC_VERYWELFARE_NO3,
-	NPC_VERYWELFARE_END,
-#endif
-
-#ifdef _NPC_WELFARE_2				// WON ADD 职业NPC-2
-    NPC_WELFARE_START2 = 495,
-	NPC_WELFARE_END2,
-#endif
-
-#ifdef _NPC_DEPOTPET
-	CHAR_WINDOWTYPE_DEPOTPETSHOP_MENU = 510,
-	CHAR_WINDOWTYPE_DEPOTPETSHOP_HANDLE,
-	CHAR_WINDOWTYPE_DEPOTPETSHOP_ADD,
-	CHAR_WINDOWTYPE_DEPOTPETSHOP_GET,
-	CHAR_WINDOWTYPE_DEPOTPETSHOP_ASKADD,
-	CHAR_WINDOWTYPE_DEPOTPETSHOP_ASKGET,
-#endif
-
-#ifdef _ANGEL_SUMMON
-	CHAR_WINDOWTYPE_ANGEL_ASK = 520,
-	CHAR_WINDOWTYPE_ANGEL_CLEAN,
-#endif
-
-#ifdef _CONTRACT
-	CHAR_WINDOWTYPE_CONTRACT_ANSWER = 530,
-#endif
-
-#ifdef _RACEMAN							//猎宠大会
-	CHAR_WINDOWTYPE_RACE_START = 540,			// 开始
-	CHAR_WINDOWTYPE_RACE_SUBJECT,				// 猎宠比赛题目
-	CHAR_WINDOWTYPE_RACE_TICKET,				// 领取猎宠证
-	CHAR_WINDOWTYPE_RACE_PETSELECT,				// 宠物选择
-	CHAR_WINDOWTYPE_RACE_CHECKIN,				// 猎宠登记
-	CHAR_WINDOWTYPE_RACE_RANK,					// 猎宠排行榜
-	CHAR_WINDOWTYPE_RACE_PRIZE,					// 兑奖
-	CHAR_WINDOWTYPE_RACE_NORMAL,				// 无标题视窗
-	CHAR_WINDOWTYPE_RACE_SHOWRANK1,				// 新手排行榜
-	CHAR_WINDOWTYPE_RACE_SHOWRANK2,				// 排行榜
-	CHAR_WINDOWTYPE_RACE_SHOWRANK3,				// 排行榜
-	CHAR_WINDOWTYPE_RACE_SHOWRANK4,				// 排行榜
-	CHAR_WINDOWTYPE_RACE_SHOWRANK5,				// 排行榜
-	CHAR_WINDOWTYPE_RACE_SHOWRANK11,			// 显示历史记录
-	CHAR_WINDOWTYPE_RACE_SHOWRANK12,			// 显示历史记录
-	CHAR_WINDOWTYPE_RACE_SHOWRANK13,			// 显示历史记录
-	CHAR_WINDOWTYPE_RACE_SHOWRANK14,			// 显示历史记录
-	CHAR_WINDOWTYPE_RACE_SHOWRANK15,			// 显示历史记录
-	CHAR_WINDOWTYPE_RACE_QUIZ,					// 通关密语
-#endif
-
 }CHAR_WINDOWTYPE;
 
 #ifdef _GMRELOAD
@@ -581,52 +453,6 @@ typedef struct tagGMInfo
 	char cdkey[24];
 	int level;
 }GMInfo;
-#endif
-
-
-#ifdef _ANGEL_SUMMON
-
-#define MAXMISSION 100
-#define MAXMISSIONTABLE 1000
-
-struct MissionInfo
-{
-	int id;
-	char detail[1024];
-	int level;
-	char eventflag[1024];
-	//char bonus[1024];
-	int limittime;
-};
-
-struct MissionTable
-{
-	char angelinfo[128];
-	char heroinfo[128];
-	int mission;
-	int flag;
-	int time;
-	int limittime;
-};
-
-extern struct MissionInfo missionlist[MAXMISSION];
-extern struct MissionTable missiontable[MAXMISSIONTABLE];
-
-#endif
-
-#ifdef _JOBDAILY
-
-#define MAXDAILYLIST 1000
-#define MAXMISSIONFLAG 1000
-typedef struct _DailyFileType
-{
-	char jobid[10];			//任务编号
-	char rule[16384];		//条件判断
-	char explain[200];		//任务说明
-	char state[20];			//状态说明
-}DailyFileType;
-//extern struct DailyFileType dailyfile[MAXDAILYLIST];
-
 #endif
 
 BOOL CHAR_talkToCli( int talkedcharaindex,int talkcharaindex, char* message, CHAR_COLOR color );
@@ -673,8 +499,6 @@ void CHAR_PartyUpdate( int charaindex, int senddata );
 char *CHAR_getUseName( int charaindex );
 char *CHAR_getUseID( int charaindex );
 EXTERN int EnemyMoveNum;	/*   凛卞  嫖  仃月衬及醒 */
-extern char *DebugFunctionName;
-extern int DebugPoint;
 
 #define DB_DUELPOINT	"db_duel"			// 犯亘巨伙禾奶件玄犯□正矛□旦
 #define DB_ADDRESSBOOK	"db_addressbook"	// 失玉伊旦皮永弁犯□正矛□旦
@@ -709,12 +533,6 @@ int CHAR_findTotalEmptyItem(int index);
 int CHAR_CHECKJOINENEMY( int index);
 #endif
 
-#ifdef _NPCSERVER_NEW
-BOOL NPCSERVER_CreateObjindexFromServer( int fd, int npcindex, char *Name, int image,
-										int dir, int floor, int x, int y);
-#endif
-
-
 #ifdef _SEND_EFFECT	   	        // WON ADD AC送下雪、下雨等特效
 #define		CHAR_EFFECT_SETTINGBUFFER	256
 typedef struct tagCHAR_effectsetting
@@ -735,10 +553,6 @@ CHAR_effectsetting*    CHAR_effect;
 int                    CHAR_effectnum;
 #endif
 
-#ifdef _ITEM_PILENUMS
-int CHAR_getMyMaxPilenum( int charaindex);
-#endif
-
 #ifdef _PET_LOSTPET
 BOOL CHAR_CharSaveLostPet( int petindex, int type);
 #endif
@@ -747,29 +561,13 @@ void InitHeroList( void);
 #endif
 #endif
 
-#ifdef _STREET_VENDOR
-void CHAR_sendStreetVendor(int charaindex,char *message);
-void CHAR_sendStreetVendorDataToCli(int charaindex,int toindex);
-void CHAR_sendStreetVendorOneDataToCli(int charaindex,int toindex,int sendindex);
-#endif
-
 BOOL checkUnlawWarpFloor( int floor);
 
 #ifdef _HELP_NEWHAND
 void CHAR_loginAddItemForNew( int charaindex );
 #endif
 
-#ifdef _JOBDAILY
-void CHAR_JobDaily(int charaindex,char *data);
-#endif
-
-#ifdef _TEACHER_SYSTEM
-void CHAR_Teacher_system(int charaindex,char *data);
-void CHAR_Teacher_system_View(int charaindex,int iOnLine,char *data);
-#endif
-
 #ifdef _TIME_TICKET
 void check_TimeTicket();
 int check_TimeTicketMap(int floor);
 #endif
-

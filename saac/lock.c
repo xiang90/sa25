@@ -4,18 +4,7 @@
 #include "main.h"
 #include "char.h"
 
-#ifdef _WORKER_AUTO_LOGOUT     // WON ADD GS断线自动送LOGOUT给WORKER
-#include "recv.h"
-#endif
-
 LockNode **userlock;
-
-#ifdef _UNLOCKPOOL
-#define	UNLOCKPOOLNUM	2000
-UnlockPoolNode UnlockPool[UNLOCKPOOLNUM];
-int iUnlockPoolAdd =0;
-//int iUnlockPoolClean =0;
-#endif
 
 void Lock_Init(void)
 {
@@ -29,11 +18,8 @@ void Lock_Init(void)
 		userlock[i]->prev=NULL;
 		memset( userlock[i]->cdkey, 0, sizeof( userlock[i]->cdkey) );
 		memset( userlock[i]->server, 0, sizeof( userlock[i]->server) );
-#ifdef _LOCK_ADD_NAME
-		memset( userlock[i]->name, 0, sizeof( userlock[i]->name) );
-#endif
 	}
-	log("MemLock Initialized");
+	log("存贮器初始化");
 }
 
 LockNode *Creat_newNodes( void)
@@ -48,25 +34,14 @@ LockNode *Creat_newNodes( void)
 	newln->next=NULL;
 	memset( newln->cdkey, 0, sizeof( newln->cdkey) );
 	memset( newln->server, 0, sizeof( newln->server) );
-#ifdef _LOCK_ADD_NAME
-	memset( newln->name, 0, sizeof( newln->name) );
-#endif
 	return newln;
 }
 
-#ifdef _LOCK_ADD_NAME
-int InsertMemLock(int entry, char *cdkey,char *name, char *passwd, char *server, int process, char *deadline)
-#else
 int InsertMemLock(int entry, char *cdkey, char *passwd, char *server, int process, char *deadline)
-#endif
 {
 	int j;
 	LockNode *ln = userlock[entry];
-#ifdef _LOCK_ADD_NAME
-		log(" InsertMemLock: %x %s %s %s ", entry, cdkey, name, server);
-#else
-		log(" InsertMemLock: %x %s %s ", entry, cdkey, server);
-#endif
+	log("进入游戏:目录:%x 账号:%s 服务器:%s\n", entry, cdkey, server);
   
 	while( (ln!=NULL) && (ln->use!=0)) ln=ln->next;
 
@@ -90,14 +65,7 @@ int InsertMemLock(int entry, char *cdkey, char *passwd, char *server, int proces
 	ln->use = 1;
 	strcpy( ln->cdkey, cdkey);
 	strcpy( ln->server, server);
-#ifdef _LOCK_ADD_NAME
-	strcpy( ln->name, name);
-#endif
 	ln->process = process;
-#ifdef _TIMEOUTKICK
-	strcpy( ln->passwd, passwd);
-	strcpy( ln->deadline, deadline);
-#endif
 	return 1;
 }
 
@@ -105,15 +73,11 @@ int DeleteMemLock(int entry, char *cdkey, int *process)
 {
 	LockNode *ln = userlock[entry];
 
-	log("DeleteMemLock: entry=%x name=%s ..", entry, cdkey);
+	log("删除内存信息 位置=%x 账号=%s ..", entry, cdkey);
 
 	while (ln!=NULL) {
 		if( ln->use != 0) {
-#ifdef _CHANGEGALAXY
-			if( !strcmp( ln->cdkey, cdkey ) && strcmp( ln->server, "移民") ) break;
-#else
 			if( strcmp( ln->cdkey, cdkey ) == 0 ) break;
-#endif
 		}
 		ln=ln->next;
 	}
@@ -121,14 +85,11 @@ int DeleteMemLock(int entry, char *cdkey, int *process)
 		ln->use=0;
 		memset( ln->cdkey, 0, sizeof( ln->cdkey) );
 		memset( ln->server, 0, sizeof( ln->server) );
-#ifdef _LOCK_ADD_NAME
-		memset( ln->name, 0, sizeof( ln->name) );
-#endif
 		*process = ln->process;
-		log("Delete OK !!\n");
+		log("删除成功\n");
 		return 1;
 	}
-	log("Delete err !!\n");
+	log("删除失败!!\n");
 	return 0;
 }
 
@@ -148,44 +109,6 @@ void DeleteMemLockServer(char *sname)
 		}
 	}
 }
-
-
-#ifdef _WORKER_AUTO_LOGOUT     // WON ADD GS断线自动送LOGOUT给WORKER
-void Worker_auto_logout(int ti, char *sname)
-{
-  int i;
-  LockNode *ln;
-  
-  log("\n GS down! worker send logout !! \n");
-
-  for (i=0; i<256; i++) {
-    ln = userlock[i];
-    while (ln!=NULL) {
-      if (ln->use != 0) {
-        if (strcmp(ln->server, sname)==0) {
-#if 0
-			if( addUnlockPool( ti, ln->cdkey, "", "", "") <0 ) {
-				char id[20];
-				strcpy(id ,ln->cdkey);
-				log("\n UnlockPool_Full!! worker send logout ==> ti(%d) cdkey(%s) index(%d)", ti, id, iUnlockPoolAdd );
-				Worker_send_logout(ti, id);
-			}
-#else
-			char id[20];
-			strcpy(id ,ln->cdkey);
-			log("\n worker send logout ==> ti(%d) cdkey(%s)", ti, id );
-			Worker_send_logout(ti, id);
-#endif
-        }
-      }
-      ln=ln->next;
-    }
-  }
-}
-#endif
-
-
-
 
 int isMemLocked(int entry, char *cdkey)
 {
@@ -210,13 +133,13 @@ int GetMemLockState(int entry, char *cdkey, char *result)
 	while (ln!=NULL) {
 		if (ln->use != 0) {
 			if (strcmp(ln->cdkey, cdkey)==0) {
-				sprintf(result, "%s is locked on %s.",cdkey, ln->server);
+				sprintf(result, "%s 是在 %s 被锁的.",cdkey, ln->server);
 				return 1;
 			}
 		}
 		ln=ln->next;
 	}
-	sprintf(result, "%s is not locked.", cdkey);
+	sprintf(result, "%s 没有被锁.", cdkey);
 	return 0;
 }
 
@@ -249,201 +172,3 @@ int LockNode_getGname( int entries, char *id, char *gname)
 	}
 	return 0;
 }
-
-#ifdef _CHANGEGALAXY
-
-int DeleteGalaxyChangeLock( void)
-{
-	int count =0;
-	int entry =0;
-
-	log(" DeleteGalaxyChangeLock ");
-
-	for( entry =0; entry <256; entry++) {
-
-		LockNode *ln = userlock[entry];
-
-		while (ln!=NULL) {
-			if( ln->use != 0) {
-				if( strcmp( ln->server, "星系移民" ) == 0 ) {
-					ln->use=0;
-					memset( ln->cdkey, 0, sizeof( ln->cdkey) );
-					memset( ln->server, 0, sizeof( ln->server) );
-#ifdef _LOCK_ADD_NAME
-					memset( ln->name, 0, sizeof( ln->name) );
-#endif
-					//*process = ln->process;
-					count++;
-				}
-			}
-			ln=ln->next;
-		}
-	}
-
-	log("num=%d  ", count);
-
-	return count;
-}
-
-
-int isChangeGalaxyLocked( char *cdkey)
-{
-	LockNode *ln;
-	int entry;
-
-	if (!cdkey[0]) return 1;	// invalid id: lock it
-
-	entry = getHash(cdkey) & 0xff;
-	ln = userlock[entry];
-
-	while (ln!=NULL) {
-		if (ln->use != 0) {
-			if( !strcmp(ln->cdkey, cdkey) && !strcmp(ln->server, "星系移民") ) {
-					log(" 星系移民中 ");
-				break;
-			}
-		}
-		ln=ln->next;
-	}
-	if (ln!=NULL) return 1; else return 0;
-}
-
-#endif
-
-
-#ifdef _TIMEOUTKICK
-int ChangeMemDeadline(int entry, char *cdkey, char *deadline)
-{
-
-	LockNode *ln = userlock[entry];
-	while (ln!=NULL) {
-		if (ln->use != 0) {
-			if (strcmp(ln->cdkey, cdkey)==0) {
-				log(" 修改Deadline ");
-				strcpy( ln->deadline, deadline);
-				break;
-			}
-		}
-		ln=ln->next;
-	}
-	if (ln!=NULL) return 1; else return 0;	
-}
-#endif
-
-#ifdef _UNLOCKPOOL
-void UnlockPoolProc( void)
-{
-	static int unlockindex =0;
-	static time_t lastcheck =0;
-	int cleanCount =0;
-
-
-	if( sys_time < lastcheck + 3 ) // 每xx秒检查
-		return;
-	lastcheck = sys_time;
-
-	//log("\n Start send UnlockPool to worker!! ");
-	
-	//while( UnlockPool[unlockindex].use ) {
-	for( unlockindex =0; unlockindex <UNLOCKPOOLNUM; unlockindex++) {
-		
-		if( UnlockPool[unlockindex].use ) {
-
-			char id[128];
-			char charname[128];
-			int ti;
-			char process[128];
-			int mesgid;
-
-			strcpy( id ,UnlockPool[unlockindex].cdkey);
-			strcpy( charname ,UnlockPool[unlockindex].charname);
-			ti = UnlockPool[unlockindex].serverindex;
-			strcpy( process ,UnlockPool[unlockindex].process);
-			mesgid = UnlockPool[unlockindex].mesgid;
-#ifndef _NO_WORKER
-			if( addWorkerTask( id , "dummy" , "3" , dummyCallback , ti ,
-				id , "dummy" , charname , process ,"", mesgid , 0 ) < 0 ) {
-				log(" UnlockPool_send_to_Worker_Err!!!!:%d ", unlockindex);
-				//return;
-				continue;
-			}
-#endif
-			
-			//log("\n Unlockpool_send:ti(%d),cdkey(%s)", ti, id );
-
-			memset( &(UnlockPool[unlockindex]), '\0', sizeof( UnlockPoolNode) );
-			//UnlockPool[unlockindex].use =0;
-			//UnlockPool[unlockindex].cdkey[0] = NULL;
-
-			//unlockindex++;
-			//unlockindex = unlockindex % UNLOCKPOOLNUM;
-
-			cleanCount++;
-
-			//if( cleanCount >=30) // 每次最多送X个logout
-			//	break;
-		}
-	}
-
-	// 一次全清归零
-	iUnlockPoolAdd =0;
-	unlockindex =0;
-
-	log("\n Unlockpool send Count:%d index:%d", cleanCount, unlockindex);
-
-}
-
-
-int addUnlockPool( int serverindex, char *cdkey, char *charname, char *process, int mesgid)
-{
-	int i =0;
-	
-	while( UnlockPool[iUnlockPoolAdd].use ) {
-		iUnlockPoolAdd++;
-		iUnlockPoolAdd = iUnlockPoolAdd % UNLOCKPOOLNUM;
-		
-		i++;
-		if( i >= UNLOCKPOOLNUM ) {
-			log(" UnlockPool_FULL!!!!:%d ", iUnlockPoolAdd);
-			return -1;
-		}
-	}
-	
-	UnlockPool[iUnlockPoolAdd].use = 1;
-	UnlockPool[iUnlockPoolAdd].serverindex = serverindex;
-	strcpy( UnlockPool[iUnlockPoolAdd].cdkey, cdkey);
-	strcpy( UnlockPool[iUnlockPoolAdd].charname, charname);
-	strcpy( UnlockPool[iUnlockPoolAdd].process, process);
-	UnlockPool[iUnlockPoolAdd].mesgid = mesgid;
-
-	log("\n add_UnlockPool:i(%d),si(%d),cdkey(%s)", iUnlockPoolAdd, serverindex, UnlockPool[iUnlockPoolAdd].cdkey );
-
-	iUnlockPoolAdd++;
-	iUnlockPoolAdd = iUnlockPoolAdd % UNLOCKPOOLNUM;
-
-	return 0;
-}
-
-void init_UnlockPool( void)
-{
-	int i;
-	for( i =0; i < UNLOCKPOOLNUM; i++)
-		memset( &(UnlockPool[i]), '\0', sizeof( UnlockPoolNode) );
-}
-
-int inUnlockPool( char* cdkey)
-{
-	int i;
-	for( i=0; i <UNLOCKPOOLNUM; i++) {
-		if( UnlockPool[i].use ) {
-			if( !strcmp( UnlockPool[i].cdkey, cdkey) )
-				return 1;
-		}
-		//else {
-		//	break;
-		//}
-	}
-	return 0;
-}
-
-#endif

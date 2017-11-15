@@ -148,7 +148,7 @@ void NPC_Gamble_RouletteLoop( int meindex)
 		  CHAR_setWorkInt( meindex, NPC_WORK_ROUTEMAX, 0);
 		  CHAR_setInt( meindex, CHAR_LOOPINTERVAL, ROULETTE_STANDBY);
 
-		  //送人物资料给视觉  围内的人
+		  //送人物资料给视觉范围内的人
 		  CHAR_sendCToArroundCharacter( objmeindex);
 		  if( SetEndPoint( meindex ) == FALSE )	{
 			print("\n not Set EndPoint !!");

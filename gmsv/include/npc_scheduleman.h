@@ -14,10 +14,10 @@
 #define MAX_SCHEDULE	24
 
 // schedule 列表的一页所能列出的最大数量
-#define MAXSCHEDULEINONEWINDOW	4
+#define MAXSCHEDULEINONEWINDOW	10
 
 // family 列表的一页所能列出的最大数量
-#define MAXFAMILYINONEWINDOW	8
+#define MAXFAMILYINONEWINDOW	10
 
 // 每一个 scheduleman 所使用的 schedule 储存位置
 // 对应在 fmpks 的 ID*MAX_SCHEDULE 上 (ID=0~MAX_SCHEDULEMAN-1)
@@ -57,9 +57,6 @@ typedef struct tagFamilyPKSchedule {
 #define FMPKS_FLAG_MANOR_PEACE_SAVE	12	// 将庄园挑战存档
 #define FMPKS_FLAG_MANOR_READYTOFIGHT	13	// (GM: manorpk) 全星系变成可约战状态
 #define FMPKS_FLAG_MANOR_CLEANFLAG	14	// (GM: manorpk) 本星球清除状态
-#ifdef _NEW_MANOR_LAW
-#define FMPKS_FLAG_WAIT		15	// 进入挑战期,已记录家族气势,等待挑战排程
-#endif
 
 // 传给 client 的 flag
 #define FLAG_NONE	-1

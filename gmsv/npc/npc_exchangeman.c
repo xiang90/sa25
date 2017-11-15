@@ -14,6 +14,9 @@
 #include "enemy.h"
 #include "npc_warp.h"
 
+#ifdef _TRANS_7_NPC
+BOOL NPC_EventTRANS(int meindex, int talker, char *buff2,int mode);
+#endif
 static void NPC_ExChangeMan_selectWindow( int meindex, int talker,int num);
 BOOL NPC_TypeCheck(int meindex,int talker,char *szMes);
 int NPC_ExChangeManEventCheck( int meindex, int talker, char *buff1);
@@ -72,19 +75,6 @@ BOOL NPC_ExChangeManInit( int meindex )
 	char buf4[256];
 
 	CHAR_setWorkInt(meindex,CHAR_WORK_EVENTWARP,1);
-	
-#if 0
-	char buf2[512];
-	char buf3[256];
-	int j=1;
-	int nameflg=0;
-	int itemno;
-	char *ret;
-	char sendbuf[2][10]={"无法传送。","可以传送。"};
-	char droplogbuf[2][10]={"没消失。","消失了。"};
-	int flg=0;
-#endif			
-
 
 	/*--NPC及正奶皿毛本永玄允月--*/
     CHAR_setInt( meindex , CHAR_WHICHTYPE , CHAR_TYPEEVENT );
@@ -151,75 +141,8 @@ BOOL NPC_ExChangeManInit( int meindex )
 		}
 	}
 
-
 	i = 1;
 
-#if 0
-	/*--奶矛件玄NPC互健丹失奶  丞毛民尼永弁允月--*/
-	/*--民尼永弁嫩  ｝  午仄化壅尹月井＂｝矢永玄丢□伙匹霜木月井＂--*/
-	while(getStringFromIndexWithDelim( argstr ,"EventEnd" ,i ,buf ,sizeof(buf))
-	!=FALSE)
-	{
-		i++;
-		/*--仇仇匹踏井木化中月及反｝伐□瓦件弘毛请允-*/
-		if(NPC_Util_GetStrFromStrWithDelim( buf,"GetItem", buf2,sizeof( buf2)) 
-		!=NULL)
-		{
-			j=1;
-			flg=0;
-			while(getStringFromIndexWithDelim( buf2,",", j, buf3, sizeof(buf3))
-			!=FALSE)
-			{
-				j++;
-				if(strstr( buf2, "*")!=NULL){
-					getStringFromIndexWithDelim( buf3 ,"*" ,1, buf4 ,sizeof(buf4));
-					itemno = atoi(buf4);
-				}else{
-					/*--失奶  丞瓜件田□必永玄--*/
-					itemno = atoi(buf3);
-				}
-				
-				ret=NPC_Util_GetStrFromStrWithDelim( buf,"NoWarning", buf4,sizeof(buf4));
-				if(ret != NULL){
-					char buff[8];
-					int k=1;
-
-					while(getStringFromIndexWithDelim( buf4,"," ,k ,buff, sizeof(buff))
-					!=FALSE){
-						k++;
-						if(itemno == atoi(buff))
-						{
-							flg=1;
-							break;
-						}
-					}
-				}
-				
-				if(flg == 0){
-					if( (itemno >=2400 && itemno < 3000) &&(
-					(ITEM_getdropatlogoutFromITEMtabl(itemno) == 1)
-					 || (ITEM_getvanishatdropFromITEMtabl(itemno) == 1)
-					 || (ITEM_getcanpetmailFromITEMtabl(itemno) == 0))
-					 ){
-						if(nameflg==0){
-							print("\n%s",CHAR_getChar( meindex ,CHAR_NAME));
-							nameflg=1;
-						}
-						print("\nID:%-5d,Logout:%-8s,DropCls:%-8s,SendMail:%-8s,%-16s",
-						itemno,
-						droplogbuf[ITEM_getdropatlogoutFromITEMtabl(itemno)],
-						droplogbuf[ITEM_getvanishatdropFromITEMtabl(itemno)],
-						sendbuf[ITEM_getcanpetmailFromITEMtabl(itemno)],
-						ITEM_getNameFromNumber(itemno)
-						);
-					}
-				}
-				
-			}
-		}
-	
-	}
-#endif
 	return TRUE;
 
 }
@@ -400,61 +323,6 @@ BOOL NPC_TypeCheck(int meindex,int talker,char *szMes)
 								k++;
 							}
 						}
-#ifdef _ANGEL_SUMMON
-						// 完成召唤任务
-						if( NPC_Util_GetStrFromStrWithDelim( buf, "MISSIONOVER",
-							buf2, sizeof( buf2)) != NULL)
-						{
-							int mindex;
-							int mission;
-							char nameinfo[64];
-							
-							mission = atoi( buf2);
-							mindex = checkIfAngel( talker);
-							
-							if( mission == missiontable[mindex].mission )
-							{
-								char msg[1024];
-								
-								print(" ====完成召唤任务==== ");
-
-								CHAR_setInt( talker, CHAR_HEROCNT, 
-									CHAR_getInt( talker, CHAR_HEROCNT)+1 );
-								getMissionNameInfo( talker, nameinfo);
-								saacproto_ACMissionTable_send( acfd, MISSION_HERO_COMPLETE, 4, nameinfo, "");
-								sprintf( msg, " 完成任务 i:%d m:%d %s ", mindex, mission, nameinfo);
-								print( msg);
-								LogAngel( msg );
-							}
-							
-						}
-						
-						// 清除召唤任务
-						if( NPC_Util_GetStrFromStrWithDelim( buf, "MISSIONCLEAN",
-							buf2, sizeof( buf2)) != NULL)
-						{
-							int mindex;
-							int mission;
-							char nameinfo[64];
-							
-							mission = atoi( buf2);
-							mindex = checkIfAngel( talker);
-							
-							if( mission == missiontable[mindex].mission )
-							{
-								char msg[1024];
-
-								getMissionNameInfo( talker, nameinfo);
-								saacproto_ACMissionTable_send( acfd, mindex, 3, nameinfo, "");
-
-								sprintf( msg, " 放弃任务 i:%d m:%d %s ", mindex, mission, nameinfo);
-								print( msg);
-								LogAngel( msg );
-							}
-							
-						}
-#endif
-
 					}else if(NPC_Util_GetStrFromStrWithDelim(buf, "NomalWindowMsg",
 						token, sizeof( token) )
 						!=NULL) {
@@ -502,57 +370,6 @@ BOOL NPC_TypeCheck(int meindex,int talker,char *szMes)
 									k++;
 								}
 							}
-#ifdef _ANGEL_SUMMON
-							// 完成召唤任务
-							if( NPC_Util_GetStrFromStrWithDelim( buf, "MISSIONOVER",
-								buf2, sizeof( buf2)) != NULL)
-							{
-								int mindex;
-								int mission;
-								char nameinfo[64];
-								
-								mission = atoi( buf2);
-								mindex = checkIfAngel( talker);
-								
-								if( mission == missiontable[mindex].mission )
-								{
-									char msg[1024];
-									
-									print(" ====完成召唤任务==== ");
-
-									CHAR_setInt( talker, CHAR_HEROCNT, 
-										CHAR_getInt( talker, CHAR_HEROCNT)+1 );
-									getMissionNameInfo( talker, nameinfo);
-									saacproto_ACMissionTable_send( acfd, MISSION_HERO_COMPLETE, 4, nameinfo, "");
-									sprintf( msg, " 完成任务 i:%d m:%d %s ", mindex, mission, nameinfo);
-									print( msg);
-									LogAngel( msg );
-								}
-								
-							}
-							
-							// 清除召唤任务
-							if( NPC_Util_GetStrFromStrWithDelim( buf, "MISSIONCLEAN",
-								buf2, sizeof( buf2)) != NULL)
-							{
-								int mindex;
-								int mission;
-								char nameinfo[64];
-								
-								mission = atoi( buf2);
-								mindex = checkIfAngel( talker);
-								
-								if( mission == missiontable[mindex].mission )
-								{
-									print(" ====清除召唤任务==== ");
-									
-									getMissionNameInfo( talker, nameinfo);
-									saacproto_ACMissionTable_send( acfd, mindex, 3, nameinfo, "");
-								}
-								
-							}
-#endif
-							
 							lssproto_WN_send( fd, WINDOW_MESSAGETYPE_MESSAGE,
 								WINDOW_BUTTONTYPE_YES,
 								CHAR_WINDOWTYPE_WINDOWEVENT_STARTMSG,
@@ -963,106 +780,11 @@ BOOL NPC_EventFreeIfCheck(int meindex,int talker,char* buf,int kosuu,int flg)
 		}
 	}
 
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-	if(strcmp(buf,"CLASS")==0){
-		if(NPC_ActionClassCheck(meindex,talker,kosuu,flg)==TRUE)
-				return TRUE;
-	}
-#endif
-
 	if(strcmp( buf, "IMAGE") == 0) {
 		if(NPC_ImageCheck( meindex, talker, kosuu, flg) == TRUE) {
 			return TRUE;
 		}
 	}
-
-#ifdef _ANGEL_SUMMON
-	if(strcmp(buf,"ANGEL_NOW")==0){
-		if( NPC_ActionMissionAngelCheck(meindex,talker,kosuu, MISSION_DOING, 0)==TRUE)
-				return TRUE;
-	}
-	if(strcmp(buf,"HERO_NOW")==0){
-		if( NPC_ActionMissionHeroCheck(meindex,talker,kosuu, MISSION_DOING, 0)==TRUE)
-				return TRUE;
-	}
-	if(strcmp(buf,"ANGEL_OVER")==0){
-		if( NPC_ActionMissionAngelCheck(meindex,talker,kosuu, MISSION_HERO_COMPLETE, 0)==TRUE)
-				return TRUE;
-	}
-	if(strcmp(buf,"HERO_OVER")==0){
-		if( NPC_ActionMissionHeroCheck(meindex,talker,kosuu, MISSION_HERO_COMPLETE, 0)==TRUE)
-				return TRUE;
-	}
-	if(strcmp(buf,"ANGEL_OUT")==0){
-		if( NPC_ActionMissionAngelCheck(meindex,talker,kosuu, MISSION_TIMEOVER, 0)==TRUE)
-				return TRUE;
-	}
-	if(strcmp(buf,"HERO_OUT")==0){
-		if( NPC_ActionMissionHeroCheck(meindex,talker,kosuu, MISSION_TIMEOVER, 0)==TRUE)
-				return TRUE;
-	}
-
-	if(strcmp(buf,"ANGEL_I_NOW")==0){
-		if( NPC_ActionMissionAngelCheck(meindex,talker,kosuu, MISSION_DOING, TRUE)==TRUE)
-				return TRUE;
-	}
-	if(strcmp(buf,"HERO_I_NOW")==0){
-		if( NPC_ActionMissionHeroCheck(meindex,talker,kosuu, MISSION_DOING, TRUE)==TRUE)
-				return TRUE;
-	}
-	if(strcmp(buf,"ANGEL_I_OVER")==0){
-		if( NPC_ActionMissionAngelCheck(meindex,talker,kosuu, MISSION_HERO_COMPLETE, TRUE)==TRUE)
-				return TRUE;
-	}
-	if(strcmp(buf,"HERO_I_OVER")==0){
-		if( NPC_ActionMissionHeroCheck(meindex,talker,kosuu, MISSION_HERO_COMPLETE, TRUE)==TRUE)
-				return TRUE;
-	}
-	if(strcmp(buf,"ANGEL_I_OUT")==0){
-		if( NPC_ActionMissionAngelCheck(meindex,talker,kosuu, MISSION_TIMEOVER, TRUE)==TRUE)
-				return TRUE;
-	}
-	if(strcmp(buf,"HERO_I_OUT")==0){
-		if( NPC_ActionMissionHeroCheck(meindex,talker,kosuu, MISSION_TIMEOVER, TRUE)==TRUE)
-				return TRUE;
-	}
-	if(strcmp( buf, "HEROCNT") == 0) {
-		//if(NPC_EventLevelCheck( meindex, talker, kosuu, flg) == TRUE) {
-		if(NPC_HeroCompleteCountCheck( meindex, talker, kosuu, flg) == TRUE)
-			return TRUE;
-	}
-
-#endif
-#ifdef _NPC_EXCHANGEMANTRANS
-	//判断转生
-	{
-		//print("\n判断转生");
-		if(strcmp(buf,"TRANS")==0){
-			int mytrans;
-			mytrans = CHAR_getInt(talker,CHAR_TRANSMIGRATION);
-			if(NPC_EventBigSmallLastCheck( kosuu, mytrans, flg) == TRUE)
-				return TRUE;
-		}
-	}
-#endif
-#ifdef _PROSK99
-	if(strstr( buf, "PROSK" ) != NULL) {//PROSK99>16 职技等级大於等於99%的数量要超过16个
-		char *p=NULL;
-		int i,level=0,count=0;
-		CHAR_HaveSkill *pSkil;
-		if( p = strstr( buf, "PROSK" ) )
-			level = atoi(p+5);
-		else 
-			level = 100;
-		for( i = 0; i < CHAR_SKILLMAXHAVE; i ++ ){
-			if( pSkil = CHAR_getCharHaveSkill( talker, i ) )
-				if( SKILL_getInt( &pSkil->skill, SKILL_LEVEL) >= level )
-					++count;
-		}	
-		if(NPC_EventBigSmallLastCheck( kosuu, count, flg) == TRUE)
-			return TRUE;
-	}
-#endif
 
 #ifdef _ADD_reITEM
 	if(strstr( buf, "reITEM" ) != NULL) {
@@ -1432,9 +1154,6 @@ BOOL NPC_EventBigSmallLastCheck(int point1,int mypoint,int flg)
 /*---------------------------------
  *丢永本□斥毛请  允月
  *----------------------------------*/
-#ifdef _CHANNEL_MODIFY
-extern int *piOccChannelMember;
-#endif
 void NPC_MsgDisp(int meindex,int talker,int num)
 {
 	char argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
@@ -1996,128 +1715,6 @@ void NPC_MsgDisp(int meindex,int talker,int num)
 							k++;
 						}
 					}
-					
-#ifdef _CHAR_PROFESSION
-					// Robin add 清除职业
-					if( NPC_Util_GetStrFromStrWithDelim( buf, "PROFESSION",
-						buf2, sizeof( buf2)) != NULL)
-					{
-						int p_class = atoi( buf2);
-						//Change fix 2004/07/05
-						for( i=0; i<CHAR_STARTITEMARRAY; i++){ //检查装备中道具
-							if( ITEM_CHECKINDEX( CHAR_getItemIndex( talker , i ) )){
-								if( CHAR_getInt( talker, PROFESSION_CLASS ) != 0
-									&& CHAR_getInt( talker, PROFESSION_CLASS ) != ITEM_getInt( CHAR_getItemIndex( talker , i ), ITEM_NEEDPROFESSION) 
-									&& ITEM_getInt( CHAR_getItemIndex( talker , i ), ITEM_NEEDPROFESSION) > 0 ){
-									p_class = 1;
-									CHAR_talkToCli( talker, -1, "请先把职业装备通通卸下！", CHAR_COLORWHITE);
-									break;
-								}
-							}
-						}
-						if( p_class == 0)
-						{
-							print(" ====清除职业==== ");
-							
-							// 还原点数	
-							//if( PROFESSION_RESTORE_POINT( talker ) != 1 )	return FALSE;
-							
-							// 设定职业归零
-							CHAR_setInt( talker, PROFESSION_CLASS, p_class );	
-#ifdef _CHANNEL_MODIFY
-							if(CHAR_getInt(talker,PROFESSION_CLASS) > 0){
-								int i,pclass = CHAR_getInt(talker,PROFESSION_CLASS) - 1;
-								for(i=0;i<getFdnum();i++){
-									if(*(piOccChannelMember + (pclass * getFdnum()) + i) == talker){
-										*(piOccChannelMember + (pclass * getFdnum()) + i) = -1;
-										break;
-									}
-								}
-							}
-#endif
-							
-							// 设定职业等级 0
-							CHAR_setInt( talker, PROFESSION_LEVEL, 0 );
-							
-							// 技能点数归零
-							CHAR_setInt(talker, PROFESSION_SKILL_POINT, 0 );
-							
-							// 还原抗性
-							for( i=0; i<3; i++ )
-								CHAR_setInt( talker, PROFESSION_FIRE_R+i, /*CHAR_getInt( toindex, PROFESSION_FIRE_R+i) + value*/0 );
-							
-							// 还原巫师MP上限
-							CHAR_setInt( talker , CHAR_MAXMP , 100 );
-							
-							// 删除所有技能
-							CHAR_CHAT_DEBUG_delsk( talker, "all" );
-							
-							// ?? Andy add
-							CHAR_setInt( talker , ATTACHPILE, 0);
-							
-							// 清除任务旗标
-							NPC_NowEndEventSetFlgCls( talker, 145);
-							NPC_NowEndEventSetFlgCls( talker, 146);
-							NPC_NowEndEventSetFlgCls( talker, 147);					
-							
-							CHAR_sendStatusString( talker , "S");
-							
-							CHAR_sendCToArroundCharacter( CHAR_getWorkInt( talker , CHAR_WORKOBJINDEX ));
-							
-						}
-						
-					}
-#endif
-#ifdef _ANGEL_SUMMON
-					// 完成召唤任务
-					if( NPC_Util_GetStrFromStrWithDelim( buf, "MISSIONOVER",
-						buf2, sizeof( buf2)) != NULL)
-					{
-						int mindex;
-						int mission;
-						char nameinfo[64];
-						
-						mission = atoi( buf2);
-						mindex = checkIfAngel( talker);
-
-						if( mission == missiontable[mindex].mission )
-						{
-							char msg[1024];
-							
-							print(" ====完成召唤任务==== ");
-
-							CHAR_setInt( talker, CHAR_HEROCNT, 
-								CHAR_getInt( talker, CHAR_HEROCNT)+1 );
-							getMissionNameInfo( talker, nameinfo);
-							saacproto_ACMissionTable_send( acfd, MISSION_HERO_COMPLETE, 4, nameinfo, "");
-							sprintf( msg, " 完成任务 i:%d m:%d %s ", mindex, mission, nameinfo);
-							print( msg);
-							LogAngel( msg );
-						}
-						
-					}
-
-					// 清除召唤任务
-					if( NPC_Util_GetStrFromStrWithDelim( buf, "MISSIONCLEAN",
-						buf2, sizeof( buf2)) != NULL)
-					{
-						int mindex;
-						int mission;
-						char nameinfo[64];
-						
-						mission = atoi( buf2);
-						mindex = checkIfAngel( talker);
-
-						if( mission == missiontable[mindex].mission )
-						{
-							print(" ====清除召唤任务==== ");
-
-							getMissionNameInfo( talker, nameinfo);
-							saacproto_ACMissionTable_send( acfd, mindex, 3, nameinfo, "");
-						}
-						
-					}
-#endif
 				}
 				CHAR_setWorkInt( talker, CHAR_WORKSHOPRELEVANTTRD, 1);
 				work = CHAR_getWorkInt( talker, CHAR_WORKSHOPRELEVANTTRD);
@@ -2588,7 +2185,6 @@ BOOL NPC_EventAdd(int meindex,int talker,int mode)
 		}
 	}
 
-#ifdef _PET_FUSION
 	// Robin add 从NPC取宠物蛋
 	if(NPC_Util_GetStrFromStrWithDelim( buff, "GetEgg", buff2, sizeof( buff2) )
 	 !=NULL)
@@ -2603,7 +2199,6 @@ BOOL NPC_EventAdd(int meindex,int talker,int mode)
 		
 		}
 	}
-#endif
 
 	if(NPC_Util_GetStrFromStrWithDelim( buff, "DelItem", buff2, sizeof( buff2) ) !=NULL){
 		if(strstr(buff2,"EVDEL") != NULL){
@@ -3218,7 +2813,17 @@ BOOL NPC_AcceptDel(int meindex,int talker,int mode )
 		}
 	}
 	
-#ifdef _PET_FUSION
+#ifdef _TRANS_7_NPC
+	if(NPC_Util_GetStrFromStrWithDelim( buf, "TRANS7", buff2, sizeof( buff2) )
+	!=NULL)
+	{
+		if(NPC_EventTRANS( meindex, talker, buff2,1) == FALSE) {
+			NPC_MsgDisp( meindex, talker, 10);
+			return FALSE;
+		}
+	}
+#endif	
+
 	// Robin add 从NPC取宠物蛋
 	if(NPC_Util_GetStrFromStrWithDelim( buf, "GetEgg", buff2, sizeof( buff2) )
 	!=NULL)
@@ -3229,7 +2834,6 @@ BOOL NPC_AcceptDel(int meindex,int talker,int mode )
 			return FALSE;
 		}
 	}
-#endif
 
 	/*--失奶  丞毛壅允--*/
 	if(NPC_Util_GetStrFromStrWithDelim( buf, "DelItem", buff2, sizeof( buff2) )	!= NULL){
@@ -3480,7 +3084,47 @@ BOOL NPC_EventAddPet(int meindex, int talker, char *buff2,int mode)
 
 }
 
-#ifdef _PET_FUSION
+#ifdef _TRANS_7_NPC
+BOOL NPC_EventTRANS(int meindex, int talker, char *buff2,int mode)
+{
+	char token[128];
+	int work[10];
+	int Trans=CHAR_getInt(talker,CHAR_TRANSMIGRATION)+1;
+	if(Trans>7 || CHAR_getInt(talker,CHAR_LV)<80){
+		sprintf( token, "由于你已七转或等级小于80级，所以转生失败!", CHAR_getChar( talker, CHAR_NAME));
+		CHAR_talkToCli( talker, -1, token, CHAR_COLORYELLOW );
+		return;
+	}
+#ifdef _ADD_POOL_ITEM			   // WON ADD 增加可寄放的道具	
+	int tran_pool_item[5] = { 4, 4, 4, 4, 4 };		// 增加的道具寄放数
+	int tran_pool_pet[5] = { 2, 2, 2, 2, 2};		// 增加的宠物寄放数
+	int j,item_sum=0, pet_sum=0;
+
+	for(j=0; j<5 ;j++){
+		item_sum += tran_pool_item[j] ;			
+		pet_sum += tran_pool_pet[j];		
+	}
+
+	item_sum += 10;								// 限制最大的寄道具数
+	pet_sum  += 5;							    // 限制最大的寄宠数
+
+#endif
+	NPC_TransmigrationStatus(talker, talker, work);
+	NPC_TransmigrationFlg_CLS(talker, talker);
+	CHAR_setInt(talker ,CHAR_TRANSMIGRATION, Trans);
+	CHAR_setInt(talker, CHAR_LV ,1);
+	CHAR_setMaxExp( talker, 0);
+  CHAR_setInt( talker,CHAR_SKILLUPPOINT,CHAR_getInt( talker, CHAR_TRANSMIGRATION)*10);
+  CHAR_Skillupsend( talker );
+  CHAR_setInt( talker,CHAR_RIDEPET, -1 );
+  CHAR_setInt( talker , CHAR_BASEIMAGENUMBER , CHAR_getInt( talker , CHAR_BASEBASEIMAGENUMBER) );
+	CHAR_sendStatusString( talker , "P");
+	
+	CHAR_talkToCli( talker, -1, buff2, CHAR_COLORYELLOW );
+}
+#endif	
+
+
 // Robin add NPC给宠物蛋
 BOOL NPC_EventAddEgg(int meindex, int talker, char *buff2,int mode)
 {
@@ -3573,13 +3217,6 @@ BOOL NPC_EventAddEgg(int meindex, int talker, char *buff2,int mode)
 		return FALSE;
 	}
 
-	// 设为宠物蛋
-	CHAR_setInt( petindex, CHAR_FUSIONBEIT, 1);
-	CHAR_setInt( petindex, CHAR_FUSIONCODE, -1);
-	CHAR_setInt( petindex, CHAR_FUSIONRAISE, raise);
-	CHAR_setInt( petindex, CHAR_FUSIONINDEX, petid);
-	CHAR_setInt( petindex, CHAR_FUSIONTIMELIMIT, (int)time( NULL));
-	
 	CHAR_complianceParameter( petindex );
 	snprintf( msgbuf, sizeof( msgbuf ), "K%d", i );
 	CHAR_sendStatusString( talker, msgbuf );
@@ -3609,11 +3246,10 @@ BOOL NPC_EventAddEgg(int meindex, int talker, char *buff2,int mode)
 		/*--奶矛件玄迕及矢永玄--*/
 		CHAR_setInt( petindex, CHAR_ENDEVENT, 1);
 	}
-
 	return TRUE;
 
 }
-#endif
+
 
 /*---------------------------
  *  奶矛件玄  毛绰轮允月
@@ -3641,15 +3277,9 @@ BOOL NPC_EventDelItem(int meindex,int talker,char *buf,int breakflg)
 			itemno = atoi( buf2); 
 			getStringFromIndexWithDelim( buff3, "*", 2, buf2, sizeof( buf2));
 			kosuu = atoi( buf2);
-
-#ifdef _ITEM_PILENUMS	 
+	 
 			if( breakflg != 1 ){
-                NPC_ActionDoPileDelItem( talker, itemno, kosuu);//有堆叠的处理
-				//print ("Condition err! _ITEM_PILENUMS is not defined.\n");
-			}
-            else
-#endif
-			{
+      }else{
 			    for( i =0 ; i < CHAR_MAXITEMHAVE ; i++ ){
 				    itemindex = CHAR_getItemIndex( talker , i );
 				    if( ITEM_CHECKINDEX( itemindex) ) {
@@ -3756,10 +3386,8 @@ BOOL NPC_EventDelItemEVDEL(int meindex,int talker,char *buf,char *nbuf,int break
 
 		if(strstr(buff3,"*") != NULL) {
 			int kosuu;
-#ifndef _ITEM_PILENUMS
 			char token[256];
 			int i, itemindex, id, cnt;
-#endif
 			getStringFromIndexWithDelim( buff3, "*", 1, buf2, sizeof( buf2));
 			itemno = atoi( buf2); 
 			getStringFromIndexWithDelim( buff3, "*", 2, buf2, sizeof( buf2));
@@ -3775,9 +3403,6 @@ BOOL NPC_EventDelItemEVDEL(int meindex,int talker,char *buf,char *nbuf,int break
 				}
 				if(l == -1) continue;
 			}
-#ifdef _ITEM_PILENUMS
-			NPC_ActionDoPileDelItem( talker, itemno, kosuu);
-#else
 			cnt = 0;
 			for( i =0 ; i < CHAR_MAXITEMHAVE ; i++ ){
 				itemindex = CHAR_getItemIndex( talker , i );
@@ -3817,12 +3442,9 @@ BOOL NPC_EventDelItemEVDEL(int meindex,int talker,char *buf,char *nbuf,int break
 					}
 				}
 			}		
-#endif
 		}else{
-#ifndef _ITEM_PILENUMS
 			int j, itemindex;
 			char token[256];
-#endif
 			if(strstr(nbuf,"-1") == NULL){
 				l = 1;
 				while(getStringFromIndexWithDelim(nbuf , "," , l, buf2, sizeof(buf2))){
@@ -3835,9 +3457,6 @@ BOOL NPC_EventDelItemEVDEL(int meindex,int talker,char *buf,char *nbuf,int break
 				if(l == -1) continue;
 			}
 			itemno = -1;
-#ifdef _ITEM_PILENUMS
-			NPC_ActionDoPileDelItem( talker, itemno, itemno);
-#else
 			for( j = 0 ;  j < CHAR_MAXITEMHAVE ; j++){
 				itemindex = CHAR_getItemIndex( talker ,j);
 				if( ITEM_CHECKINDEX( itemindex)){
@@ -3872,7 +3491,6 @@ BOOL NPC_EventDelItemEVDEL(int meindex,int talker,char *buf,char *nbuf,int break
 					}
 				}
 			}
-#endif
 		}
 	}
 
@@ -4073,13 +3691,11 @@ BOOL NPC_EventReduce(int meindex,int talker,char *buf)
 		if( ITEM_CHECKINDEX( itemindex) ){
 			id = ITEM_getInt( itemindex ,ITEM_ID);
 			if(itemno == id){
-#ifdef _ITEMSET4_TXT
 				//change add 增加对堆叠的判断
 				int pilenum = ITEM_getInt( itemindex, ITEM_USEPILENUMS);
 				if( pilenum )
 					cnt+=pilenum;
 				else
-#endif
 					cnt++;
 
 				if(cnt >= kosuu){

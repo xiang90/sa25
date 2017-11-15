@@ -13,46 +13,6 @@
 
 BOOL NPC_OldmanInit( int meindex )
 {
-
-#if 0
-    int     oldmanid=0, bornfl=0, bornx=0 ,borny=0;
-    char*   npcarg;
-    char    token[32]="";
-/*    print( "³¤ÀÏµÄÒýÊý: '%s'\n" , CHAR_getChar(
-                         meindex, CHAR_NPCARGUMENT ));*/
-    npcarg = CHAR_getChar(meindex,CHAR_NPCARGUMENT);
-
-    getStringFromIndexWithDelim( npcarg,"|",1,token,sizeof(token));
-    oldmanid = atoi( token );
-    getStringFromIndexWithDelim( npcarg,"|",2,token,sizeof(token));
-    bornfl = atoi( token );
-    getStringFromIndexWithDelim( npcarg,"|",3,token,sizeof(token));
-    bornx = atoi( token );
-    getStringFromIndexWithDelim( npcarg,"|",4,token,sizeof(token));
-    borny = atoi( token );
-
-    /* Ó®  ·´IDÃ«´´Òü»¯ÔÆÈÊ¹ÏØø */
-    CHAR_setWorkInt( meindex , CHAR_WORKOLDMANID ,oldmanid );
-    CHAR_setInt( meindex , CHAR_WHICHTYPE , CHAR_TYPEHEALER );
-    CHAR_setFlg( meindex , CHAR_ISATTACKED , 0 );
-    CHAR_setFlg( meindex , CHAR_ISOVERED , 0 );
-
-    if( MAP_IsValidCoordinate( bornfl,bornx,borny )== TRUE
-        /*  °×·òÊ§ID»¥ÖÐÖÐ¾®Éýµ¤¾®Ã«Æ©ÍÍÔÂ  */
-        &&
-        CHAR_ElderSetPosition( oldmanid ,bornfl,bornx, borny ) 
-        == TRUE ){
-        /* Ó®  ¼°ÞË  Ã«âÙÓå¼ÀÔÊÔÂØ¦Ô» */
-        return TRUE;
-    }else{
-        printf( "Invalid elder npcarg=%s\n", npcarg );
-        
-        /* Ø¤ÒýÔ»±åºÖÛ¢Ø¦¾Þ·Â¡õØ¦¼°Æ¥£ýneverMakeØÆØ¦ÖÐ£Û
-             ¼Ô¾Þ·Â¡õ¶ªÓÀ±¾¡õ³âÇë½ñÁùÔÂ */
-        return FALSE;
-    }
-#endif
-
 	return FALSE;
 
 }
@@ -67,9 +27,7 @@ BOOL NPC_OldmanInit( int meindex )
  * * by ringo
  */
 
-void NPC_OldmanTalked( int meindex , int talkerindex , char *msg ,
-                     int color )
-
+void NPC_OldmanTalked( int meindex , int talkerindex , char *msg , int color )
 {
     char message[1024];
     char *n = CHAR_getChar( talkerindex , CHAR_NAME );

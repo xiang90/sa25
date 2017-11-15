@@ -52,8 +52,8 @@ getNextMessageID(void)
     if( fp == NULL ){
         fp = fopen( filename ,"w" );
         if( fp == NULL ){
-            log( "cannot create %s ... using always same message_id,"
-                 " saac can be too slow!(id:9999)\n", filename );
+            log( "不能创建 %s ... 使用同样的邮件ID,"
+                 " saac 发送变得缓慢!(id:9999)\n", filename );
             return 9999;
         }
         fprintf( fp, "10000\n" );
@@ -66,13 +66,13 @@ getNextMessageID(void)
 
     fp = fopen( filename, "w" );
     if( fp == NULL ){
-        log( "cannot write new id to %s ... using same number!\n", filename );
+        log( "不能写入新的ID到 %s ... 使用同样的数字!\n", filename );
         return i;
     }
     fprintf( fp, "%u", i+1 );
     fclose(fp);
 
-    log( "new message_id:%u\n", i);
+    log( "新邮件ID:%u\n", i);
     return i;
 }
 
@@ -90,7 +90,7 @@ static int reallocMailBuf( void )
     newbuf = ( struct mail * )calloc( 1, new_mailbufsize *
                                       sizeof( struct mail ));
     if( newbuf == NULL ){
-        log( "reallocMailBuf: memory shortage!! new_mailbufsize:%d\n",
+        log( "回复邮件缓冲: 内件不足!! 新邮件大小:%d\n",
              new_mailbufsize );
         return -1;
     }
@@ -101,8 +101,8 @@ static int reallocMailBuf( void )
     mailbufsize = new_mailbufsize;
     mailbuf = newbuf;
 
-    log( "reallocMailBuf: "
-         "new_mailbufsize:%d Old address:%x address:%x\n",
+    log( "重新分配邮件缓冲: "
+         "新邮件缓冲:%d 旧地址:%x 新地址:%x\n",
          new_mailbufsize, (unsigned int)previous,(unsigned int)newbuf );
     return 0;
 }
@@ -131,9 +131,9 @@ static int allocMail( int use_msgid, unsigned int msgid  )
             return mailbuf_finder;
         }
     }
-    log( "allocMail: mailbuf full.reallocating...\n" );
+    log( "分配邮件: 邮件缓冲失败.正在进行分配...\n" );
     if( reallocMailBuf() < 0 ){
-        log( "allocMail: reallocation fail\n" );
+        log( "分配邮件: 分配失败\n" );
     } else {
         return allocMail(use_msgid, msgid );
     }
@@ -157,7 +157,7 @@ void receiveMail( char *id_from,
     snprintf( id_charname, sizeof( id_charname), "%s_%s", id_to, charname_to );
     h = hashpjw( id_charname ) & 0xff ;
     if( (mbindex = allocMail(use_msgid, msgid )) < 0 ){
-        log( "receiveMail: failed to get a new mailbuf.\n" );
+        log( "回复邮件: 获取新的邮件缓冲失败.\n" );
         return;
     }
     mailbuf[mbindex].id_charname_hash = h;
@@ -180,7 +180,7 @@ void receiveMail( char *id_from,
         makeDirFilename( savefile , sizeof(savefile), maildir, h, childname );
         fp = fopen( savefile, "w" );
         if( fp == NULL ){
-            log( "receiveMail : cannot save a mail in file: %s %s\n",
+            log( "回复邮件 : 不能保存邮件文件: %s %s\n",
                  savefile, strerror( errno ));
             return;
         }
@@ -208,8 +208,7 @@ void receiveMail( char *id_from,
 			static int mailnum=0;
 			if( mailnum%10 == 0)
 				log(".");
-			mailnum++;
-			mailnum %= 1000;
+			mailnum = (++mailnum%1000);
 			if( mailnum == 0 )
 				log("\n");
 		}
@@ -254,8 +253,8 @@ void receiveMailAck( char *id, char *charname, int a , int mesgid )
                     log( "failed to unlink %s: %s\n",
                          savefile, strerror(errno ));
                 } else {
-                    log( "receiveMailAck: removed mail "
-                         "%u from %s(%s) to %s(%s)\n",
+                    log( "回复邮件: 删除邮件 "
+                         "%u 从 %s(%s) to %s(%s)\n",
                          mailbuf[i].message_id,
                          mailbuf[i].id_from,
                          mailbuf[i].charname_from,
@@ -265,8 +264,7 @@ void receiveMailAck( char *id, char *charname, int a , int mesgid )
                 memset( &mailbuf[i], 0 , sizeof( mailbuf[0] ));
                 return;
             } else {
-                log( "receiveMailAck: hash or id or charname or state is"
-                     " badly configured\n" );
+                log( "回复邮件: 无用信息或ID或名称或声明严重错误" );
                 log( "use[%d] h[%d][%d] id[%s][%s] nm[%s][%s] st[%d]\n",
                      mailbuf[i].use, mailbuf[i].id_charname_hash, h,
                      mailbuf[i].id_to, id,
@@ -275,7 +273,7 @@ void receiveMailAck( char *id, char *charname, int a , int mesgid )
             }
         }
     }
-    log( "receiveMailAck: mail %u not found to:%s(%s)\n",
+    log( "回复邮件: 邮件 %u 不能从 %s(%s) 找到\n",
          mesgid, id,charname );
 }
 
@@ -292,14 +290,14 @@ void flushMail( int fd,
     snprintf( id_charname, sizeof( id_charname ) , "%s_%s", id, charname );
     h = hashpjw( id_charname );
     // Nuke +1
-    log("mailbufsize:%d (%s)\n",mailbufsize,chartime());
+    log("邮件缓冲大小:%d (%s)\n",mailbufsize,chartime());
     // Nuke *1
     for(i=0;(i<mailbufsize)&&(i<MAX_FLUSH_MAIL);i++){
         if( mailbuf[i].id_charname_hash == h &&
             mailbuf[i].use &&
             strcmp( mailbuf[i].id_to , id ) == 0 &&
             strcmp( mailbuf[i].charname_to, charname ) == 0 ){
-            log( "MessageID:%u\n", mailbuf[i].message_id );
+            log( "消息ID:%u\n", mailbuf[i].message_id );
             flush_index[flush_i++] = i;
             c++;
         }
@@ -332,11 +330,11 @@ void flushMail( int fd,
                                 mailbuf[flush_index[i]].option,
                                 mailbuf[flush_index[i]].message_id );
         mailbuf[flush_index[i]].state = MS_WAIT_ACK;
-        log( "SortedMessageID:%u\n",
+        log( "分类邮件ID:%u\n",
                 mailbuf[flush_index[i]].message_id );
     }
     // Nuke *1
-    log( "flushMail: send %d message for %s(%s)(%s)\n", c, id, charname ,chartime());
+    log( "邮件: 发送 %d 封邮件到 %s(%s)(%s)\n", c, id, charname ,chartime());
 }
 
 // Nuke start: To expire undelivered mail
@@ -354,11 +352,11 @@ expireMail()
     int flush_index[MAX_FLUSH_MAIL];
     int flush_i=0;
     // Nuke +1
-    log("mailbufsize:%d (%s)\n",mailbufsize,chartime());
+    log("邮件缓冲大小:%d (%s)\n",mailbufsize,chartime());
     // Nuke *1
     for(i=0;(i<mailbufsize)&&(i<MAX_FLUSH_MAIL);i++){
         if(mailbuf[i].use && (now - mailbuf[i].recv_time >= MAIL_EXPIRE_TIME)) {
-            log( "MessageID:%u expired\n", mailbuf[i].message_id );
+            log( "消息ID:%u 已过期\n", mailbuf[i].message_id );
             flush_index[flush_i++] = i;
             c++;
         }
@@ -382,8 +380,8 @@ expireMail()
                 log( "failed to unlink %s: %s\n",
                 savefile, strerror(errno ));
             } else {
-                log( "expireMail: removed mail "
-                	"%u from %s(%s) to %s(%s)\n",
+                log( "过期邮件: 删除游戏 "
+                	"%u 从 %s(%s) 到 %s(%s)\n",
                         mailbuf[flush_index[i]].message_id,
                         mailbuf[flush_index[i]].id_from,
                         mailbuf[flush_index[i]].charname_from,
@@ -394,7 +392,7 @@ expireMail()
 	}
     }
     // Nuke *1
-    log( "expireMail: expired %d messages (%s)\n", c ,chartime());
+    log( "过期邮件: 过期 %d 消息 (%s)\n", c ,chartime());
 }
 
 int readMail( char *dir )
@@ -408,7 +406,7 @@ int readMail( char *dir )
         d = opendir(dirname);
         if(d == NULL ){
 			mkdir( dirname, 0755);
-			log("create %s\n", dirname);
+			log("创建 %s\n", dirname);
             continue;
         }
         while(1){
@@ -427,7 +425,7 @@ int readMail( char *dir )
                 if( !(s.st_mode & S_IFREG)) continue;
                 fp = fopen( filename, "r" );
                 if( fp == NULL ){
-                    log( "cannot open file %s %s\n",filename,strerror(errno));
+                    log( "不能打开文件 %s %s\n",filename,strerror(errno));
                     continue;
                 }
                 {
@@ -480,8 +478,8 @@ int readMail( char *dir )
                     if( toid[0] == 0 || fromid[0] == 0 ||
                         tochar[0] == 0 || fromchar[0] == 0 ||
                         text[0] == 0 ){
-                        log( "invalid mail! %s toid[%c] tochar[%c]"
-                             " fromid[%c] fromchar[%c] text[%c]\n",
+                        log( "有问题邮件! %s 接收ID[%c] 接收名字[%c]"
+                             " 发送ID[%c] 发送名字[%c] 文本[%c]\n",
                              filename,
                              toid[0], tochar[0], fromid[0], fromchar[0],
                              text[0] );
@@ -501,6 +499,6 @@ int readMail( char *dir )
         }
         closedir(d);
     }
-    log( "readMail: read %d mail in directory '%s'\n", read_count, dir );
+    log( "读取邮件: 在'%s'目录里读取到 %d 封邮件 \n", dir, read_count );
     return 0;
 }

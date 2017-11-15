@@ -6,7 +6,6 @@
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -14,17 +13,12 @@
 #include <dirent.h>
 #include <netdb.h>
 #include <errno.h>
-#include <string.h>
 #include <ctype.h>
-#ifdef _SOCKET_NONBLOCK
-#include <fcntl.h>
-#endif
 #include "common.h"
 #include "util.h"
 #include "configfile.h"
 
-//#define IS_2BYTEWORD( _a_ ) ( (char)(0x80) <= (_a_) && (_a_) <= (char)(0xFF) )
-#define IS_2BYTEWORD(_a_) 0
+#define IS_2BYTEWORD( _a_ ) ( (char)(0x80) <= (_a_) && (_a_) <= (char)(0xFF) )
 
 /*-----------------------------------------
   Øê¹´¼°Ý±µæÃ«³ðÇ·ÔÊ
@@ -623,36 +617,6 @@ nextchar:
 int texttoiTail( char *hoge)
 {
     return 0; /* ÈÉÊ²ÔÈ»¯Ð×¼°Æ¥³ðµ¤ØÆÐ×£Û¹«¼°µ¤ÇÐèúÐÑÈÔÎçÛÕÔÊ£Û */
-
-
-#if 0
-    int len = strlen(hoge);
-
-    if( len == 0 )return atoi(hoge);
-    /*    ¾®ÈÕ¼ëØÆ»¯  âÙ±åÐÑÙ¯Ã«Î­¹´ØêÔÂ    */
-    while(--len && len >= 0){
-        if( isdigit(hoge[len]) )
-            break;
-    }
-    while( --len && len >= 0 ){
-        if( !isdigit(hoge[len]) )
-            break;
-        if( hoge[len]=='+' || hoge[len]=='-')
-            break;
-    }
-    return atoi(hoge+len+1);
-#endif
-#if 0
-    int f = 0;
-    for(i=len-1;i>=0;i--){
-        if( isdigit( hoge[i] ) ) f = 1;
-        if( (f == 1)
-            && !( isdigit(hoge[i]) || hoge[i]=='+' || hoge[i]=='-') ){
-            return atoi( hoge + i + 1 );
-        }
-    }
-    return atoi(hoge);
-#endif
 }
 
 /*----------------------------------------
@@ -1186,17 +1150,6 @@ int bindlocalhost( int port )
         print( "%s\n" , strerror(errno ) );
         return -1;
     }
-
-/*
-#ifdef _SOCKET_NONBLOCK
-	if (fcntl (sfd, F_SETFL, O_NONBLOCK) < 0){
-		fprintf (stderr, "Set bind socket Nonblock err.\n");
-		close (sfd);
-		return -1;
-	}
-#endif
-*/
-
     if( getReuseaddr() ) {
 		int sendbuff;
 	    /* ·ò¡õÊÐ»ïÊ§ÓñÒÁµ©¼°·èØÇåÃ */
@@ -1215,7 +1168,6 @@ int bindlocalhost( int port )
         print( "%s\n" , strerror(errno ) );
         return -1;
     }
-	
 	
     rc = listen( sfd , 5 );
     if( rc == -1 ){
@@ -1256,7 +1208,7 @@ int connectHost( char* hostname , unsigned short port )
          */
         hoste = gethostbyname( hostname );
         if( hoste == NULL ){
-            print( "gethostbyname error hostname: %s\n", hostname);
+            print( "»ñÈ¡Ö÷»úÃû: %s\n", hostname);
             return -1;
         }
 
@@ -1278,7 +1230,6 @@ int connectHost( char* hostname , unsigned short port )
               ,strerror( errno ) ,errno );
         return -1;
     }
-
     return fd;
 }
 
@@ -1714,7 +1665,7 @@ static unsigned char BitTable[] =	/*	ÉêÓÀÐþ¼°á¬Ì«´ÍÃ«ÝÑ±åÔÊÔÂ  ¡õÆ¤»ï	*/
 		0x0F , 0x8F , 0x4F , 0xCF , 0x2F , 0xAF , 0x6F , 0xEF , 
 		0x1F , 0x9F , 0x5F , 0xDF , 0x3F , 0xBF , 0x7F , 0xFF
 };
-static unsigned short crctab16[] =	/*	crc£û¼°»ÍÒ£  ¡õÆ¤»ï		*/
+static unsigned short crctab16[] =	/*	crc©x¼°»ÍÒ£·º¡õÆ¤»ï		*/
 {
 		0x0000,  0x1021,  0x2042,  0x3063,  0x4084,  0x50a5,  0x60c6,  0x70e7,
 		0x8108,  0x9129,  0xa14a,  0xb16b,  0xc18c,  0xd1ad,  0xe1ce,  0xf1ef,

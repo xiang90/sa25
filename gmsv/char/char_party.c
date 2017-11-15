@@ -223,22 +223,6 @@ BOOL CHAR_JoinParty( int charaindex )
 			/* 醮棉袱第乒□玉井 */
 			if( !CHAR_getFlg( targetindex, CHAR_ISPARTY) ) continue;
 
-#ifdef _ANGEL_SUMMON
-			if( CHAR_getWorkInt( targetindex, CHAR_WORKANGELMODE) == TRUE) {
-				CHAR_talkToCli( charaindex, -1, "使者不可以当领队。", CHAR_COLORYELLOW);
-				continue;
-			}
-#endif
-#ifdef _ESCAPE_RESET // 使用恶宝逃跑後x分钟内不可与人组队
-			if( getStayEncount( getfdFromCharaIndex(targetindex) ) ) {
-				//print(" 恶宝中组队 ");
-				if( time(NULL) - CHAR_getWorkInt( targetindex, CHAR_WORKLASTESCAPE) < 5*60 ) {
-					//print(" 恶宝逃跑後组队 ");
-					CHAR_talkToCli( charaindex, -1, "此人暂时不可以当领队。", CHAR_COLORYELLOW);
-					continue;
-				}
-			}
-#endif
 		}
 		/* 穴件乒旦田旦互中月凛反］谛棉方曰穸燮允月［ */
 		else if( CHAR_getInt( toindex, CHAR_WHICHTYPE) == CHAR_TYPEBUS ) {
@@ -296,41 +280,20 @@ BOOL CHAR_JoinParty( int charaindex )
 		}
 		result = FALSE;
 	}else if( cnt == 1 ) {
-#ifdef _DEATH_CONTEND
-		int toindex = CONNECT_getJoinpartycharaindex( fd, 0);
-		if(CHAR_getInt(toindex,CHAR_PKLISTTEAMNUM) == -1 && CHAR_getInt(charaindex,CHAR_PKLISTTEAMNUM) == -1){
-		}else if( CHAR_getInt( charaindex, CHAR_PKLISTLEADER ) > 0 ||
-			CHAR_getInt( toindex, CHAR_PKLISTTEAMNUM) < 0 ||
-			CHAR_getInt( charaindex, CHAR_PKLISTTEAMNUM) < 0 ||
-			CHAR_getInt( toindex, CHAR_PKLISTTEAMNUM) != CHAR_getInt( charaindex, CHAR_PKLISTTEAMNUM) ||
-			CHAR_getInt(toindex,CHAR_WHICHTYPE) != CHAR_TYPEPLAYER){
-
-			CHAR_talkToCli( charaindex, -1, "队伍不同，无法加入团队。", CHAR_COLORYELLOW);
-			result = FALSE;
-		}else{
+#ifdef _AUTO_PK
+			if(CHAR_getInt(charaindex,CHAR_FLOOR)==20000){
+				CHAR_talkToCli( charaindex, -1, "单P系统禁止组队!", CHAR_COLORYELLOW);
+				result = FALSE;
+			}else
 #endif
-			CHAR_JoinParty_Main( charaindex, CONNECT_getJoinpartycharaindex(fd,0));
-			result = TRUE;
-#ifdef _DEATH_CONTEND
-		}
-#endif
+			{
+				CHAR_JoinParty_Main( charaindex, CONNECT_getJoinpartycharaindex(fd,0));
+				result = TRUE;
+			}
 	}else {
 		int		strlength;
 		char	msgbuf[1024];
 		char	escapebuf[2048];
-#ifdef _DEATH_CONTEND
-		int toindex = CONNECT_getJoinpartycharaindex( fd, 0);
-		if(CHAR_getInt(toindex,CHAR_PKLISTTEAMNUM) == -1 && CHAR_getInt(charaindex,CHAR_PKLISTTEAMNUM) == -1){
-		}else if( CHAR_getInt( charaindex, CHAR_PKLISTLEADER ) > 0 ||
-			CHAR_getInt( toindex, CHAR_PKLISTTEAMNUM) < 0 ||
-			CHAR_getInt( charaindex, CHAR_PKLISTTEAMNUM) < 0 ||
-			CHAR_getInt( toindex, CHAR_PKLISTTEAMNUM) != CHAR_getInt( charaindex, CHAR_PKLISTTEAMNUM) ||
-			CHAR_getInt(toindex,CHAR_WHICHTYPE) != CHAR_TYPEPLAYER){
-
-			CHAR_talkToCli( charaindex, -1, "队伍不同，无法加入团队。", CHAR_COLORYELLOW);
-			result = FALSE;
-		}
-#endif
 		strcpy( msgbuf, "1\n和谁组成团队呢？\n");
 		strlength = strlen( msgbuf);
 		for( i = 0;

@@ -280,8 +280,14 @@ static CHAR_WALKRET CHAR_walk_move( int charaindex, int dir )
         int     objindex= objbuf[i];
         switch( OBJECT_getType(objindex) ){
         case OBJTYPE_CHARA:
-            if( !CHAR_getFlg( OBJECT_getIndex(objindex),CHAR_ISOVERED) )
-                notover= TRUE;
+            if( !CHAR_getFlg( OBJECT_getIndex(objindex),CHAR_ISOVERED) ){
+            	if(!CHAR_CHECKINDEX(OBJECT_getIndex(objindex))){
+	            	printf("自动删除一个问题对象！");
+	        			endObjectOne(objindex);
+	        			break;
+	        		}
+              notover= TRUE;
+            }
             break;
         case OBJTYPE_ITEM:
             if( !ITEM_getInt( OBJECT_getIndex(objindex), ITEM_ISOVERED ) )
@@ -418,13 +424,10 @@ CHAR_AFTERWALK:
 	                             CHAR_ACTWALK,opt,2,TRUE );
 	    }
 		if( CHAR_getWorkInt( charaindex, CHAR_WORKPARTYMODE) == CHAR_PARTY_CLIENT ) {
-#ifdef _MAPSENDMODE_OFF
-#else
 			CHAR_sendMapAtWalk( charaindex, of,
 								ox,oy,
 								CHAR_getInt( charaindex, CHAR_X),
 								CHAR_getInt( charaindex, CHAR_Y));
-#endif
 		}
 		count = CHAR_getWorkInt( charaindex, CHAR_WORK_TOHELOS_COUNT);
 		if( count > 0 ) {
@@ -468,10 +471,7 @@ CHAR_AFTERWALK:
 		  int noen = getNoenemy(enfd);
 
           // Arminius 7.31 cursed stone
-          if (getStayEncount(enfd)>0) {
-#ifdef _ESCAPE_RESET // 恶宝解除後逃跑时间重新归零
-			  CHAR_setWorkInt( charaindex, CHAR_WORKLASTESCAPE, 0);
-#endif
+      if (getStayEncount(enfd)>0) {
 			  clearStayEncount(enfd);
 		  }
 		  //print("\n enfd=%d,eqen=%d,noen=%d", enfd, eqen, noen);
@@ -490,30 +490,14 @@ CHAR_AFTERWALK:
 
 		  //print("\n noen=%d", noen);
 		  if (noen==0) {
-	        int maxep = CHAR_getWorkInt(charaindex, CHAR_WORKENCOUNTPROBABILITY_MAX);
+				int maxep = CHAR_getWorkInt(charaindex, CHAR_WORKENCOUNTPROBABILITY_MAX);
 		    int minep = CHAR_getWorkInt(charaindex, CHAR_WORKENCOUNTPROBABILITY_MIN);
 		    int cep = CONNECT_get_CEP(enfd);
-
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-			int temp=0;
-			int p_cep = CHAR_getWorkInt(charaindex, CHAR_ENCOUNT_FIX);
-			if( p_cep != 0 ){
-				if( CHAR_getWorkInt( charaindex, CHAR_ENCOUNT_NUM) < (int)time(NULL) ){
-					CHAR_talkToCli( charaindex, -1, "技能效用结束。", CHAR_COLORYELLOW);
-					CHAR_setWorkInt( charaindex, CHAR_ENCOUNT_FIX, 0);
-					CHAR_setWorkInt( charaindex, CHAR_ENCOUNT_NUM, 0);
-				}
-				temp = cep * (100 + p_cep ) / 100;
-			}else{
-				temp = cep;
-			}
-#endif
 
 		    if (cep<minep) cep=minep;
 		    if (cep>maxep) cep=maxep;
 		    if (CHAR_getWorkInt(charaindex,CHAR_WORKBATTLEMODE)==BATTLE_CHARMODE_NONE) {
-				int entflag;
-				entflag=1;
+				int entflag=1;
 				{
 					int objindex,index;
 					OBJECT obj;
@@ -540,11 +524,9 @@ CHAR_AFTERWALK:
 						}
 					}
 				}
-
-
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-			  if( rand()%120 < temp ){
-#else			
+#ifdef _ENEMY_ACTION
+				if( rand()%(120*getEnemyAction()) < cep ){
+#else
 		      if (rand()%120<cep){	// Arminius 6.28 lower encounter prob.
 #endif
 					if (entflag) {
@@ -853,7 +835,7 @@ void CHAR_walk_start(int index, int x, int y, char* dir, BOOL mapsendmode )
        oy = CHAR_getInt(index,CHAR_Y);
        if ( ABS(x - ox) > seesiz || ABS(y - oy) > seesiz ) {
           CHAR_talkToCli(index, -1, "因座标错误而断线。", CHAR_COLORYELLOW);
-          CONNECT_setCloseRequest(getfdFromCharaIndex(index) , 1);
+          CONNECT_setCloseRequest_debug(getfdFromCharaIndex(index) , 1);
           return;
        }
     }
@@ -1062,25 +1044,6 @@ void CHAR_sendCharaAtWalk( int charaindex, int of,int ox,int  oy,int xflg, int y
 							}
 						}
 #endif
-#ifdef _STREET_VENDOR
-						if(CHAR_getInt(c_index,CHAR_WHICHTYPE) == CHAR_TYPEPLAYER &&
-							 CHAR_getWorkInt(c_index,CHAR_WORKSTREETVENDOR) == 1 &&
-							 CHAR_getWorkInt(c_index,CHAR_WORKBATTLEMODE) == BATTLE_CHARMODE_NONE){
-							if(CHAR_makeCAOPTString(objindex,cabuf,sizeof(cabuf),
-								 CHAR_STREETVENDOR_OPEN,CHAR_getWorkChar(c_index,CHAR_STREETVENDOR_NAME))){
-								CONNECT_appendCAbuf(fd,cabuf,strlen(cabuf));
-							}
-						}
-#endif
-
-#ifdef _ANGEL_SUMMON
-						if( CHAR_getInt( c_index, CHAR_WHICHTYPE ) == CHAR_TYPEPLAYER &&
-								CHAR_getWorkInt( c_index, CHAR_WORKANGELMODE ) == TRUE ){
-							if( CHAR_makeCAOPT1String( objindex, cabuf, sizeof( cabuf),	CHAR_ACTANGEL,1 )){
-								CONNECT_appendCAbuf( fd,cabuf,strlen(cabuf));
-							}
-						}
-#endif
 					}
 				}
 			}
@@ -1097,6 +1060,10 @@ void CHAR_sendCharaAtWalk( int charaindex, int of,int ox,int  oy,int xflg, int y
 				if( OBJECT_getType(objindex) == OBJTYPE_NOUSE ) continue;
 				if( OBJECT_getType(objindex) == OBJTYPE_CHARA &&
 					!CHAR_getFlg(OBJECT_getIndex(objindex),	CHAR_ISVISIBLE) ){
+					if(!CHAR_CHECKINDEX(OBJECT_getIndex(objindex))){
+	            printf("自动删除一个问题对象！");
+	        		endObjectOne(objindex);
+	        }
 					continue;
 				}
 				if( strlen( myintroduction) != 0 ) {
@@ -1173,27 +1140,6 @@ void CHAR_sendCharaAtWalk( int charaindex, int of,int ox,int  oy,int xflg, int y
 							}
 						}
 #endif
-#ifdef _STREET_VENDOR
-						if(CHAR_getInt(c_index,CHAR_WHICHTYPE) == CHAR_TYPEPLAYER &&
-							 CHAR_getWorkInt(c_index,CHAR_WORKSTREETVENDOR) == 1 &&
-							 CHAR_getWorkInt(c_index,CHAR_WORKBATTLEMODE) == BATTLE_CHARMODE_NONE){
-							if(CHAR_makeCAOPTString(objindex,cabuf,sizeof(cabuf),
-								 CHAR_STREETVENDOR_OPEN,CHAR_getWorkChar(c_index,CHAR_STREETVENDOR_NAME))){
-								CONNECT_appendCAbuf(fd,cabuf,strlen(cabuf));
-							}
-						}
-#endif
-
-#ifdef _ANGEL_SUMMON
-						if( CHAR_getInt( c_index, CHAR_WHICHTYPE ) == CHAR_TYPEPLAYER &&
-							CHAR_getWorkInt( c_index, CHAR_WORKANGELMODE ) == TRUE ){
-							if( CHAR_makeCAOPT1String( objindex, cabuf, sizeof( cabuf),
-														CHAR_ACTANGEL,1 )){
-								CONNECT_appendCAbuf( fd,cabuf,strlen(cabuf));
-							}
-						}
-#endif
-
 					}
 				}
 			}
@@ -1241,6 +1187,10 @@ static void CHAR_sendCDCharaAtWalk( int charaindex, int of, int ox, int oy,	 int
 				if( OBJECT_getType(objindex) == OBJTYPE_NOUSE ) continue;
 				if( OBJECT_getType(objindex) == OBJTYPE_CHARA &&
 					!CHAR_getFlg(OBJECT_getIndex(objindex),	CHAR_ISVISIBLE) ){
+					if(!CHAR_CHECKINDEX(OBJECT_getIndex(objindex))){
+	            printf("自动删除一个问题对象！");
+	        		endObjectOne(objindex);
+	        }
 					continue;
 				}
 				if( fd != -1) {

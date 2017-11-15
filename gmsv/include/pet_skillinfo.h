@@ -31,9 +31,6 @@
 #define PETSKILL_NOGUARD3 ( 152 )
 #define PETSKILL_MERGE ( 200 )
 #define PETSKILL_MERGE2 ( 201 )
-#ifdef _ALCHEMIST
-#define PETSKILL_ALCHEMIST ( 202 )
-#endif
 #ifdef _PSKILL_FALLGROUND
 #define PETSKILL_FALLGROUND ( 210 )
 #endif
@@ -76,11 +73,6 @@
 #define PETSKILL_BARRIER ( 546)          //Ä§ÕÏ vincent add 2002/07/16
 #endif
 
-#ifdef _SKILL_NOCAST 
-#define PETSKILL_NOCAST ( 547)           //³ÁÄ¬ vincent add 2002/07/16
-#endif
-
-
 #ifdef _SKILL_ROAR 
 #define PETSKILL_ROAR ( 548)             //´óºð vincent add 2002/07/11
 #endif
@@ -121,19 +113,11 @@
 #define PETSKILL_AttCrazed ( 608)
 #endif
 
-#ifdef _SHOOTCHESTNUT	// Syu ADD ³è¼¼£º¶ªÀõ×Ó
-#define PETSKILL_AttShoot ( 609 ) 
-#endif
-
 #ifdef _PETSKILL_BECOMEPIG
 #define PETSKILL_BECOMEPIG ( 628 )
-#endif
-
-#ifdef _PETSKILL_LER
-#define PETSKILL_BATFLY ( 633 )
-#define PETSKILL_DIVIDEATTACK ( 634 )
 #endif
 
 #ifdef _PETSKILL_BATTLE_MODEL
 #define PETSKILL_BATTLE_MODEL ( 635 )
 #endif
+

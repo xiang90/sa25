@@ -1,15 +1,28 @@
 #define _UTIL_C_
 
-#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/time.h>
 #include <sys/stat.h>
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <netdb.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "main.h"
 #include "util.h"
 
-//#define IS_2BYTEWORD( _a_ ) ( (char)(0x80) <= (_a_) && (_a_) <= (char)(0xFF) )
-#define IS_2BYTEWORD(_a_) 0
-
+#define min( x,y ) ({typeof(x) __x=(x),__y=(y);(__x < __y) ? __x : __y; })
+#define max( x,y ) ({typeof(x) __x=(x),__y=(y);(__x < __y) ? __y : __x; })
+#define IS_2BYTEWORD( _a_ ) ( (char)(0x80) <= (_a_) && (_a_) <= (char)(0xFF) )
 #define PRIME 211
 int hashpjw ( char* s )
 {
@@ -88,8 +101,7 @@ void prepareDirectories(char *base)
         snprintf( dname , sizeof( dname ) , "%s/0x%x", base , i );
         ret = mkdir( dname , 0755 );
         if( ret <0 && errno != EEXIST ){
-            log( "mkdir error:%d %s: %s\n", ret ,strerror(errno),
-                 dname );
+            log( "mkdir error:%d %s: %s\n", ret ,strerror(errno), dname );
         }
         if( ret == 0 ) log(".");
     }
@@ -162,7 +174,7 @@ char*   makeStringFromEscaped( char* src )
     	if( IS_2BYTEWORD( src[i] ) ){
             src[searchindex++] = src[i++];
             src[searchindex++] = src[i];
-    	}else
+    	}else{
         if( src[i] == '\\' ){
             int j;
 
@@ -172,16 +184,16 @@ char*   makeStringFromEscaped( char* src )
                 if( escapeChar[j].escapedchar == src[i] ){
                     /*  戚互巨旦弗□皿平乓仿分  */
                     src[searchindex++] = escapeChar[j].escapechar;
-                    goto NEXT;
+                    break;
                 }
             }
             /*  巨仿□支仃升公及引引戊疋□仄化云仁  */
-            src[searchindex++] = src[i];
+            if(escapeChar[j].escapedchar != src[i])
+            	src[searchindex++] = src[i];
         }else{
             src[searchindex++] = src[i];
         }
-    NEXT:
-		continue;
+      }
     }
     src[searchindex] = '\0';
     return src;
@@ -325,7 +337,8 @@ char *chop( char *s )
 }
 
 // CoolFish: Family 2001/5/30
-void easyGetTokenFromBuf(char *src, char delim, int count, char *output, int len)
+
+/*void easyGetTokenFromBuf(char *src, char delim, int count, char *output, int len)
 {
     int  i;
     int  counter = 0;
@@ -369,8 +382,7 @@ void easyGetTokenFromBuf(char *src, char delim, int count, char *output, int len
         		int j;
         		for ( j=0; j<len-1; j++){
         			if( IS_2BYTEWORD( src[i+j] ) ){
-		        		output[j] = src[i+j];
-						j++;
+		        		output[j] = src[i+(j++)];
 		        		output[j] = src[i+j];
 		        	}else{
 		        		if( src[i+j]=='\0' || ISSEPARATE(src[i+j])){
@@ -398,3 +410,182 @@ void easyGetTokenFromBuf(char *src, char delim, int count, char *output, int len
 	}
     }
 }
+*/
+
+char* strncpy2( char* dest, const char* src, size_t n )
+{
+    if( n > 0 ){
+        char*   d = dest;
+        const char*   s = src;
+        int i;
+        for( i=0; i<n ; i++ ){
+            if( *(s+i) == 0 ){
+                /*  戊疋□仄云歹匀凶日 NULL   侬毛  木月   */
+                *(d+i) = '\0';
+                return dest;
+            }
+            if( *(s+i) & 0x80 ){
+                *(d+i)  = *(s+i);
+                i++;
+                if( i>=n ){
+                    *(d+i-1)='\0';
+                    break;
+                }
+                *(d+i)  = *(s+i);
+            }else
+                *(d+i) = *(s+i);
+        }
+    }
+    return dest;
+}
+
+void strncpysafe( char* dest , const size_t n ,
+                  const char* src ,const int length )
+{
+    /*
+     * src 井日 dest 卞 length 戊疋□允月
+     * strcpy, strncpy 匹反 dest 方曰 戊疋□允月汹互
+     *   五中凛卞裟少午,丢乒伉陆失弁本旦互粟月.
+     * 仇及楮醒匹反｝strlen( src ) 午 length 及凝今中幻丹
+     * (  端卞戊疋□允月汹) 午 dest 及扔奶术毛  屯化｝
+     * strcpysafe 午  元仪毛允月［
+     */
+
+    int Short;
+    Short = min( strlen( src ) , length );
+
+    /* NULL  侬 毛哔  仄凶  胜 */
+    if( n < Short + 1 ){
+        /*
+         * 田永白央互箫曰卅中及匹 n - 1(NULL  侬)
+         * 匹 strncpy 毛裟少
+         */
+        strncpy2( dest , src , n-1 );
+        dest[n-1]='\0';
+
+    }else if( n <= 0 ){
+        return;
+    }else{
+        /*
+         * 田永白央反蜗坌卞丐月及匹 Short 匹strncpy毛裟少
+         * 卅云 src 卞反 Short 及赢今  卞 NULL 互卅中及匹｝
+         * dest 卞反 馨笛仄化云仁［
+         */
+
+        strncpy2( dest , src , Short );
+        dest[Short]= '\0';
+
+    }
+}
+
+void strcpysafe( char* dest ,size_t n ,const char* src )
+{
+    /*
+     * src 井日 dest 尺戊疋□允月.
+     * strcpy, strncpy 匹反 dest 方曰 戊疋□允月汹互
+     *   五中凛卞裟少午,丢乒伉陆失弁本旦互粟月.
+     * 仇木毛  什啃卞, strncpy 互丐月互 strlen( src ) 互 n 方曰
+     *   五中凛卞反, dest 及    互 NULL   侬午反卅日卅中.
+     *
+     * 仄凶互匀化 dest 及  五今方曰 src 及幻丹互赢中凛卞反
+     * n-1 匹 strncpy 毛允月. 凝今中凛反公及引引戊疋□允月
+     *
+     * n 互  及凛反云井仄仁卅月及匹  及凛反 窒手仄卅中［
+     *
+     */
+    // Nuke +1 (08/25): Danger if src=0
+    if (!src) {
+        *dest = '\0';
+        return;
+    }
+    if( n <= 0 )        /* 窒手仄卅中   */
+        return;
+
+    /*  仇及凛鳔匹｝ n >= 1 动晓互瑁烂  */
+    /*  NULL  侬毛哔  仄化  胜允月  */
+    else if( n < strlen( src ) + 1 ){
+        /*
+         * 田永白央互箫曰卅中及匹 n - 1(NULL  侬)
+         * 匹 strncpy 毛裟少
+         */
+        strncpy2( dest , src , n-1 );
+        dest[n-1]='\0';
+    }else
+        strcpy( dest , src );
+
+}
+
+char * ScanOneByte( char *src, char delim )
+{
+	// Nuke
+	if (!src) return NULL;
+
+        //   侬  互卅仁卅月引匹腹绸
+        for( ;src[0] != '\0'; src ++ ){
+          if( IS_2BYTEWORD( src[0] ) ){
+              // 蝈剩分［公及桦宁反ㄠ田奶玄芴坌卞褡引六月［
+              // 凶分仄ㄠ田奶玄仄井卅中桦宁反公丹仄卅中
+              if( src[1] != 0 ){
+                  src ++;
+              }
+              continue;
+          }
+          //   剩分匀凶［仇仇匹覆擂及  侬午  胜
+          if( src[0] == delim ){
+              return src;
+          }
+        }
+        // 伙□皿  仃凶日苇勾井日卅井匀凶［
+        return NULL;
+}
+
+int easyGetTokenFromBuf( char* src ,char* delim ,int count, char* output , int len )
+{//ttom this function all change,copy from the second
+    int i;          /* 伙□皿  醒 */
+    int length =0;  /* 潸曰请仄凶  侬  及赢今 */
+    int addlen=0;   /* 箫今木月赢今 */
+    int oneByteMode = 0; /* ㄠ田奶玄乒□玉井＂ */
+
+    if( strlen( delim ) == 1 ){ // 腹绸互ㄠ田奶玄卅日ㄠ田奶玄乒□玉卞允月
+        oneByteMode = 1;// 公及端ㄡ田奶玄  侬反民尼永弁仄卅中
+    }
+    for( i =  0 ; i < count ; i ++ ){
+         char* last;
+         src += addlen;/* 心勾井匀凶赢今毛箫允 */
+      
+         if( oneByteMode ){
+             // ㄠ田奶玄乒□玉分匀凶日仇切日匹腹绸
+             last = ScanOneByte( src, delim[0] );
+         }else{
+                 last  = strstr( src , delim );  /* 苇尥仃月 */
+         }
+         if( last == NULL ){
+            /*
+             * 心勾井日卅井匀凶及匹允屯化戊疋□仄化 return［
+            */
+            strcpysafe( output , len, src );
+
+            if( i == count - 1 )
+                /*切斤丹升心勾井匀凶*/
+                return 1;
+                                                                                                           
+                /*心勾井日卅井匀凶*/
+             return 0;
+          }
+          
+          /*
+           * 心勾井匀凶赭午  赓及匏  及犒毛菲户月
+           * 勾引曰嗉濠日木化中月  侬  及赢今
+          */
+          length = last - src;
+                                           
+          /*
+           * 戚及伙□皿及啃卞心勾井匀凶赢今午 delim 及赢今毛箫仄化云仁
+          */
+          addlen= length + strlen( delim );
+       }
+       strncpysafe( output, len , src,length );
+
+       return 1;
+}
+

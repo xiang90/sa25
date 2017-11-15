@@ -21,7 +21,7 @@ void LoadAnnounce(void);
 	#define PETTALK_MAXID 8
 	typedef struct {
 		int ID;
-		char DATA[10240*10];	//1M
+		char DATA[1024*64];	//1M
 	}PTALK;
 	extern PTALK pettalktext[PETTALK_MAXID];
 	void LoadPetTalk(void);
@@ -45,7 +45,10 @@ extern GAMBLEBANK_ITEMS GB_ITEMS[GAMBLEBANK_ITEMSMAX];
 
 void Load_GambleBankItems( void);
 #endif
-
+#ifdef _JZ_CF_DELPETITEM
+int getDelPet(int Num);
+int getDelItem(int Num);
+#endif
 #ifdef _CFREE_petskill
 #define PETSKILL_CODE 300
 typedef struct	REPETSKILL_CODES	{
@@ -57,20 +60,6 @@ typedef struct	REPETSKILL_CODES	{
 
 extern PETSKILL_CODES Code_skill[PETSKILL_CODE];
 void Load_PetSkillCodes( void);
-#endif
-
-#ifdef _BLACK_MARKET
-struct BlackMarketItem {
-	char iName[128];
-	int  iGraphicsNum;
-	int  iId[4][3];
-	int  iCondition[4];
-	int  GCondition;
-};
-#define BMIMAX 1000
-struct  BlackMarketItem BMItem[BMIMAX];
-int     BMINum;
-int     BMSellList[12];
 #endif
 
 #ifdef _GMRELOAD
@@ -99,19 +88,6 @@ unsigned short   getAccountserverport( void );
 char*   getAccountserverpasswd( void );
 char*   getGameservername( void );
 
-#ifdef _M_SERVER
-char* getmservername(void);
-void setmservername( char *msname);
-unsigned int getmserverport(void);
-void setmserverport( int port);
-#endif
-
-#ifdef _NPCSERVER_NEW
-char *getnpcserveraddr(void);
-unsigned int getnpcserverport(void);
-void NS_setAddressAndPort( char *address, int nport);
-#endif
-
 unsigned short getPortnumber( void );
 
 int getServernumber( void );
@@ -127,6 +103,7 @@ int getSaacreadnum( void );
 void setSaacreadnum( int num );
 
 unsigned int getFdnum( void );
+unsigned int setFdnum(int temp_fdnum);
 unsigned int getPetcharnum( void );
 unsigned int getOtherscharnum( void );
 unsigned int getObjnum( void );
@@ -180,7 +157,7 @@ char* getEnemyfile( void );
 char* getGroupfile( void );
 char* getEnemyBasefile( void );
 char* getMagicfile( void );
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
 
 char* getAttMagicfileName( void );
 
@@ -189,10 +166,6 @@ char* getAttMagicfileName( void );
 char* getPetskillfile( void );
 char *getItematomfile( void );
 char *getQuizfile( void );
-
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-char* getProfession( void );
-#endif
 
 unsigned int getPetdeletetime( void );
 void setPetdeletetime( unsigned int interval );
@@ -233,17 +206,129 @@ BOOL LoadGMSet(char *filename);
 #ifdef _ITEM_QUITPARTY
 char* getitemquitparty( void );
 #endif
-#ifdef _BLACK_MARKET
-char* getBMItemFile(void);
-BOOL LoadBMItem( char* filename );
+
+#ifdef _NEW_PLAYER_CF	
+int getNewplayertrans( void );
+int getNewplayerlv( void );
+int getNewplayergivepet( unsigned int index );
+void setNewplayergivepet( unsigned int index ,unsigned int interval);
+int getNewplayerpetlv( void );
+int getNewplayergivegold( void );
+int getRidePetLevel( void );
+#ifdef _VIP_SERVER
+int getNewplayergivevip( void );
+#endif
 #endif
 
-#ifdef _AUCTIONEER
-char* getAuctiondir(void);
+#ifdef _USER_EXP_CF
+char* getEXPfile( void );
 #endif
 
-#ifdef _MUSEUM
-int getMuseum(void);
+#ifdef _UNREG_NEMA
+char* getUnregname( int index );
+#endif
+
+#ifdef _TRANS_LEVEL_CF
+int getChartrans( void );
+int getPettrans( void );
+int getYBLevel( void );
+int getMaxLevel( void );
+#endif
+
+#ifdef _POINT
+char* getPoint( void );
+int getTransPoint( int index );
+#endif
+
+#ifdef _PET_UP
+char* getPetup( void );
+#endif
+#ifdef _WATCH_FLOOR
+int getWatchFloor( unsigned int index );
+char* getWatchFloorCF( void );
+#endif
+
+#ifdef _BATTLE_FLOOR
+int getBattleFloor( unsigned int index );
+char* getBattleFloorCF( void );
+#endif
+
+#ifdef _LOOP_ANNOUNCE
+char* getLoopAnnouncePath( void );
+int loadLoopAnnounce( void );
+int getLoopAnnounceTime( void );
+char* getLoopAnnounce( int index );
+int getLoopAnnounceMax( void );
+#endif
+
+#ifdef _SKILLUPPOINT_CF
+int getSkup( void );
+#endif
+#ifdef _RIDELEVEL
+int getRideLevel( void );
+#endif
+#ifdef _REVLEVEL
+char* getRevLevel( void );
+#endif
+#ifdef _NEW_PLAYER_RIDE
+char* getPlayerRide( void );
+#endif
+#ifdef _FIX_CHARLOOPS
+int getCharloops( void );
+#endif
+#ifdef _PLAYER_ANNOUNCE
+int getPAnnounce( void );
+#endif
+#ifdef _PLAYER_MOVE
+int getPMove( void );
+#endif
+
+int getrecvbuffer( void );
+int getsendbuffer( void );
+int getrecvlowatbuffer( void );
+int getrunlevel( void );
+
+#ifdef _SHOW_VIP_CF
+int getShowVip( void );
+#endif
+
+#ifdef _PLAYER_NUM
+int getPlayerNum( void );
+void setPlayerNum( int num );
+#endif
+#ifdef _BATTLE_GOLD
+int getBattleGold( void );
+#endif
+
+#ifdef _ANGEL_TIME
+int getAngelPlayerTime( void );
+int getAngelPlayerMun( void );
+#endif
+
+#ifdef _RIDEMODE_20
+int getRideMode( void );
+#endif
+
+#ifdef _FM_POINT_PK
+char *getFmPointPK( void );
+#endif
+
+#ifdef _ENEMY_ACTION
+int getEnemyAction( void );
+#endif
+
+char *getMacCheck( void );
+int getCpuUse( void );
+
+#ifdef _CHECK_PEPEAT
+int getCheckRepeat( void );
+#endif
+
+#ifdef _VIP_ALL
+int getCheckVip( void );
+#endif
+#ifdef _FM_JOINLIMIT
+int getJoinFamilyTime( void );
 #endif
 
 #endif

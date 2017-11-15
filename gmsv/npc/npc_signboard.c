@@ -13,7 +13,6 @@ static void NPC_SignBoard_Window( int meindex, int toindex, int num,int select);
 
 
 /*********************************
-* âÙÓåÖÊ  
 *********************************/
 BOOL NPC_SignBoardInit( int meindex )
 {
@@ -22,7 +21,6 @@ BOOL NPC_SignBoardInit( int meindex )
 	/*--ÕıÄÌÃóÉ¬ÀÃ--*/
    	CHAR_setInt( meindex , CHAR_WHICHTYPE , CHAR_TYPEMSG );
 
-	/*--°×ÑëÄÌ»ï»¥Ø¦ØêÄ¾ÈÉ×¼Ô÷  Ã«É¬  ½ñÁùØ¦ÖĞ--*/
 	if(NPC_Util_GetArgStr( meindex, npcarg, sizeof(npcarg))==NULL){
 		print("GetArgStrErr");
 		return FALSE;
@@ -36,17 +34,14 @@ BOOL NPC_SignBoardInit( int meindex )
 
 
 /*********************************
-* Î­ÈÕÄ¾Ğ×Áİ¼°ÖÊ  
 *********************************/
 void NPC_SignBoardLooked( int meindex , int lookedindex)
 {
 
-    /* ÃóÒÁÄÌØÀ¡õ±å¸²ØÆ»¯·ÖØê  É±ÔÊÔÂ */
     if( CHAR_getInt( lookedindex , CHAR_WHICHTYPE ) != CHAR_TYPEPLAYER ) {
     	return;
     }
 
-	/* ¨àºëØøÓÀÓñ¶¯  ¼°ĞÄ */
 	if( NPC_Util_CharDistance( lookedindex, meindex ) > 1) return;
 
 
@@ -114,7 +109,6 @@ static void NPC_SignBoard_Window( int meindex, int toindex, int num,int select)
 
 
 /*-----------------------------------------
- * ÛÍ·ÂÄÌÊ§¼şĞş¾®ÈÕß¯ÔÈ»¯ÎåĞ×Áİ±åôÄÌ«Çë½ñÄ¾ÔÂ£Û
  *
 -------------------------------------------*/
 void NPC_SignBoardWindowTalked( int meindex, int talkerindex, 

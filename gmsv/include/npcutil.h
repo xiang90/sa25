@@ -30,17 +30,12 @@ BOOL NPC_Util_charIsInFrontOfChar( int index1, int index2, int distance );
 
 int NPC_Util_SearchItemInChar( int charindex , int itemindex);
 int NPC_Util_GiveAllItemToChar( int give , int take );
-
-#ifdef _NPCSERVER_NEW
-BOOL NPC_UtilObj_isFaceToFace( int npcobjindex, int charaindex, int distance );
-#endif
-
 /*
 int NPC_Util_ControlOtherNPC( CHAR_TYPE chartype ,
                               char *npcname,
                               char *command );
 */
-void NPC_Util_NPCDelete( int srcindex);
+void NPC_Util_NPCDelete( int srcindex );
 BOOL NPC_Util_moveItemToMap( int itemindex , int fl , int x , int y,
                              BOOL net );
 char *NPC_Util_GetArgStr( int index, char *argstr, int len);
@@ -79,7 +74,8 @@ int addNpcFamilyTax( int meindex, int talkerindex, int income );
 #define NPC_UTIL_GETARGSTR_LINEMAX	4096
 /* 娄醒白央奶伙及  心  心田永白央扔奶术*/
 #ifdef _NEWEVENT
-#define NPC_UTIL_GETARGSTR_BUFSIZE	1024*1200
+//#define NPC_UTIL_GETARGSTR_BUFSIZE	1024*1200
+#define NPC_UTIL_GETARGSTR_BUFSIZE	1024*32
 #else
 #define NPC_UTIL_GETARGSTR_BUFSIZE	1024*12
 #endif

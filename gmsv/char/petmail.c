@@ -122,24 +122,6 @@ BOOL PETMAIL_sendPetMail( int cindex, int aindex,
 	}
 #endif
 
-#ifdef _BAD_PLAYER             // WON ADD 送坏玩家去关
-	if( CHAR_getInt(cindex,CHAR_FLOOR)==887 ){
-		char	msgbuf[512];
-		snprintf( msgbuf, sizeof( msgbuf), "对不起，您在招待室中，无法寄送信件。");
-		CHAR_talkToCli( cindex, -1, msgbuf, CHAR_COLORWHITE);
-		return FALSE;
-	}
-#endif
-
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-	{
-		char	msgbuf[512];
-		snprintf( msgbuf, sizeof( msgbuf), "跨星系家族PK，无法寄送信件。");
-		CHAR_talkToCli( cindex, -1, msgbuf, CHAR_COLORWHITE);
-		return FALSE;
-	}
-#endif
-
 	// Syu Add 2003/05/30
 	if( ( CHAR_getInt(cindex,CHAR_FLOOR) >= 8200 && CHAR_getInt(cindex,CHAR_FLOOR) <= 8213 ) ) 
 	{
@@ -453,7 +435,7 @@ BOOL PETMAIL_CheckPlayerExist( int index, int mode)
 	else if( mode == 1 ) {
 		searchcd = CHAR_getChar( index, CHAR_OWNERCDKEY);
 		searchname = CHAR_getChar( index, CHAR_OWNERCHARANAME);
-		if( searchcd == NULL || searchname == NULL ) return FALSE;
+		if( searchcd == "\0" || searchname == "\0" ) return FALSE;
 	}
 	for( i = 0 ; i < playernum ; i ++) {
 		if( CHAR_CHECKINDEX( i) &&
@@ -519,15 +501,6 @@ static void PETMAIL_sendPetmail( int index, int tocharaindex)
 	index_to_my_info =  ADDRESSBOOK_getIndexInAddressbook( tocharaindex, 
 						CHAR_getChar( index, CHAR_OWNERCDKEY),
 						CHAR_getChar( index, CHAR_OWNERCHARANAME));
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-	{
-		char	msgbuf[512];
-		snprintf( msgbuf, sizeof( msgbuf), "跨星系家族PK，无法寄送信件。");
-		CHAR_talkToCli( index, -1, msgbuf, CHAR_COLORWHITE);
-		return ;
-	}
-#endif
-
 	
 	if( index_to_my_info <  0 ) {
 		char	msgbuf[512];
@@ -539,16 +512,6 @@ static void PETMAIL_sendPetmail( int index, int tocharaindex)
 					CHAR_getUseName( index));
 		CHAR_talkToCli( tocharaindex, -1, msgbuf, CHAR_COLORWHITE);
 	}
-
-#ifdef _BAD_PLAYER             // WON ADD 送坏玩家去关
-	else if( CHAR_getInt(tocharaindex,CHAR_FLOOR)==887 ){
-		char	msgbuf[512];
-		snprintf( msgbuf, sizeof( msgbuf), 					
-					"由於您在招待室中，无法接收信件，所以信件被退回了。" );
-		CHAR_talkToCli( tocharaindex, -1, msgbuf, CHAR_COLORWHITE);
-	}
-#endif
-
 	//Syu Add 06/16
 	else if( CHAR_getInt(tocharaindex,CHAR_FLOOR) >=8200 &&
 		CHAR_getInt(tocharaindex,CHAR_FLOOR) <= 8213 ){

@@ -16,15 +16,8 @@ typedef enum
     LOG_FMPOP,	// CoolFish: 2001/9/12
     LOG_FAMILY, // Robin 10/02
     LOG_GM,     // Shan 
-#ifdef _SERVICE    
-    LOG_SERVICE,  // Terry 2001/09/28
-#endif
 #ifdef _GAMBLE_ROULETTE
 	LOG_GAMBLE,
-#endif
-#ifdef _TEST_PETCREATE
-	LOG_CREATPET,
-	LOG_AVGCREATPET,
 #endif
 
 	LOG_LOGIN,
@@ -37,22 +30,6 @@ typedef enum
 
 	LOG_ACMESS,
 	LOG_PKCONTEND,
-#ifdef _STREET_VENDOR
-	LOG_STREET_VENDOR,
-#endif
-
-#ifdef _ANGEL_SUMMON
-	LOG_ANGEL,
-#endif
-
-#ifdef _LOG_OTHER
-	LOG_OTHER,
-#endif
-#ifdef _NEW_MANOR_LAW
-	LOG_FMPK_GETMONEY,
-	LOG_FM_FAME_SHOP,
-#endif
-
     LOG_TYPE_NUM,
 }LOG_TYPE;
 
@@ -95,26 +72,6 @@ void LogPet(
 	int y,
 	char *uniquecode  // shan 2001/12/14
 );
-
-#ifdef _STREET_VENDOR
-void LogStreetVendor(
- 	char *SellName,
-	char *SellID,
-	char *BuyName,
-	char *BuyID,
-	char *ItemPetName,
-	int PetLv,	//若是道具此值为 -1
-	int iPrice,
-	char *Key,
-	int Sfloor,
-	int Sx,
-	int Sy,
-	int Bfloor,
-	int Bx,
-	int By,
-	char *uniquecode
-);
-#endif
 
 void LogTensei(
 	char *CharName, /* 平乓仿弁正   */
@@ -167,20 +124,7 @@ void LogTalk(
 	int x,
 	int y,
 	char *message
-);
-
-// Terry 2001/09/28
-#ifdef _SERVICE
-void LogService(
-     char *CharName,    //角色名称
-     char *CharID,      //玩家ID
-     int  itemid,       //物品ID
-     char *Key,         //说明
-     int floor,
-     int x,
-     int y
-);
-#endif                                   
+);                                
 //ttom 12/26/2000 kill pet & items
 void LogKill(
         char *CharName,
@@ -221,6 +165,7 @@ void LogFamily(
 	char *data
 );
 
+
 // Shan 11/02
 void LogGM(
         char *CharName,    //角色名称
@@ -231,20 +176,13 @@ void LogGM(
         int  y
 );
 
+
 void LogLogin(
         char *CharID,   //玩家ID
         char *CharName, //角色名称
 		int  saveIndex,
 		char *ipadress
 );
-
-#ifdef _TEST_PETCREATE
-void LogCreatPet(
-	char *PetName, int petid, int lv,int hp, int char_vital, int char_str, int char_tgh, int char_dex,
-	int vital, int str, int tgh, int dex, int fixstr, int fixtgh, int fixdex, 
-	int lvup,	int petrank, int flg
-	);
-#endif
 
 void LogCreatFUPet(
 	char *PetName, int petid, int lv, int hp,
@@ -286,30 +224,7 @@ void Logfmpk(
 			 char *winner, int winnerindex, int num1,
 			 char *loser, int loserindex, int num2, char *date, char *buf1, char *buf2, int flg);
 
-#ifdef _NEW_MANOR_LAW
-void LogFMPKGetMomey(
-	char *szFMName,
-	char *szID,
-	char *szCharName,
-	int iMomentum,
-	int iGetMoney,
-	int iDest
-);
-void LogFMFameShop(
-	char *szFMName,
-	char *szID,
-	char *szCharName,
-	int iFame,
-	int iCostFame
-);
-#endif
-
 void backupAllLogFile( struct tm *ptm );
-
-
-#ifdef _TEST_PETCREATE
-void backupTempLogFile( char *buf, char *entryname, int Num);
-#endif
 
 void LogPetPointChange( 
 	char * CharName, char *CharID, char *PetName, int petindex, int errtype,
@@ -318,10 +233,6 @@ void LogPetPointChange(
 void LogPetFeed(
 	char * CharName, char *CharID, char *PetName, int petindex,
 	int PetLv, char *Key,int floor, int x, int y, char *ucode);
-
-#ifdef _ANGEL_SUMMON
-void LogAngel( char *msg);
-#endif
 
 void warplog_to_file( void );
 void warplog_from_file( void );
@@ -341,13 +252,5 @@ typedef struct {
 }tagWarpCount;
 #define MAXMAPLINK 1000
 extern tagWarpCount warpCount[MAXMAPLINK];
-
-#ifdef _LOG_OTHER
-void LogOther(
-	char *CharName,
-	char *CharID,
-	char *message
-);
-#endif
 
 #endif

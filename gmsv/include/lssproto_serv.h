@@ -116,14 +116,9 @@ int lssproto_ServerDispatchMessage(int fd, char *encoded);
 #define LSSPROTO_FM_RECV 	94
 #define LSSPROTO_WO_SEND 	95
 #define LSSPROTO_PETST_RECV	96
-#define LSSPROTO_BM_RECV    97   // _BLACK_MARKET
 
 #ifdef _MIND_ICON
 #define LSSPROTO_MA_RECV    98
-#endif
-
-#ifdef _FIX_DEL_MAP              // WON ADD 玩家抽地图送监狱
-#define LSSPROTO_DM_RECV    99
 #endif
 
 #ifdef _ITEM_CRACKER
@@ -133,57 +128,13 @@ int lssproto_ServerDispatchMessage(int fd, char *encoded);
 #ifdef _MAGIC_NOCAST             // 精灵:沉默
 #define LSSPROTO_NC_SEND    101
 #endif
-#ifdef _CHECK_GAMESPEED
-#define LSSPROTO_CS_RECV	103 //加速探针
-#define LSSPROTO_CS_SEND	104 //加速探针
-#endif
 
-#ifdef _TEAM_KICKPARTY
-#define LSSPROTO_KTEAM_RECV	106
-#endif
 #ifdef _PETS_SELECTCON
 #define LSSPROTO_PETST_SEND 107
 #endif
-#ifdef _NEWREQUESTPROTOCOL			// (不可开) Syu ADD 新增Protocol要求细项
-#define LSSPROTO_RESIST_RECV 108
-#define LSSPROTO_RESIST_SEND 109
-#endif
-#ifdef _OUTOFBATTLESKILL			// (不可开) Syu ADD 非战斗时技能Protocol
-#define LSSPROTO_BATTLESKILL_RECV 110
-#define LSSPROTO_BATTLESKILL_SEND 111
-#endif
-#ifdef _CHATROOMPROTOCOL			// (不可开) Syu ADD 聊天室频道
-#define LSSPROTO_CHATROOM_RECV 112
-#define LSSPROTO_CHATROOM_SEND 113
-#endif
-
 #define LSSPROTO_SPET_RECV 	114		// Robin 待机宠
 #define LSSPROTO_SPET_SEND 	115
 
-#ifdef _STREET_VENDOR
-#define LSSPROTO_STREET_VENDOR_RECV 	116		// 摆摊功能
-#define LSSPROTO_STREET_VENDOR_SEND 	117
-#endif
-
-#ifdef _RIGHTCLICK
-#define LSSPROTO_RCLICK_RECV 	118
-#define LSSPROTO_RCLICK_SEND 	119
-#endif
-
-#ifdef _JOBDAILY
-#define LSSPROTO_JOBDAILY_SEND 	120		// CYG　任务日志功能
-#define LSSPROTO_JOBDAILY_RECV 	121
-#endif
-
-#ifdef _TEACHER_SYSTEM
-#define LSSPROTO_TEACHER_SYSTEM_RECV 	122		// 导师功能
-#define LSSPROTO_TEACHER_SYSTEM_SEND 	123
-#endif
-
-#ifdef _ADD_STATUS_2
-#define LSSPROTO_S2_RECV 	124
-#define LSSPROTO_S2_SEND 	125
-#endif
 
 void lssproto_W_recv(int fd,int x,int y,char* direction);
 void lssproto_W2_recv(int fd,int x,int y,char* direction);
@@ -291,20 +242,6 @@ void lssproto_Shutdown_recv(int fd,char* passwd,int min);
 void lssproto_TD_send(int fd, int index, char* message);
 void lssproto_TD_recv(int fd, char* message);
 
-#ifdef _CHATROOMPROTOCOL			// (不可开) Syu ADD 聊天室频道
-void lssproto_CHATROOM_recv(int fd , char *data) ; 
-void lssproto_CHATROOM_send(int fd , char* message ) ; 
-#endif
-
-#ifdef _NEWREQUESTPROTOCOL			// (不可开) Syu ADD 新增Protocol要求细项
-void lssproto_RESIST_recv(int fd ) ; 
-void lssproto_RESIST_send(int fd , char* message ) ; 
-#endif
-#ifdef _OUTOFBATTLESKILL			// (不可开) Syu ADD 非战斗时技能Protocol
-void lssproto_BATTLESKILL_recv(int fd, int iNum) ; 
-void lssproto_BATTLESKILL_send(int fd , char* message ) ; 
-#endif
-
 void lssproto_NU_send(int fd, int nu);
 
 void lssproto_FM_send(int fd, char* message);
@@ -313,10 +250,6 @@ void lssproto_FM_recv(int fd, char* message);
 void lssproto_WO_send(int fd,int effect);
 void lssproto_PETST_recv( int fd,  int nPet, int sPet);
 void lssproto_BM_recv(int fd, int iindex);
-
-#ifdef _FIX_DEL_MAP           // WON ADD 玩家抽地图送监狱
-void lssproto_DM_recv( int fd );
-#endif
 
 #ifdef _MIND_ICON
 void lssproto_MA_recv(int fd, int x, int y, int nMind);
@@ -330,46 +263,12 @@ void lssproto_IC_send(int fd, int x, int y);
 void lssproto_NC_send(int fd,int flg);
 #endif
 
-#ifdef _CHECK_GAMESPEED
-void lssproto_CS_recv( int fd );
-void lssproto_CS_send( int fd, int deltimes);
-#endif
-
-#ifdef _TEAM_KICKPARTY
-void lssproto_KTEAM_recv( int fd, int si);
-#endif
-
 #ifdef _PETS_SELECTCON
 void lssproto_PETS_send(int fd,int petarray,int result);
 //#define LSSPROTO_PETST_SEND 107
 #endif
 
-#ifdef _STREET_VENDOR
-void lssproto_STREET_VENDOR_recv(int fd,char *message);
-void lssproto_STREET_VENDOR_send(int fd,char *message);
-#endif
-
-#ifdef _RCLICK
-void lssproto_RCLICK_recv(int fd, int type, char* data);
-void lssproto_RCLICK_send(int fd, int type, char* data);
-#endif
-
-#ifdef _JOBDAILY
-void lssproto_JOBDAILY_recv(int fd,char *data);	
-void lssproto_JOBDAILY_send(int fd,char *data);	
-#endif
-
-#ifdef _TEACHER_SYSTEM
-void lssproto_TEACHER_SYSTEM_recv(int fd,char *data);
-void lssproto_TEACHER_SYSTEM_send(int fd,char *data);
-#endif
-
-#ifdef _ADD_STATUS_2
-void lssproto_S2_recv(int fd,char *data);
-void lssproto_S2_send(int fd,char *data);
-#endif
 
 #endif
-
 
 

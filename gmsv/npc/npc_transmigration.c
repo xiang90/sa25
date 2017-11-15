@@ -33,7 +33,6 @@ int Pet_Select;
 #endif
 
 /*********************************
-* 赓渝质  
 *********************************/
 BOOL NPC_TransmigrationInit( int meindex )
 {
@@ -46,30 +45,24 @@ BOOL NPC_TransmigrationInit( int meindex )
 }
 
 /*********************************
-*   仄井仃日木凶凛及质  
 *********************************/
 void NPC_TransmigrationTalked( int meindex , int talkerindex , char *szMes ,int color )
 {
 #ifdef _PET_TRANS
 	int i,petindex;
-	char buf[256];
 #endif	
-    /* 皿伊奶乩□卞覆仄化分仃  杀允月 */
 	if( CHAR_getInt( talkerindex , CHAR_WHICHTYPE ) != CHAR_TYPEPLAYER )
 	{
-    		return;
+    return;
 	}
-	/*--  及蟆卞中月井升丹井＂--*/
 	if(NPC_Util_isFaceToFace( meindex ,talkerindex , 2) == FALSE) {
-		/* ㄠ弘伉永玉动  及心 */
 		if(NPC_Util_isFaceToChara( talkerindex, meindex, 1) == FALSE) return;
 	}    
 //	print("savepoot=%d",CHAR_getInt( talkerindex, CHAR_SAVEPOINT));
 //	NPC_StartpointCheck( meindex, talkerindex);
-
-
-//玛雷菲雅判断 成立 宠物转生 不成立 人物转生
 #ifdef _PET_TRANS
+	int petNum = 0;
+		//检查所需(宠物/精灵) & 检查所需物品
   for(i=0 ; i < CHAR_MAXPETHAVE ; i++)	{
     petindex = CHAR_getCharPet( talkerindex, i);
     if( petindex == -1  )
@@ -79,22 +72,45 @@ void NPC_TransmigrationTalked( int meindex , int talkerindex , char *szMes ,int 
 #ifdef _PET_2TRANS
 		|| CHAR_getInt( petindex, CHAR_PETID) == 401
 #endif
-		)	{
-	  if( CHAR_getInt( petindex, CHAR_LV) > 79 )	{
-		//continue;
-	  }else	if( CHAR_getInt( petindex, CHAR_LV) == 79 ) {
-		if( strcmp( CHAR_getChar( petindex, CHAR_OWNERCDKEY), CHAR_getChar( talkerindex, CHAR_CDKEY) ) ||
-			strcmp( CHAR_getChar( petindex, CHAR_OWNERCHARANAME), CHAR_getChar( talkerindex, CHAR_NAME) ))	{
-			sprintf( buf,"你身上的玛雷菲雅，并不是你的啊！");
-			CHAR_talkToCli( talkerindex, -1, buf,  CHAR_COLORWHITE);
-			return;
+		){
+		  if( CHAR_getInt( talkerindex, CHAR_LV) < 80 )	{
+				CHAR_talkToCli( talkerindex, -1, "由于你的等级小于80,没能力进行转宠！",  CHAR_COLORWHITE);
+				return 0;
+		  }else if( CHAR_getInt( petindex, CHAR_LV) > 79 ){
+		 		char szPet[512];
+		    CHAR_setCharPet( talkerindex, i, -1);
+		    CHAR_endCharOneArray( petindex );
+		    snprintf( szPet, sizeof( szPet ), "K%d", i);
+		    CHAR_sendStatusString( talkerindex, szPet );
+		    CHAR_talkToCli( talkerindex, -1, "清除你身上非法玛雷菲雅", CHAR_COLORRED);
+		    return 0;
+		  }else	if( CHAR_getInt( petindex, CHAR_LV) == 79 ) {
+				if( strcmp( CHAR_getChar( petindex, CHAR_OWNERCDKEY), CHAR_getChar( talkerindex, CHAR_CDKEY) ) ||
+					strcmp( CHAR_getChar( petindex, CHAR_OWNERCHARANAME), CHAR_getChar( talkerindex, CHAR_NAME) ))	{
+					CHAR_talkToCli( talkerindex, -1, "你身上的玛雷菲雅，并不是你的啊！",  CHAR_COLORWHITE);
+					return 0;
+				}
+				{
+					int LevelUpPoint = CHAR_getInt( petindex, CHAR_ALLOCPOINT );
+					int work[4];
+					work[3] =(( LevelUpPoint >> 24 ) & 0xFF);
+					work[0] = (( LevelUpPoint >> 16 ) & 0xFF);
+					work[1] = (( LevelUpPoint >> 8 ) & 0xFF);
+					work[2] = (( LevelUpPoint >> 0 ) & 0xFF);
+					if(work[0]<15 || work[1]<15 || work[2]<15 || work[3]<15){
+						CHAR_talkToCli( talkerindex, petindex, "操，你太不爱惜我了，还要我帮你转宠？没门！",  CHAR_COLORWHITE);
+						return 0;
+					}
+				}
+				petNum ++;
+		  }
 		}
-		break;
-	  }
 	}
-  }
-
-  if(i != CHAR_MAXPETHAVE)	{
+	
+	if( petNum > 1 )	{
+		CHAR_talkToCli( talkerindex, -1, "你怎会有那麽多玛雷菲雅呢？",  CHAR_COLORWHITE);
+		return 0;
+  }else if( petNum == 1 )	{
     CHAR_setWorkInt(talkerindex,CHAR_WORKSHOPRELEVANT,1);
     NPC_PetTransMan_selectWindow( meindex, talkerindex,0,-1);
   }else {
@@ -112,7 +128,6 @@ void NPC_TransmigrationTalked( int meindex , int talkerindex , char *szMes ,int 
 }
 
 
-//备质  卞坌仃月
 static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 {
 
@@ -143,7 +158,6 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 		tenseiNo--;
 	}
 	 
-	//涩烂白央奶伙  匹及鳖戏荚醒卞丐丹手及毛蓟少凶户及赏  
 	sprintf(s_tensei,"TENSEI:%d",tenseiNo);
 
 	while(getStringFromIndexWithDelim( npcarg,"END",i,buf,sizeof( buf))	!= FALSE){
@@ -153,20 +167,12 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 		 break;
 		}
 	}
-#if 0	
-	//升木卞手丐化反引日卅井匀凶日蔽  
-	if(tenflg == FALSE){
-		print("SettingFile Error ");
-		return ;
-	}
-#endif
         //ttom
-        print("\nTrans meindex=%d,toindex=%d,num=%d",meindex,toindex,num);
+//        print("\nTrans meindex=%d,toindex=%d,num=%d",meindex,toindex,num);
         //ttom
         CONNECT_set_state_trans(fd,6);
         //ttom end
          
-	//公木冗木及质  卞坌仃月［
 	switch( num){
 	  case 0:
 	        //ttom
@@ -177,16 +183,11 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 #ifdef _TRANS_6
 			ten_no < 6
 #else
-#ifdef _PK_SERVER
-			ten_no < 3//百万PK限制到3转
-#else
 			ten_no < 5
-#endif
 #endif//_TRANS_6
 			&& ten_no >= 0){
 	  		//椭瘀弁伉失□
-	  		if(NPC_Util_GetStrFromStrWithDelim( buf,"startmsg", token,sizeof( token) ) 
-				 == NULL)
+	  		if(NPC_Util_GetStrFromStrWithDelim( buf,"startmsg", token,sizeof( token) ) == NULL)
 				{
 					print("startmsgErr");
 					return;
@@ -199,16 +200,11 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 #ifdef _TRANS_6
 			ten_no == 6
 #else
-#ifdef _PK_SERVER
-			ten_no == 3//百万PK限制到3转
-#else
 			ten_no == 5
-#endif
 #endif//_TRANS_6
 			){
 			//鳖戏毛ㄤ荚支匀凶
-		  	if(NPC_Util_GetStrFromStrWithDelim( npcarg,"maxmsg", token,sizeof( token) ) 
-			   == NULL)
+		  	if(NPC_Util_GetStrFromStrWithDelim( npcarg,"maxmsg", token,sizeof( token) ) == NULL)
 			{
 				print("maxmsgErr");
 				return;
@@ -216,8 +212,7 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 			buttontype = WINDOW_BUTTONTYPE_OK;
 		}else{
 			//椭瘀弁伉失仄化卅中
-			if(NPC_Util_GetStrFromStrWithDelim( buf,"nonemsg", token,sizeof( token) ) 
-			   == NULL)
+			if(NPC_Util_GetStrFromStrWithDelim( buf,"nonemsg", token,sizeof( token) ) == NULL)
 			{
 				print("nonemsgErr");
 				return;
@@ -230,8 +225,7 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 	 	break;
 	 	
 	 	case 1:
-		 	if(NPC_Util_GetStrFromStrWithDelim( buf,"mainmsg", token,sizeof( token) ) 
-			 == NULL)
+		 	if(NPC_Util_GetStrFromStrWithDelim( buf,"mainmsg", token,sizeof( token) ) == NULL)
 			{
 				print("mainmsgErr");
 				return;
@@ -244,7 +238,6 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
       	 	        // Robin 2001/03/05 Tensei Check
 			//if(!CHAR_getWorkInt(toindex,CHAR_TENSEICHECKED))  return;
 	 	       
-	 		//鳖戏质  毛
 	 		point = NPC_StartpointCheck( meindex, toindex);
 	 		if(point == -1) {
 	 			return;
@@ -260,9 +253,7 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 	 		sprintf( tmp, "yesmsg%d", 
 	 						CHAR_getWorkInt( toindex, CHAR_WORKSHOPRELEVANT));
 	 		
-	 		//鳖戏蔽  丢永本□斥毛分允［
-	 		if(NPC_Util_GetStrFromStrWithDelim( buf,tmp, token,sizeof( token) ) 
-			 == NULL)
+	 		if(NPC_Util_GetStrFromStrWithDelim( buf,tmp, token,sizeof( token) ) == NULL)
 			{
 				print("yesmsgErr");
 				return;
@@ -274,8 +265,6 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 	 		sprintf( tmp, "yesmsg%d", 
 	 						CHAR_getWorkInt( toindex, CHAR_WORKSHOPRELEVANT));
 			
-			//鳖戏蔽  丢永本□斥毛分允［
-	 		//鳖戏蔽  丢永本□斥毛分允［
 	 		if(strstr(buf, tmp) == NULL)	{
 				buttontype = WINDOW_BUTTONTYPE_OK;
 		  		windowno = CHAR_WINDOWTYPE_TRANSMIGRATION_END; 
@@ -287,10 +276,8 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 	
 	 	case 3:
 	 		
-	 		/*--蓟      --*/
 			/*--平□伐□玉及民尼永弁毛垫丹--*/
-			if(NPC_Util_GetStrFromStrWithDelim( buf,"nomsg", token,sizeof( token) ) 
-			 == NULL)
+			if(NPC_Util_GetStrFromStrWithDelim( buf,"nomsg", token,sizeof( token) ) == NULL)
 			{
 				print("nomsgErr");
 				return;
@@ -301,12 +288,9 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 	 	break;
 
 	 	case 4:
-	 		//鳖戏  及丢永本□斥质  
 	 		sprintf( tmp, "yesmsg%d", 
 	 						CHAR_getWorkInt( toindex, CHAR_WORKSHOPRELEVANT));
-	 		//鳖戏蔽  丢永本□斥毛分允［
-	 		if(NPC_Util_GetStrFromStrWithDelim( buf,tmp, token,sizeof( token) ) 
-			 == NULL)
+	 		if(NPC_Util_GetStrFromStrWithDelim( buf,tmp, token,sizeof( token) ) == NULL)
 			{
 				print("yesmsgErr");
 				return;
@@ -318,8 +302,6 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 	 		sprintf( tmp, "yesmsg%d", 
 	 						CHAR_getWorkInt( toindex, CHAR_WORKSHOPRELEVANT));
 			
-			//鳖戏蔽  丢永本□斥毛分允［
-	 		//鳖戏蔽  丢永本□斥毛分允［
 	 		if(strstr(buf, tmp) == NULL)
 			{
 				buttontype = WINDOW_BUTTONTYPE_OK;
@@ -335,7 +317,6 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 
                         // Robin 2001/03/05 Tensei Check
                         //if(!CHAR_getWorkInt(toindex,CHAR_TENSEICHECKED))  return;
-			//鳖戏质  毛
 	 		point = NPC_StartpointCheck( meindex, toindex);
 	 		if(point == -1) return;
 			NPC_Util_GetStrFromStrWithDelim( npcarg,elder[point],buf2,sizeof( buf2));
@@ -356,7 +337,6 @@ static void NPC_Transmigration_selectWindow( int meindex, int toindex, int num)
 					token);
 }
 /*-----------------------------------------
-弁仿奶失件玄井日忒匀化五凶凛卞裟太请今木月［
 -------------------------------------------*/
 void NPC_TransmigrationWindowTalked( int meindex, int talkerindex, 
 								int seqno, int select, char *data)
@@ -365,7 +345,6 @@ void NPC_TransmigrationWindowTalked( int meindex, int talkerindex,
 	int datanum = -1;
 
 	int fd = getfdFromCharaIndex( talkerindex);
-	/*--       及引歹曰卞中卅中午五反蔽   --*/
 	if( NPC_Util_CharDistance( talkerindex, meindex ) > 2) {
 		return;
 	}
@@ -374,7 +353,6 @@ void NPC_TransmigrationWindowTalked( int meindex, int talkerindex,
        //ttom end
 	datanum = atoi( data);
 	switch( seqno) {
-		/*--  赓及丢永本□斥-*/
 	  case CHAR_WINDOWTYPE_TRANSMIGRATION_START:
 		if( select == WINDOW_BUTTONTYPE_NEXT) {
 		        //ttom
@@ -388,7 +366,6 @@ void NPC_TransmigrationWindowTalked( int meindex, int talkerindex,
 		}
 	  	break;
 		
-		//鳖戏允月井升丹井  仁丢永本□斥及蚕尹  
 	  case CHAR_WINDOWTYPE_TRANSMIGRATION_MAIN:
 	 	if( select == WINDOW_BUTTONTYPE_OK) {
 	 	        //ttom
@@ -403,7 +380,6 @@ void NPC_TransmigrationWindowTalked( int meindex, int talkerindex,
 		}
 	    break;
 
-		/*--    及丢永本□斥--*/
 	  case CHAR_WINDOWTYPE_TRANSMIGRATION_END:
 	 	if( select == WINDOW_BUTTONTYPE_NEXT) {
 	 	        //ttom
@@ -467,7 +443,6 @@ void NPC_TransmigrationWindowTalked( int meindex, int talkerindex,
 }
 
 //************************************************************
-//	反元户及赢  镉卞伐□皿今六月
 //************************************************************
 BOOL NPC_TransmigratiomWarp(int meindex, int toindex, char *buf)
 {
@@ -478,7 +453,6 @@ BOOL NPC_TransmigratiomWarp(int meindex, int toindex, char *buf)
 	int i = 1;
 	int ret;
 	
-	//请褥翘仍午及椭瘀毛  仁
 	while(getStringFromIndexWithDelim( buf,",",i,buf2,sizeof( buf2))
 	!= FALSE)
 	{
@@ -490,11 +464,9 @@ BOOL NPC_TransmigratiomWarp(int meindex, int toindex, char *buf)
 			ret = getStringFromIndexWithDelim( buf3,".",1 ,buf4 ,sizeof( buf4));
 			if(ret ==FALSE) return FALSE;
 			floor = atoi(buf4);
-			//  甄  
 			ret = getStringFromIndexWithDelim( buf3,".",2 ,buf4 ,sizeof( buf4));
 			if(ret ==FALSE) return FALSE;
 			x = atoi(buf4);
-			//  甄  
 			ret = getStringFromIndexWithDelim( buf3,".",3 ,buf4 ,sizeof( buf4));
 			if(ret ==FALSE) return FALSE;
 			y = atoi(buf4);
@@ -528,9 +500,7 @@ BOOL NPC_TransmigratiomWarp(int meindex, int toindex, char *buf)
 }
 
 //************************************************************
-//*请  鳔及民尼永弁
 //
-//  曰袄“
 //	ㄟ“扔丞幼伙
 //	ㄠ“穴伉瓜旦
 //	ㄡ“斥乓斥乓
@@ -552,11 +522,7 @@ int NPC_StartpointCheck(int meindex,int talker)
 
 //********************************************************
 //
-//	鳖戏椭瘀毛  凶仄化中月井升丹井及民尼永弁
 //
-//  曰袄
-//	岳  “鳖戏荚醒
-//	撩  “-1
 //
 //********************************************************
 static int NPC_TransmigrationCheck(int meindex, int talker)
@@ -564,7 +530,6 @@ static int NPC_TransmigrationCheck(int meindex, int talker)
 	//	鳖戏椭瘀
 	//伊矛伙互ㄧㄟ动晓
 	//ㄣ勾及箪岭奶矛件玄互蔽歹匀化中月仇午
-	//  蔽奶矛件玄毛仇卅允［(仇木反中日氏井卅  
 	int i,j,k=0;
 	int ch_no[4] = {39,40,42,46};
 	int petindex;
@@ -576,7 +541,6 @@ static int NPC_TransmigrationCheck(int meindex, int talker)
 
 	// Robin 2001/03/05
 	//CHAR_setWorkInt(talker,CHAR_TENSEICHECKED,FALSE);
-	//手仄ㄤ荚动晓卅日鳖戏匹五卅中［
 #ifdef _TRANS_6
 	if(CHAR_getInt(	talker, CHAR_TRANSMIGRATION) >= 6){
 		return 6;
@@ -609,12 +573,9 @@ static int NPC_TransmigrationCheck(int meindex, int talker)
 			if( petindex == -1  )  continue;
 			//ttom
 			//print("petid=%d ",CHAR_getInt( petindex, CHAR_PETID));
-			//矢永玄及    反域踝井＂
 			if(CHAR_getInt( petindex, CHAR_PETID) != petid[num]) continue;
 
-			//矢永玄及伊矛伙反椭瘀毛  凶仄化中月井
 //			if(CHAR_getInt( petindex, CHAR_LV) < PETLEVEL) continue;
-			//仇仇引匹五凶日公及矢永玄反    午  蝇
 			break;
 		}
 		if(i == CHAR_MAXPETHAVE) return -1;
@@ -624,12 +585,10 @@ static int NPC_TransmigrationCheck(int meindex, int talker)
 #endif
 	{
 		for(j = 0; j < 4 ;j++){
-			//诡荚  及桦宁反ㄣ  毛民尼永弁
 			for(i=0 ; i < CHAR_MAXPETHAVE ; i++){
 				petindex = CHAR_getCharPet( talker, i);
 				if( petindex == -1  )  continue;
 		//		print("petid=%d ",CHAR_getInt( petindex, CHAR_PETID));
-				//矢永玄及    反域踝井＂
 				if(CHAR_getInt( petindex, CHAR_PETID) != petidfinal[j]) continue;
 				k++;
 				break;
@@ -684,16 +643,10 @@ static int NPC_TransmigrationCheck(int meindex, int talker)
 			print("\nitem:%d",j);
 			return -1;
 		}
-
-		if( CHAR_getInt(talker, CHAR_HEROCNT) <= 0 ){
-			CHAR_talkToCli( talker,-1,"你没有执行过精灵召唤的任务!",CHAR_COLORWHITE);
-			return -1;
-		}
 	}
 #endif
 	// Robin 2001/03/05
 	//CHAR_setWorkInt(talker,CHAR_TENSEICHECKED,TRUE);
-	//  蔽奶矛件玄民尼永弁
 
 	return CHAR_getInt(talker, CHAR_TRANSMIGRATION);
 }
@@ -804,9 +757,7 @@ BOOL NPC_TransmigrationMain(int meindex, int toindex, char *buf)
 	CHAR_complianceParameter( toindex );
 	//HP毛荚汊今六化丐仆月
 	CHAR_setInt(toindex, CHAR_HP, CHAR_getWorkInt(toindex, CHAR_WORKMAXHP) );
-	//    燮毛请褥哗及翘赢镉卞  允［
 	CHAR_setInt(toindex,CHAR_LASTTALKELDER, NPC_StartpointCheck(meindex,toindex));
-	/*  皿伊奶乩□树  毛霜月  */
 	CHAR_sendStatusString( toindex, "P" );
 	/*
 	CHAR_send_P_StatusString( toindex,
@@ -849,7 +800,6 @@ int NPC_TransmigrationQuestCheck(int toindex)
 }
 
 //*******************************************************
-//	旦  □正旦毛煌遥允月
 //*******************************************************
 int NPC_TransCalculation(int toindex, int para)
 {
@@ -857,7 +807,6 @@ int NPC_TransCalculation(int toindex, int para)
 	float ans;
 	int equ;
 	equ = CHAR_getInt(toindex, CHAR_TRANSEQUATION);
-	//16bit  匹银迕
 	quest = (float)(( equ >> 16 ) & 0xFFFF);
 	level = (float)(( equ >> 0 ) & 0xFFFF);
 	//tttom
@@ -873,7 +822,6 @@ int NPC_TransCalculation(int toindex, int para)
 }
 
 //*******************************************************
-//	铨桩诡  
 //*******************************************************
 float Rounding(float work,int num)
 {
@@ -891,7 +839,6 @@ float Rounding(float work,int num)
 
 //*******************************************************
 //
-//	旦  □正旦楮溢及凳蕙
 //
 //*******************************************************
 BOOL NPC_TransmigrationStatus(int meindex, int toindex,int work[10])
@@ -965,7 +912,6 @@ BOOL NPC_TransmigrationStatus(int meindex, int toindex,int work[10])
 	
 	
 	
-	//伊矛伙    禾奶件玄手  凳
 	lvup = CHAR_getInt(toindex, CHAR_SKILLUPPOINT );
 /*#ifdef _TRANS_6
 	if( CHAR_getInt(toindex, CHAR_TRANSMIGRATION) == 6)
@@ -1037,7 +983,6 @@ BOOL NPC_TransmigrationAddPet(int meindex, int talker, int petid)
 		snprintf( msgbuf, sizeof( msgbuf ), "W%d", j );
 		CHAR_sendStatusString( talker, msgbuf );
 	}
-	// 矢永玄毛澎卞  木凶夫弘
 	LogPet(
 		CHAR_getChar( talker, CHAR_NAME ), /* 平乓仿   */
 		CHAR_getChar( talker, CHAR_CDKEY ),
@@ -1054,21 +999,10 @@ BOOL NPC_TransmigrationAddPet(int meindex, int talker, int petid)
 
 }
 
-#ifdef _TEACHER_SYSTEM
-extern int FMAdvTbl[];
-#endif
-
 int NPC_TransmigrationFlg_CLS(int meindex, int toindex)
 {
-#ifdef _TEACHER_SYSTEM
-	int iGetFame = 0;
-#endif
 #ifdef _PET_TRANS
-#ifdef _PROSK99
-	int endevflg[]={69,70,71,72,109,118,122,131,127,158,159,181,-1};//181:白狼奖品
-#else
 	int endevflg[]={69,70,71,72,109,118,122,131,127,158,159,-1};
-#endif	
 	int nowevflg[]={69,70,71,72,-1};
 #endif
 #ifdef _TRANS_6
@@ -1111,14 +1045,6 @@ int NPC_TransmigrationFlg_CLS(int meindex, int toindex)
 	CHAR_setInt(toindex,CHAR_NOWEVENT5,0);
 	CHAR_setInt(toindex,CHAR_NOWEVENT6,0);
 #endif
-#ifdef _ADD_NEWEVENT              // WON 多增任务旗标
-	CHAR_setInt(toindex,CHAR_ENDEVENT7,0);
-	CHAR_setInt(toindex,CHAR_NOWEVENT7,0);
-	CHAR_setInt(toindex,CHAR_ENDEVENT8,0);
-	CHAR_setInt(toindex,CHAR_NOWEVENT8,0);
-#endif
-
-	//鳖戏白仿弘毛  化月
 #ifdef _PET_TRANS
 	i=0;
 	while( endevflg[i] != -1 )	{
@@ -1144,37 +1070,7 @@ int NPC_TransmigrationFlg_CLS(int meindex, int toindex)
 		NPC_EventSetFlg(toindex, flg[i]);
 		// CoolFish: Family Adv 2001/8/4
 		AddFMAdv(toindex, flg[i]);
-#ifdef _TEACHER_SYSTEM
-		// 累加所得声望
-		if(flg[i] < 179) iGetFame += FMAdvTbl[flg[i]];
-#endif
 	}
-#ifdef _TEACHER_SYSTEM
-	iGetFame /= 20; // 导师获得学生所得声望的 5% (1/20)
-	// 检查所得的声望有没有大於0
-	if(iGetFame > 0){
-		// 检查有没有导师
-		if(strlen(CHAR_getChar(toindex,CHAR_TEACHER_ID)) > 0 && strlen(CHAR_getChar(toindex,CHAR_TEACHER_NAME)) > 0){
-			int iPlayernum = CHAR_getPlayerMaxNum();
-			char szMsg[128];
-
-			// 检查导师在不在线上
-			for(i=0;i<iPlayernum;i++){
-				if(CHAR_getCharUse(i) == FALSE) continue;
-				if(strcmp(CHAR_getChar(toindex,CHAR_TEACHER_ID),CHAR_getChar(i,CHAR_CDKEY)) == 0 &&
-					strcmp(CHAR_getChar(toindex,CHAR_TEACHER_NAME),CHAR_getChar(i,CHAR_NAME)) == 0){
-					float fGetFame = (float)iGetFame/100;
-					// 导师在线上
-					CHAR_setWorkInt(i,CHAR_WORK_GET_TEACHER_FAME,CHAR_getWorkInt(i,CHAR_WORK_GET_TEACHER_FAME) + iGetFame);
-					sprintf(szMsg,"获得学生 %s %.2f 点声望",CHAR_getChar(toindex,CHAR_NAME),fGetFame);
-					CHAR_talkToCli(i,-1,szMsg,CHAR_COLORYELLOW);
-					break;
-				}
-			}
-		}
-	}
-#endif
-
 #ifdef _TRANS_6
 	if( num == 6 ){
 		NPC_EventSetFlg(toindex, 63); //不给玩家解英雄的祝福
@@ -1203,7 +1099,6 @@ BOOL NPC_TransmigrationDelPetDel(int meindex,int talker,int petsel)
 
     if( !CHAR_CHECKINDEX(petindex) ) return FALSE;
 	
-	/*--公及平乓仿互爵    卅日｝矢永玄毛丹日内蔽  --*/
 	if( CHAR_getWorkInt( CONNECT_getCharaindex( fd),
    	                     CHAR_WORKBATTLEMODE) != BATTLE_CHARMODE_NONE) return FALSE;
 	/*--公及矢永玄互田玄伙井升丹井及民尼永弁--*/
@@ -1215,9 +1110,8 @@ BOOL NPC_TransmigrationDelPetDel(int meindex,int talker,int petsel)
 
 	snprintf( msgbuf,sizeof( msgbuf), "交出%s。",
 									CHAR_getChar( petindex, CHAR_NAME));	CHAR_talkToCli( talker, -1, msgbuf,  CHAR_COLORWHITE);
-	// 矢永玄毛澎  仄凶夫弘
 	LogPet(
-		CHAR_getChar( talker, CHAR_NAME ), /* 平乓仿   */
+		CHAR_getChar( talker, CHAR_NAME ), /* 平乓仿抩 */
 		CHAR_getChar( talker, CHAR_CDKEY ),
 		CHAR_getChar( petindex, CHAR_NAME),
 		CHAR_getInt( petindex, CHAR_LV),
@@ -1227,17 +1121,14 @@ BOOL NPC_TransmigrationDelPetDel(int meindex,int talker,int petsel)
 		CHAR_getInt( talker,CHAR_Y ),
 		CHAR_getChar( petindex, CHAR_UNIQUECODE)   // shan 2001/12/14
 	);
-	/*   切  井日壅允 */
 	CHAR_setCharPet( talker, petsel, -1);
 	CHAR_endCharOneArray( petindex );
 	snprintf( szPet, sizeof( szPet ), "K%d", petsel);
-	// 蕙仄中矢永玄旦  □正旦霜曰勾仃月
 	CHAR_sendStatusString( talker, szPet );
 	return TRUE;
 }
 
 //***********************************************************
-//	壅允矢永玄毛茧允［
 //***********************************************************
 BOOL NPC_TransmigrationDelPet(int meindex, int talker)
 {
@@ -1259,9 +1150,7 @@ BOOL NPC_TransmigrationDelPet(int meindex, int talker)
 			petindex = CHAR_getCharPet( talker, petsel);
 			if( petindex == -1  )  continue;
 			
-			//矢永玄及    反域踝井＂
 			if(CHAR_getInt( petindex, CHAR_PETID) != petid[num]) continue;
-			//仇仇引匹五凶日公及矢永玄反    午  蝇
 			break;
 		}
 	
@@ -1275,18 +1164,15 @@ BOOL NPC_TransmigrationDelPet(int meindex, int talker)
 	else
 #endif
 	{
-		//诡荚  
 		for(j = 0; j < 4; j++){
 			//隙烂矢永玄毛手匀化中月井矢永玄民尼永弁
 			for(petsel=0 ; petsel < CHAR_MAXPETHAVE ; petsel++){
 				petindex = CHAR_getCharPet( talker, petsel);
 				if( petindex == -1  )  continue;
 				
-				//矢永玄及    反域踝井＂
 				if(CHAR_getInt( petindex, CHAR_PETID) != petidfinal[j]) continue;
 				
 				petwork[j] = petsel;
-				//仇仇引匹五凶日公及矢永玄反    午  蝇
 				break;
 			}
 		}
@@ -1315,14 +1201,12 @@ BOOL NPC_TransmigrationDelPet(int meindex, int talker)
 			petindex = CHAR_getCharPet( talker, petsel);
 			if( petindex == -1  )  continue;
 			
-			//矢永玄及    反域踝井＂
 			if(CHAR_getInt( petindex, CHAR_TRANSMIGRATION) != 2) continue;
 			petid=CHAR_getInt( petindex, CHAR_PETID );
 			if (petid == 2) break;
 			if (petid == 112) break;
 			if (petid == 102) break;
 			if (petid == 34) break;
-			//仇仇引匹五凶日公及矢永玄反    午  蝇
 		}
 		if(petsel  == CHAR_MAXPETHAVE) return FALSE;
 		if(NPC_TransmigrationDelPetDel(meindex, talker, petsel) == FALSE) return FALSE;
@@ -1438,12 +1322,6 @@ void NPC_PetTransMan_selectWindow(int meindex,int toindex,int num,int select)
 			if( !CHAR_CHECKINDEX( petindex) ) {
 				return;
 			}
-#ifdef _PET_FUSION
-			if( CHAR_getInt( petindex, CHAR_FUSIONBEIT ) == 1 ) {
-				sprintf(token, "\n\n融合过的宠物不能转生喔！"); 
-				CHAR_setWorkInt( toindex, CHAR_WORKSHOPRELEVANT, 0);
-			}else
-#endif
 #ifdef _PET_2TRANS
 			if( CHAR_getInt( toindex, CHAR_RIDEPET ) == select-1 /*&& CHAR_getInt( petindex, CHAR_TRANSMIGRATION ) > 0*/ ){//骑乘中的宠物不能转生
 				sprintf(token, "\n\n骑乘中的宠物不能转生喔！"); 	
@@ -1501,11 +1379,9 @@ int NPC_PetTransManCheck( int meindex, int toindex, int select)
 	//char errchar[][56]={"errormy","erroritem","errorpet","failmsg"};
 	int i;
 	int petindex = 0;
-	char token[256];
 	int PetEvent_no[3]={4,69,70};
 	//int PetEvent_no[3]={4,4,4};
 
-	int petNum = 0;
 	//宠物转生条件
 	if( CHAR_getInt( toindex, CHAR_LV ) < 80 )	{
 	  return 0;
@@ -1515,40 +1391,6 @@ int NPC_PetTransManCheck( int meindex, int toindex, int select)
 		  if( NPC_EventCheckFlg( toindex, PetEvent_no[i] ) == FALSE)	{
 			return 0;
 		  }
-	  }
-	//检查所需(宠物/精灵) & 检查所需物品
-	  for(i=0 ; i < CHAR_MAXPETHAVE ; i++)	{
-		petindex = CHAR_getCharPet( toindex, i);
-		if( petindex == -1  )
-			continue;
-		//检查宠物的 ID 是否为玛雷菲雅 1479 ID 为718
-		if(CHAR_getInt( petindex, CHAR_PETID) == 718
-#ifdef _PET_2TRANS
-			|| CHAR_getInt( petindex, CHAR_PETID) == 401
-#endif
-			){
-			petNum ++;
-		  if( CHAR_getInt( petindex, CHAR_LV) > 79 )	{
-			return 0;
-		  }else	if( CHAR_getInt( petindex, CHAR_LV) == 79 ) {
-			if( strcmp( CHAR_getChar( petindex, CHAR_OWNERCDKEY), CHAR_getChar( toindex, CHAR_CDKEY) ) ||
-				strcmp( CHAR_getChar( petindex, CHAR_OWNERCHARANAME), CHAR_getChar( toindex, CHAR_NAME) ))	{
-				sprintf( token,"你身上的玛雷菲雅，并不是你的啊！");
-				CHAR_talkToCli( toindex, -1, token,  CHAR_COLORWHITE);
-				return 0;
-			}
-		  }
-		}
-	  }   
-
-	  if( petNum > 1 )	{
-		sprintf( token,"你怎会有那麽多玛雷菲雅呢？");
-		CHAR_talkToCli( toindex, -1, token,  CHAR_COLORWHITE);
-		print("\n error PetTrans : (PETID = 718) > 1 !!");
-		return 0;
-	  }else if( petNum != 1 )	{
-		  print("\n 宠转发生错误 !!");
-		  return 0;
 	  }
 	}
 	return -1;
@@ -1695,6 +1537,7 @@ BOOL NPC_PetTransManStatus( int meindex, int toindex, int petNo)
 			CHAR_send_K_StatusString(toindex,count,CHAR_K_STRING_HP|CHAR_K_STRING_AI);
 		}
 	}
+	CHAR_setInt( petNo, CHAR_LIMITLEVEL, -1);
 	{
 		
 			LogPetTrans( 
@@ -1760,11 +1603,7 @@ BOOL NPC_PetTransManStatus( int meindex, int toindex, int petNo)
 // shan add
 void s_eventsetend( int charaindex, int shiftbit )
 {
-#ifdef _ADD_NEWEVENT              // WON 多增任务旗标
-	int event_num = 8;
-#else
 	int event_num = 6;
-#endif
 	int point;	
 	int array;
 	int shift;
@@ -1773,7 +1612,7 @@ void s_eventsetend( int charaindex, int shiftbit )
 	shift = shiftbit % 32;
 		
 	if( array>=event_num ){
-		//print("错误！！所设的任务旗标编号已超过  围(0~%d)。",32*event_num-1);			
+		//print("错误！！所设的任务旗标编号已超过范围(0~%d)。",32*event_num-1);			
 		return;
 	}
 	point = CHAR_getInt( charaindex, CHAR_ENDEVENT+array);

@@ -2,499 +2,256 @@
 
 #include "version.h"
 
-#ifdef _SASQL
+#ifdef _SASQL			//新添加
 
 #include "main.h"
-#include "util.h"
-#include "mail.h"
-#include "db.h"
-#include "saacproto_util.h"
-#include "saacproto_serv.h"
-#ifdef _UNIVERSE_CHATROOM
-#include "chatroom.h"
-#endif
-// CoolFish: Family 2001/5/9
-#include "acfamily.h"
+#include "sasql.h"
 
-#ifdef _DEATH_CONTEND
-#include "deathcontend.h"
-#endif
+#include <mysql/mysql.h>
 
-#include <signal.h>
-#include <sys/types.h>
-#include <time.h>
-#include <sys/time.h>
-#include <errno.h>
-#include <sys/wait.h>
-#include <getopt.h>
-#include <stdio.h>
-#include <malloc.h>
-#include <strings.h>
-#include <string.h>
-#include <unistd.h>
-#include <netdb.h>
-#include <errno.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <time.h>
-#include <fcntl.h>
-#include <netinet/tcp.h>
-
-#include "saacproto_work.h"
-#ifdef _OACSTRUCT_TCP
-#include "saacproto_oac.h"
-#endif
-#ifdef _PAUCTION_MAN
-#include "auction.h"
-#endif
-#include "lock.h"
-#define BACKLOGNUM 5
-
-
-#ifdef _FIX_WORKS
-#include "saacproto_work.h"
-int worksockfd;
-#endif
-
-#ifdef _LOCK_SERVER
-#include "saacproto_lserver.h"
-#endif
-
-#ifdef _SEND_EFFECT				  // WON ADD 送下雪、下雨等特效 
-#include "recv.h"
-#endif
-
-#include "defend.h"
-
-#include "char.h"
-
-#include <mysql.h>
-
-#define BOOL int
-#define FALSE 0
-#define TRUE  1
 MYSQL mysql;
 MYSQL_RES *mysql_result;
 MYSQL_ROW mysql_row;
 
-char servername[16][20] =
-{
-		"仙女", // 0
-		"太阳", // 1
-		"天神", // 2
-		"北斗", // 3
-		"紫微", // 4
-		"苍龙", // 5
-		"银河系", // 6
-		"香港", // 7
-		"星乐园", // 8
-		"网路家庭", // 9
-		"圣兽", // 10
-		"天鹰", // 11
-		"新界", // 12
-		"仙女1", // 13
-		"仙女2", // 14
-		"仙女3" // 15
-};
+typedef struct tagConfig {
+	char sql_IP[16];
 
-int sasql_init( void )
+	int sql_Port;
+
+	char sql_Port1[16];
+
+	char sql_ID[16];
+
+	char sql_PS[16];
+
+	char sql_DataBase[16];
+
+	char sql_Table[16];
+
+	char sql_LOCK[16];
+
+	char sql_NAME[16];
+
+	char sql_PASS[16];
+} Config;
+
+Config config;
+
+int AutoReg;
+
+static int readConfig(char *path)
 {
-    if( mysql_init(&mysql) == NULL )
-    {
-        log("\nmysql init err");
+	char buf[255];
+	FILE *fp;
+
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		return -2;
+	}
+
+	while (fgets(buf, sizeof(buf), fp)) {
+		char command[255];
+		char param[255];
+		chop(buf);
+
+		easyGetTokenFromString(buf, 1, command, sizeof(command));
+		easyGetTokenFromString(buf, 2, param, sizeof(param));
+
+		if (strcmp(command, "sql_IP") == 0) {
+			strcmp(config.sql_IP, param);
+			snprintf(config.sql_IP, sizeof(config.sql_IP), param);
+			printf("\n数据库地址：  %s", config.sql_IP);
+		} else if (strcmp(command, "sql_Port") == 0) {
+			config.sql_Port = atoi(param);
+			snprintf(config.sql_Port1, sizeof(config.sql_Port1),
+				 param);
+			printf("\n数据库端口：  %d", config.sql_Port);
+		} else if (strcmp(command, "sql_ID") == 0) {
+			strcmp(config.sql_ID, param);
+			snprintf(config.sql_ID, sizeof(config.sql_ID), param);
+			printf("\n数据库用户：  %s", config.sql_ID);
+		} else if (strcmp(command, "sql_PS") == 0) {
+			strcmp(config.sql_PS, param);
+			snprintf(config.sql_PS, sizeof(config.sql_PS), param);
+			printf("\n数据库密码：  %s", config.sql_PS);
+		} else if (strcmp(command, "sql_DataBase") == 0) {
+			strcmp(config.sql_DataBase, param);
+			snprintf(config.sql_DataBase,
+				 sizeof(config.sql_DataBase), param);
+			printf("\n登陆数据库名：%s", config.sql_DataBase);
+		} else if (strcmp(command, "sql_Table") == 0) {
+			strcmp(config.sql_Table, param);
+			snprintf(config.sql_Table, sizeof(config.sql_Table),
+				 param);
+			printf("\n用户信息表名：  %s", config.sql_Table);
+		} else if (strcmp(command, "sql_LOCK") == 0) {
+			strcmp(config.sql_LOCK, param);
+			snprintf(config.sql_LOCK, sizeof(config.sql_LOCK),
+				 param);
+			printf("\n用户锁定表名：  %s", config.sql_LOCK);
+		} else if (strcmp(command, "sql_NAME") == 0) {
+			strcmp(config.sql_NAME, param);
+			snprintf(config.sql_NAME, sizeof(config.sql_NAME),
+				 param);
+			printf("\n账号字段名称：  %s", config.sql_NAME);
+		} else if (strcmp(command, "sql_PASS") == 0) {
+			strcmp(config.sql_PASS, param);
+			snprintf(config.sql_PASS, sizeof(config.sql_PASS),
+				 param);
+			printf("\n密码字段名称：  %s", config.sql_PASS);
+		} else if (strcmp(command, "AutoReg") == 0) {
+			AutoReg = atoi(param);
+			if (AutoReg) {
+				printf("\n开放自动注册：YES");
+			} else {
+				printf("\n开放自动注册：NO");
+			}
+			fclose(fp);
+			return 0;
+		}
+	}
+}
+
+BOOL sasql_init(void)
+{
+	if (mysql_init(&mysql) == NULL & readConfig("acserv.cf")) {
+		printf("\nmysql_init=fail 数据库初始化失败！");
+		exit(1);
 		return FALSE;
-    }
-	if( !mysql_real_connect( &mysql,
-                             "210.64.59.61",
-                             "sa",//帐号
-                             "something",//密码
-                             "chardata",//选择的资料库
-                             MYSQL_PORT,
-                             NULL,
-                             0 ) )
-	{
-		log("\nmysql connect err");
+	}
+	printf("ip=%s id=%s ps=%s database=%s port=%d",
+	       config.sql_IP, config.sql_ID, config.sql_PS, config.sql_DataBase,
+	       config.sql_Port);
+
+	if (!mysql_real_connect(&mysql, config.sql_IP, config.sql_ID,	//帐号
+				config.sql_PS,	//密码
+				config.sql_DataBase,	//选择的资料库
+				config.sql_Port, NULL, 0)) {
+		printf("\nmysql_real_connect=fail 数据库连接失败！\n");
 		return FALSE;
-    }
-	log("\nmysql connect ok");
+	}
+
+	printf("\nmysql_real_connect=ok 数据库连接成功！\n");
 	return TRUE;
 }
 
-void sasql_close( void )
+void sasql_close(void)
 {
-	mysql_close( &mysql );
+	mysql_close(&mysql);
 }
 
-int sasql_save_nm( int id, char *acc, char *data )
+int sasql_query(char *nm, char *pas)
 {
-	int i;
-	char str[256];
-	memset(str,0,256);
-	for(i=0;i<16;i++){
-		if( strcmp( servername[i], saacname) == 0 ){
-			break;	
-		}
-	}
-	sprintf(str,"select name from nm where idxnum=%d and acc='%s' and STAR=%d",id,acc,i);
-	if( !mysql_query(&mysql, str ) ){
-		int num_row=0;
-		mysql_result = mysql_store_result( &mysql );
-		num_row = mysql_num_rows(mysql_result);//取得的资料笔数(正常最多取得一笔)
+	char sqlstr[256];
+	sprintf(sqlstr, "select * from %s where %s=BINARY'%s'",
+		config.sql_Table, config.sql_NAME, nm);
+	printf("\nquery_sql=%s\n", sqlstr);
+	if (!mysql_query(&mysql, sqlstr)) {
+		int num_row = 0;
+		mysql_result = mysql_store_result(&mysql);
+		num_row = mysql_num_rows(mysql_result);
+		if (num_row > 0) {
+			mysql_row = mysql_fetch_row(mysql_result);
+			if (strcmp(pas, mysql_row[1]) == 0) {
+		        mysql_free_result(mysql_result);
+				return 1;
+			} else {
+				printf
+				    ("password=not_correct 用户%s密码错误！\n",
+				     nm);
+		        mysql_free_result(mysql_result);
+				return 2;
+			}
+		} 
 		mysql_free_result(mysql_result);
-		log("\nsasql nm num_row:%d",num_row);
-		if( num_row != 0 ){//修改资料
-			sprintf(str,"update nm set name = '%s' where idxnum=%d and acc='%s' and STAR=%d",data,id,acc,i);
-			if( !mysql_query(&mysql, str ) ){
-				log("\nupdate nm set name OK");
-				return TRUE;
-			}
-			else{
-				log("\nupdate nm set name ERR");
-				return FALSE;
-			}
-		}
-		else{//增加资料
-			sprintf(str,"insert into nm values ( %d, '%s', %d, '%s' )",i,acc,id,data);
-			if( !mysql_query(&mysql, str ) ){
-				log("\ninsert into nm values OK");
-				return TRUE;
-			}
-			else{
-				log("\ninsert into nm values ERR");
-				return FALSE;
-			}
-		}
+		printf("user=not_register 用户%s未注册！\n", nm);
+		return 3;
+	} else {
+		printf("\nmysql_error=%s\n", mysql_error(&mysql));
+		printf("\nmysql_query=fail 数据库查找失败！\n");
+		printf("\nreconnect_db=yes 重新连接数据库...\n");
+		sasql_close();
+		sasql_init();
+		printf("finish 完成\n");
+		return 0;
 	}
-	else{
-		log("\nselect name from nm  ERR");
-		return FALSE;
-	}
-
-	return TRUE;
 }
 
-int sasql_save_opt( int id, char *acc, char *data )
+#ifdef _SQL_REGISTER
+BOOL sasql_register(char *id, char *ps)
 {
-	int i,star;
-	char str[1024];
-	
-	memset(str,0,256);
-	for(i=0;i<16;i++){
-		if( strcmp( servername[i], saacname) == 0 ){
-			star = i;
-			break;	
-		}
+	char sqlstr[256];
+//      if(AutoReg!=1)return FALSE;
+	sprintf(sqlstr,
+		"INSERT INTO %s (%s,%s,RegTime,Path) VALUES (BINARY'%s','%s',NOW(),'char/0x%x')",
+		config.sql_Table, config.sql_NAME, config.sql_PASS, id, ps,
+		getHash(id) & 0xff);
+	printf("\nregister_sql=%s\n", sqlstr);
+	if (!mysql_query(&mysql, sqlstr)) {
+		printf("\nnew_user_register=ok 新用户注册成功！\n");
+		return TRUE;
 	}
-	sprintf(str,"select name from opt where idxnum=%d and acc='%s' and STAR=%d",id,acc,star);
-	if( !mysql_query(&mysql, str ) ){
-		int num_row=0;
-		mysql_result = mysql_store_result( &mysql );
-		num_row = mysql_num_rows(mysql_result);//取得的资料笔数(正常最多取得一笔)
+	printf("\nnew_user_register=fail 新用户注册失败！\n");
+	return FALSE;
+}
+#endif
+
+BOOL sasql_chehk_lock(char *idip)
+{
+	char sqlstr[256];
+	sprintf(sqlstr, "select * from %s where %s=BINARY'%s'", config.sql_LOCK,
+		config.sql_NAME, idip);
+	printf("\ncheck_lock_sql=%s\n", sqlstr);
+
+	/* TODO: check the lock according to result's rows */
+
+	if (!mysql_query(&mysql, sqlstr)) {
+		int num_row = 0;
+		mysql_result = mysql_store_result(&mysql);
+		num_row = mysql_num_rows(mysql_result);
 		mysql_free_result(mysql_result);
-		log("\nsasql opt num_row:%d",num_row);
-
-		if( num_row != 0 ){//修改资料
-			char buf[1024],buf2[16][64];
-			for( i=0;i<16;i++)
-				memset(buf2[i],0,64);
-			memset(buf,0,1024);
-			for( i=0;i<16;i++ )
-				easyGetTokenFromBuf( data, '|', i+1, buf2[i], sizeof( buf2[i] ) );
-
-			sprintf(buf," d0=%s and d1=%s and d2=%s and d3=%s and d4=%s and d5=%s and d6=%s and d7=%s and d8=%s and d9=%s and d10=%s and d11=%s and d12=%s and d13=%s and name='%s' and mapname='%s' ",
-				          buf2[0],buf2[1],buf2[2],buf2[3],buf2[4],buf2[5],buf2[6],buf2[7],buf2[8],buf2[9],buf2[10],buf2[11],buf2[12],buf2[13],buf2[14],buf2[15] );
-
-			sprintf(str,"update opt set %s where idxnum=%d and acc='%s' and STAR=%d",buf,id,acc,star);
-			if( !mysql_query(&mysql, str ) ){
-				log("\nupdate opt set OK");
-				return TRUE;
-			}
-			else{
-				log("\nupdate opt set ERR");
-				return FALSE;
-			}
-		}
-		else{//增加资料
-			char buf[1024],buf2[64],buf3[64];
-			memset(buf,0,1024);
-			for( i=0;i<14;i++ ){
-				easyGetTokenFromBuf( data, '|', i+1, buf2, sizeof( buf2 ));
-				strcat(buf,buf2);
-				strcat(buf,",");
-			}
-			easyGetTokenFromBuf( data, '|', i+1, buf2, sizeof( buf2 ));
-			easyGetTokenFromBuf( data, '|', i+2, buf3, sizeof( buf3 ));
-			sprintf(str,"insert into opt values ( %d, '%s', %d, %s '%s', '%s' )",star,acc,id,buf,buf2,buf3);
-			if( !mysql_query(&mysql, str ) ){
-				log("\ninsert into opt values OK");
-				return TRUE;
-			}
-			else{
-				log("\ninsert into opt values ERR");
-				return FALSE;
-			}
+		if (num_row > 0) {
+			return TRUE;	/* account is locked */
 		}
 	}
-	else{
-		log("\nselect name from opt ERR");
-		return FALSE;
-	}
 
-	return TRUE;
+	return FALSE;
 }
 
-int sasql_save_int_info( int id, char *acc, char *data )
+BOOL sasql_add_lock(char *idip)
 {
-	int i,star;
-	char str[10042];
-	log("\n%s",data);
-
-	memset(str,0,10042);
-	for(i=0;i<16;i++){
-		if( strcmp( servername[i], saacname) == 0 ){
-			star = i;
-			break;	
-		}
+	char sqlstr[256];
+	sprintf(sqlstr, "INSERT INTO %s (%s) VALUES (BINARY'%s')",
+		config.sql_LOCK, config.sql_NAME, idip);
+	printf("\nadd_lock_sql=%s\n", sqlstr);
+	if (!mysql_query(&mysql, sqlstr)) {
+		printf("\n添加锁定%s成功！\n", idip);
+		return TRUE;
 	}
-
-
-	sprintf(str,"select pn from intdata where idxnum=%d and acc='%s' and STAR=%d",id,acc,star);
-	if( !mysql_query(&mysql, str ) ){
-		int num_row=0;
-		mysql_result = mysql_store_result( &mysql );
-		num_row = mysql_num_rows(mysql_result);//取得的资料笔数(正常最多取得一笔)
-		mysql_free_result(mysql_result);
-		log("\nsasql intdata num_row:%d",num_row);
-		if( num_row != 0 ){//修改资料
-			char buf[5012],buf2[64];
-			char *p=NULL;
-			memset(buf,0,5012);
-			for( i=0;i<153;i++ ){//int资料栏位有增加的话,回圈也要增加
-				easyGetTokenFromBuf( data, '\n', i+1, buf2, sizeof( buf2 ));
-				sprintf(str,"update intdata set %s where idxnum=%d and acc='%s' and STAR=%d",buf2,id,acc,star);
-				if( !mysql_query(&mysql, str ) ){
-				//	log("\ninsert into intdata values OK");
-				}
-				else{
-				//	log("\ninsert into intdata values ERR");
-				}
-			}
-		}
-		else{//增加空的资料
-			char buf[5012],buf2[64];
-			char *p=NULL;
-			memset(buf,0,5012);
-			for( i=0;i<153;i++ ){//int资料栏位有增加的话,回圈也要增加
-				strcat( buf, "0" );
-				if( i != 153-1 )
-					strcat(buf,",");
-			}
-			sprintf(str,"insert into intdata values ( %d, '%s', %d, %s )",star,acc,id,buf);
-			if( !mysql_query(&mysql, str ) ){
-				log("\ninsert into intdata values OK");
-				//return TRUE;
-			}
-			else{
-				log("\ninsert into intdata values ERR");
-				return FALSE;
-			}
-			//填入正确的资料
-			memset(buf,0,5012);
-			for( i=0;i<153;i++ ){//int资料栏位有增加的话,回圈也要增加
-				easyGetTokenFromBuf( data, '\n', i+1, buf2, sizeof( buf2 ));
-				sprintf(str,"update intdata set %s where idxnum=%d and acc='%s' and STAR=%d",buf2,id,acc,star);
-				if( !mysql_query(&mysql, str ) ){
-				//	log("\ninsert into intdata values OK");
-				}
-				else{
-				//	log("\ninsert into intdata values ERR");
-				}
-			}
-		}
-	}
-	else{
-		log("\nselect pn from intdata ERR");
-		return FALSE;
-	}
-
-
-	return TRUE;
+	return FALSE;
 }
 
-int sasql_save_char_info( int id, char *acc, char *data )
+BOOL sasql_del_lock(char *idip)
 {
-	int i,star;
-	char str[10042],*p=NULL;
-	memset(str,0,10042);
-
-	for(i=0;i<16;i++){
-		if( strcmp( servername[i], saacname) == 0 ){
-			star = i;
-			break;	
-		}
+	char sqlstr[256];
+	sprintf(sqlstr, "delete from config.SQL_LOCK where %s=BINARY'%s'",
+		config.sql_LOCK, config.sql_NAME, idip);
+	printf("\ndel_lock_sql=%s\n", sqlstr);
+	if (!mysql_query(&mysql, sqlstr)) {
+		printf("\n解除锁定%s成功！\n", idip);
+		return TRUE;
 	}
+	return FALSE;
+}
 
-	if( p = strstr(data, "name=") ){
-		char data2[CHARDATASIZE];
-		memset(data2,0,CHARDATASIZE);
-		sprintf(data2,"%s",p);
-	
-		sprintf(str,"select name from chardata where idxnum=%d and acc='%s' and STAR=%d",id,acc,star);
-		if( !mysql_query(&mysql, str ) ){
-			int num_row=0;
-			mysql_result = mysql_store_result( &mysql );
-			num_row = mysql_num_rows(mysql_result);//取得的资料笔数(正常最多取得一笔)
-			mysql_free_result(mysql_result);
-			log("\nsasql chardata num_row:%d",num_row);
-			if( num_row != 0 ){//修改资料
-				char buf[5012],buf2[64];
-				memset(buf,0,5012);
-				for( i=0;i<11;i++ ){//资料栏位有增加的话,回圈也要增加
-					char buf3[64],*p=NULL;
-					memset(buf3,0,64);
-					easyGetTokenFromBuf( data2, '\n', i+1, buf2, sizeof( buf2 ));
-					if( p = strtok(buf2,"=") ){
-						strncpy(buf3,p,32);
-						if( p = strtok(NULL,"=") ){
-							log("\n%s",p);
-							strncpy(buf2,p,32);
-							strcat(buf3,"='");
-							strcat(buf3,buf2);
-							strcat(buf3,"'");
-							strncpy(buf2,buf3,64);
-							log("\n%s",buf3);
-						}
-						else{
-							sprintf(buf2,"%s=NULL",buf3);
-						}
-					}
-					sprintf(str,"update chardata set %s where idxnum=%d and acc='%s' and STAR=%d",buf2,id,acc,star);
-					if( !mysql_query(&mysql, str ) ){
-					//	log("\ninsert into intdata values OK");
-					}
-					else{
-					//	log("\ninsert into intdata values ERR");
-					}
-				}
-			}
-			else{//增加空的资料
-				char buf[5012],buf2[64];
-				char *p=NULL;
-				memset(buf,0,5012);
-				sprintf(buf,"%s","NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL");//char资料栏位有增加的话,空字串也要增加
-				sprintf(str,"insert into chardata values ( %d, '%s', %d, %s )",star,acc,id,buf);
-				if( !mysql_query(&mysql, str ) ){
-					log("\ninsert into chardata values OK");
-					//return TRUE;
-				}
-				else{
-					log("\ninsert into chardata values ERR");
-					return FALSE;
-				}
-				//填入正确的资料
-				memset(buf,0,5012);
-				for( i=0;i<11;i++ ){//int资料栏位有增加的话,回圈也要增加
-					char buf3[64],*p=NULL;
-					memset(buf3,0,64);
-					easyGetTokenFromBuf( data2, '\n', i+1, buf2, sizeof( buf2 ));
-					if( p = strtok(buf2,"=") ){
-						strncpy(buf3,p,32);
-						if( p = strtok(NULL,"=") ){
-							log("\n%s",p);
-							strncpy(buf2,p,32);
-							strcat(buf3,"='");
-							strcat(buf3,buf2);
-							strcat(buf3,"'");
-							strncpy(buf2,buf3,64);
-							log("\n%s",buf3);
-						}
-						else{
-							sprintf(buf2,"%s=NULL",buf3);
-						}
-					}
-					sprintf(str,"update chardata set %s where idxnum=%d and acc='%s' and STAR=%d",buf2,id,acc,star);
-					if( !mysql_query(&mysql, str ) ){
-					//	log("\ninsert into intdata values OK");
-					}
-					else{
-					//	log("\ninsert into intdata values ERR");
-					}
-				}
-			}
-		}
-		else{
-			log("\nselect name from chardata ERR");
-			return FALSE;
-		}
-		
-	}
+BOOL sasql_craete_lock(void)
+{
 
-	if( p = strstr(data, "flg0=") ){
-		char data2[CHARDATASIZE];
-		memset(data2,0,CHARDATASIZE);
-		sprintf(data2,"%s",p);
-		sprintf(str,"select idxnum from flg where idxnum=%d and acc='%s' and STAR=%d",id,acc,star);
-		if( !mysql_query(&mysql, str ) ){
-			int num_row=0;
-			mysql_result = mysql_store_result( &mysql );
-			num_row = mysql_num_rows(mysql_result);//取得的资料笔数(正常最多取得一笔)
-			mysql_free_result(mysql_result);
-			log("\nsasql flg num_row:%d",num_row);
-			if( num_row != 0 ){//修改资料
-				char buf[5012],buf2[64];
-				char *p=NULL;
-				memset(buf,0,5012);
-				for( i=0;i<3;i++ ){//资料栏位有增加的话,回圈也要增加
-					easyGetTokenFromBuf( data2, '\n', i+1, buf2, sizeof( buf2 ));
-					sprintf(str,"update flg set %s where idxnum=%d and acc='%s' and STAR=%d",buf2,id,acc,star);
-					if( !mysql_query(&mysql, str ) ){
-					//	log("\ninsert into intdata values OK");
-					}
-					else{
-					//	log("\ninsert into intdata values ERR");
-					}
-				}
-			}
-			else{//增加空的资料
-				char buf[5012],buf2[64];
-				char *p=NULL;
-				memset(buf,0,5012);
-				for( i=0;i<3;i++ ){//资料栏位有增加的话,回圈也要增加
-					strcat( buf, "0" );
-					if( i != 3-1 )
-						strcat(buf,",");
-				}
-				sprintf(str,"insert into flg values ( %d, '%s', %d, %s )",star,acc,id,buf);
-				if( !mysql_query(&mysql, str ) ){
-					log("\ninsert into flg values OK");
-					//return TRUE;
-				}
-				else{
-					log("\ninsert into flg values ERR");
-					return FALSE;
-				}
-				memset(buf,0,5012);
-				//填入正确的资料
-				for( i=0;i<3;i++ ){//资料栏位有增加的话,回圈也要增加
-					easyGetTokenFromBuf( data2, '\n', i+1, buf2, sizeof( buf2 ));
-					sprintf(str,"update flg set %s where idxnum=%d and acc='%s' and STAR=%d",buf2,id,acc,star);
-					if( !mysql_query(&mysql, str ) ){
-					//	log("\nupdate into flg values OK");
-					}
-					else{
-					//	log("\nupdate into flg values ERR");
-					}
-				}
-			}
-		}
-		else{
-			log("\nselect name from flg ERR");
-			return FALSE;
-		}
-	}
+}
 
-	return TRUE;
+BOOL sasql_craete_userinfo(void)
+{
+
 }
 
 #endif

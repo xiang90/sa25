@@ -7,6 +7,7 @@
 
 #include "common.h"
 
+
 typedef struct tagSTRING32
 {
     char string[32];
@@ -32,6 +33,7 @@ typedef struct tagPOINT
     int     x;
     int     y;
 }POINT;
+
 /* strtol ¼°·ÂÓÀÓÉ¡õåÃ±åÒøµ¤ */
 typedef enum
 {

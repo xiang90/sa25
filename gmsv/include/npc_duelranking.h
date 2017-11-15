@@ -7,9 +7,5 @@ void NPC_DuelrankingWindowTalked( int meindex, int talkerindex, int seqno, int s
 void NPC_Duelranking_PrintRanking( char *data, int count_start, int fdid, int msgid2);
 void NPC_Duelranking_CallMyRanking( int count, int msgid, int msgid2);
 
-#ifdef _DEATH_CONTEND
-void NPC_Duelrankingloop( int meindex);
-#endif
-
 #endif
 

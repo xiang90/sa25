@@ -68,26 +68,11 @@
 #include "npc_riderman.h"
 #include "npc_fmletter.h"
 
-#ifdef _SERVICE
-// Terry 2001/09/01
-#include "npc_stoneserviceman.h"
-#endif
-
-#ifdef _NPC_SELLSTH
-#include "npc_sellsthman.h"
-#endif
-
-//andy
 #ifdef _GAMBLE_BANK
 #include "npc_gamblebank.h"
 #endif
-
 #ifdef _NEW_WARPMAN
 #include "npc_newnpcman.h"
-#endif
-
-#ifdef _MARKET_TRADE
-#include "npc_mtradenpcman.h"
 #endif
 
 #ifdef _GAMBLE_ROULETTE 
@@ -99,10 +84,14 @@
 #include "npc_transerman.h"
 #endif
 
-#ifdef _PAUCTION_MAN
-#include "npc_pauctionman.h"
+#ifdef _VIP_SHOP
+#include "npc_vipshop.h"
+#include "npc_vippoint.h"
 #endif
 
+#ifdef _AUTO_PK
+#include "npc_autopk.h"
+#endif
 #ifdef _CFREE_petskill
 #include "npc_freepetskillshop.h"
 #endif
@@ -112,47 +101,14 @@
 #include "npc_petracepet.h"
 #endif
 
-#ifdef _AUCTIONEER
-#include "npc_auctioneer.h"
-#endif
-
-#ifdef _BLACK_MARKET
-#include "npc_blackmarket.h"
-#endif
-
 #ifdef _ITEM_NPCCHANGE
 #include "npc_itemchange.h"
-#endif
-
-#ifdef _NPC_MAKEPAIR
-#include "npc_makepair.h"
-#endif
-
-#ifdef _NPC_FUSION
-#include "npc_petfusion.h"
 #endif
 
 #ifdef _ALLDOMAN // (不可开) Syu ADD 排行榜NPC
 #include "npc_alldoman.h"
 #endif
-
-#ifdef _NPC_WELFARE
-#include "npc_welfare.h"
-#endif
-
-#ifdef _NPC_WELFARE_2				// WON ADD 职业NPC-2
-#include "npc_welfare2.h"
-#endif
-
-#ifdef _NPC_VERYWELFARE
-#include "npc_verywelfare.h"
-#endif
-
-#ifdef _RACEMAN
-#include "npc_raceman.h"
-#endif
-
-#define DEBUG
+//#define DEBUG
 
 typedef struct tagCorrespondStringAndFunctionTable
 {
@@ -164,8 +120,6 @@ typedef struct tagCorrespondStringAndFunctionTable
 static CorrespondStringAndFunctionTable
 correspondStringAndFunctionTable[]=
 {
-    /* 动票反扔□田□    戊□玉匹烂聒今木化中月楮醒分［NPC手仇木
-     毛勾井丹午五互丐月*/
     { {"core_PreWalk"},  			CHAR_allprewalk,   		0 },
     { {"core_PostWalk"},  			CHAR_allpostwalk,  		0 },
     { {"core_Loop"},				CHAR_loopFunc, 			0 },
@@ -174,7 +128,6 @@ correspondStringAndFunctionTable[]=
     { {"core_PlayerTalked"},		CHAR_playerTalkedfunc, 	0 },
 
 
-    /* 动票反失奶  丞毛银丹午五迕及楮醒分［ */
     { {"MedicineInit"},   			ITEM_MedicineInit, 		0 },
     { {"MedicineUsed"},   			ITEM_MedicineUsed, 		0 },
     { {"SandClockDetach"},			ITEM_SandClockDetach, 	0 },
@@ -187,10 +140,10 @@ correspondStringAndFunctionTable[]=
 //    { {"ITEM_useHpRecovery"}, 	ITEM_useHpRecovery, 	0 },
     { {"ITEM_useRecovery"}, 		ITEM_useRecovery, 		0 },
 #ifdef _ITEM_MAGICRECOVERY
-	{ {"ITEM_useMRecovery"},	ITEM_useMRecovery,	0 },
+  	{ {"ITEM_useMRecovery"},	ITEM_useMRecovery,	0 },
 #endif
 #ifdef _ITEM_USEMAGIC
-	{ {"ITEM_useMagic"},	ITEM_useMagic,	0 },
+  	{ {"ITEM_useMagic"},	ITEM_useMagic,	0 },
 #endif
     { {"ITEM_useStatusChange"}, 	ITEM_useStatusChange, 	0 },
     { {"ITEM_useStatusRecovery"}, 	ITEM_useStatusRecovery, 0 },
@@ -214,20 +167,19 @@ correspondStringAndFunctionTable[]=
     { {"ITEM_equipNoenemy"},ITEM_equipNoenemy, 0 }, // Arminius 7.2 Ra's amulet
     { {"ITEM_remNoenemy"},  ITEM_remNoenemy, 0 },   // Arminius 7.2 Ra's amulet
     { {"ITEM_useEncounter"}, ITEM_useEncounter, 0},     // Arminius 7.31 cursed stone
-
-	{ {"ITEM_AddPRSkillPoint"}, ITEM_AddPRSkillPoint, 0},
-	{ {"ITEM_AddPRSkillPercent"}, ITEM_AddPRSkillPercent, 0},
-
 #ifdef _ITEM_METAMO
-	{ {"ITEM_metamo"},   ITEM_metamo, 0 },
+	  { {"ITEM_metamo"},   ITEM_metamo, 0 },
+  	{ {"ITEM_ColorMetamo"},   ITEM_ColorMetamo, 0 },
+  	{ {"ITEM_CharaMetamo"},   ITEM_CharaMetamo, 0 },
+  	{ {"ITEM_SexMetamo"},   ITEM_SexMetamo, 0 },	
 #endif
 
 #ifdef _USEWARP_FORNUM
-	{ {"ITEM_useWarpForNum"},	    ITEM_useWarpForNum, 0 },
+  	{ {"ITEM_useWarpForNum"},	    ITEM_useWarpForNum, 0 },
 #endif
 
 #ifdef _IMPRECATE_ITEM
-	{ {"ITEM_useImprecate"},	    ITEM_useImprecate, 0 },
+	  { {"ITEM_useImprecate"},	    ITEM_useImprecate, 0 },
 #endif
 #ifdef _ITEM_FIRECRACKER	//Terry add 2001/12/21
 		{ {"ITEM_firecracker"}, ITEM_firecracker, 0 },
@@ -242,113 +194,87 @@ correspondStringAndFunctionTable[]=
 		{ {"ITEM_Refresh"}, ITEM_Refresh, 0 },
 #endif
 
-	{ {"ITEM_WearEquip"}, ITEM_WearEquip, 0 },
-	{ {"ITEM_ReWearEquip"}, ITEM_ReWearEquip, 0 },
+  	{ {"ITEM_WearEquip"}, ITEM_WearEquip, 0 },
+  	{ {"ITEM_ReWearEquip"}, ITEM_ReWearEquip, 0 },
 
 #ifdef _ITEM_CONSTITUTION
-	{ {"ITEM_Constitution"}, ITEM_Constitution, 0 },
+  	{ {"ITEM_Constitution"}, ITEM_Constitution, 0 },
 #endif
 
 #ifdef _Item_ReLifeAct
-	{ {"ITEM_DIErelife"}, ITEM_DIErelife, 0 },
+  	{ {"ITEM_DIErelife"}, ITEM_DIErelife, 0 },
 #endif
 
 #ifdef _ITEM_ORNAMENTS
-	{ {"ITEM_PutOrnaments"}, ITEM_PutOrnaments, 0},
+  	{ {"ITEM_PutOrnaments"}, ITEM_PutOrnaments, 0},
 #endif
 #ifdef _CHIKULA_STONE
-	{ {"ITEM_ChikulaStone"}, ITEM_ChikulaStone, 0},
+  	{ {"ITEM_ChikulaStone"}, ITEM_ChikulaStone, 0},
 #endif
 
 #ifdef _THROWITEM_ITEMS
-	{ {"ITEM_ThrowItemBox"}, ITEM_ThrowItemBox, 0},
-#endif
-
-#ifdef _ITEM_WATERWORDSTATUS
-	{ {"ITEM_WaterWordStatus"}, ITEM_WaterWordStatus, 0},
+  	{ {"ITEM_ThrowItemBox"}, ITEM_ThrowItemBox, 0},
 #endif
 
 #ifdef _ITEM_LOVERPARTY
-	{ {"ITEM_LoverSelectUser"}, ITEM_LoverSelectUser, 0},
+  	{ {"ITEM_LoverSelectUser"}, ITEM_LoverSelectUser, 0},
 #endif
 
 #ifdef _Item_MoonAct
-	{ {"ITEM_randEnemyEquipOne"}, ITEM_randEnemyEquipOne, 0 },
-
-	{ {"ITEM_randEnemyEquip"}, ITEM_randEnemyEquip, 0 },
-	{ {"ITEM_RerandEnemyEquip"}, ITEM_RerandEnemyEquip, 0},
+	  { {"ITEM_randEnemyEquipOne"}, ITEM_randEnemyEquipOne, 0 },
+  
+  	{ {"ITEM_randEnemyEquip"}, ITEM_randEnemyEquip, 0 },
+  	{ {"ITEM_RerandEnemyEquip"}, ITEM_RerandEnemyEquip, 0},
 #endif
 
 #ifdef _SUIT_ITEM
-	{ {"ITEM_suitEquip"},	ITEM_suitEquip,		0 },
-	{ {"ITEM_ResuitEquip"},	ITEM_ResuitEquip,	0 },
+  	{ {"ITEM_suitEquip"},	ITEM_suitEquip,		0 },
+  	{ {"ITEM_ResuitEquip"},	ITEM_ResuitEquip,	0 },
 #endif
 
 #ifdef _Item_DeathAct
-	{ {"ITEM_useDeathcounter"}, ITEM_UseDeathCounter, 0 },
-#endif
-#ifdef _DEATH_CONTENDWATCH
-	{ {"ITEM_useWatchBattle"}, ITEM_useWatchBattle, 0 },
+  	{ {"ITEM_useDeathcounter"}, ITEM_UseDeathCounter, 0 },
 #endif
 #ifdef _FEV_ADD_NEW_ITEM			// FEV ADD 增加复活守精
-	{ {"ITEM_ResAndDef"} ,   ITEM_ResAndDef,        0 },
+  	{ {"ITEM_ResAndDef"} ,   ITEM_ResAndDef,        0 },
 #endif
 
 #ifdef _CHRISTMAS_REDSOCKS
-	{ {"ITEM_useMaxRedSocks"}, ITEM_useMaxRedSocks, 0 },
+  	{ {"ITEM_useMaxRedSocks"}, ITEM_useMaxRedSocks, 0 },
 #endif
 
 #ifdef _CHRISTMAS_REDSOCKS_NEW
-	{ {"ITEM_useMaxRedSocksNew"}, ITEM_useMaxRedSocksNew, 0 },
+  	{ {"ITEM_useMaxRedSocksNew"}, ITEM_useMaxRedSocksNew, 0 },
 #endif
 
 #ifdef _PETSKILL_CANNEDFOOD
-	{ {"ITEM_useSkillCanned"}, ITEM_useSkillCanned, 0},
-#endif
-
-#ifdef _NEW_RIDEPETS
-	{ {"ITEM_useLearnRideCode"}, ITEM_useLearnRideCode, 0 },
+	  { {"ITEM_useSkillCanned"}, ITEM_useSkillCanned, 0},
 #endif
 
 #ifdef _EQUIT_DEFMAGIC
-	{ {"ITEM_MagicEquitWear"}, ITEM_MagicEquitWear, 0 },
-	{ {"ITEM_MagicEquitReWear"}, ITEM_MagicEquitReWear, 0 },
-#endif
-#ifdef _EQUIT_RESIST
-	{ {"ITEM_MagicResist"}, ITEM_MagicResist, 0 },
-	{ {"ITEM_MagicReResist"}, ITEM_MagicReResist, 0 },
+  	{ {"ITEM_MagicEquitWear"}, ITEM_MagicEquitWear, 0 },
+  	{ {"ITEM_MagicEquitReWear"}, ITEM_MagicEquitReWear, 0 },
 #endif
 
-#ifdef _MAGIC_RESIST_EQUIT			// WON ADD 职业抗性装备    
-	{ {"ITEM_P_MagicEquitWear"},		ITEM_P_MagicEquitWear, 0 },
-	{ {"ITEM_P_MagicEquitReWear"},	ITEM_P_MagicEquitReWear, 0 },
-#endif
-
-#ifdef _ANGEL_SUMMON	
-	{ {"ITEM_AngelToken"}, ITEM_AngelToken, 0 },
-	{ {"ITEM_HeroToken"}, ITEM_HeroToken, 0 },
-#endif
 #ifdef _HALLOWEEN_EFFECT
-	{ {"ITEM_MapEffect"}, ITEM_MapEffect, 0 },
+  	{ {"ITEM_MapEffect"}, ITEM_MapEffect, 0 },
 #endif
 
-	{ {"ITEM_changePetOwner"}, 		ITEM_changePetOwner, 		0 },
+   	{ {"ITEM_changePetOwner"}, 		ITEM_changePetOwner, 		0 },
 
-	{ {"core_PetWatch"},   			PET_Watchfunc, 			0 },
+  	{ {"core_PetWatch"},   			PET_Watchfunc, 			0 },
     { {"PETMAIL_Loop"},   			PETMAIL_Loopfunc, 		0 },
 #ifdef _USER_CHARLOOPS
-	{ {"CHAR_BattleStayLoop"},		CHAR_BattleStayLoop,	0 },
-	{ {"PET_CheckIncubateLoop"},	PET_CheckIncubate,		0 },
+  	{ {"CHAR_BattleStayLoop"},		CHAR_BattleStayLoop,	0 },
 #endif
 
 #ifdef _PETSKILL_PROPERTY
-	{ {"PET_PetskillPropertyEvent"},	PET_PetskillPropertyEvent,		0 },
+  	{ {"PET_PetskillPropertyEvent"},	PET_PetskillPropertyEvent,		0 },
 #endif
-
     { {"core_PetTalk"}, PET_Talkfunc, 0},	// Arminius 8.14 pet talk
 
 
-	/* warp */
+	  /* warp */
     { {"WarpInit"},					NPC_WarpInit, 			0 },
     { {"WarpPostOver"},				NPC_WarpPostOver, 		0 },
     { {"WarpWatch"},				NPC_WarpWatch,			0 },
@@ -400,7 +326,7 @@ correspondStringAndFunctionTable[]=
     { {"NPCEnemyInit"} ,			NPC_NPCEnemyInit ,		0 },
     { {"NPCEnemyTalked"} ,			NPC_NPCEnemyTalked ,	0 },
     { {"NPCEnemyWatch"} ,			NPC_NPCEnemyWatch ,		0 },
-	{ {"NPCEnemyLoop"},				NPC_NPCEnemyLoop,		0 },
+	  { {"NPCEnemyLoop"},				NPC_NPCEnemyLoop,		0 },
     { {"NPCEnemyWindowTalked"}, 	NPC_NPCEnemyWindowTalked, 0 },
 
     /* 失弁扑亦件楝 */
@@ -420,7 +346,6 @@ correspondStringAndFunctionTable[]=
     { {"WindowHealerLooked"} , 		NPC_WindowHealerLooked,	0 },
     { {"WindowHealerWindowTalked"}, NPC_WindowHealerWindowTalked, 0 },
 
-	/* 失奶  丞盒 */
     { {"ItemShopInit"} ,			NPC_ItemShopInit ,		0 },
     { {"ItemShopTalked"} ,			NPC_ItemShopTalked ,	0 },
     { {"ItemShopWindowTalked"},		NPC_ItemShopWindowTalked, 0 },
@@ -430,26 +355,20 @@ correspondStringAndFunctionTable[]=
     { {"SysinfoLoop"},				NPC_SysinfoLoop,		0 },
     { {"SysinfoTalked"} ,			NPC_SysinfoTalked ,		0 },
 
-    /* Duel仿件平件弘  憎NPC */
     { {"DuelrankingInit"} ,			NPC_DuelrankingInit ,	0 },
     { {"DuelrankingLooked"},		NPC_DuelrankingLooked,	0 },
     { {"DuelrankingWindowTalked"}, 	NPC_DuelrankingWindowTalked, 0 },
-#ifdef _DEATH_CONTEND
-	{ {"Duelrankingloop"}, 	NPC_Duelrankingloop, 0 },
-#endif
-    /* 它奴件玉它矢永玄及  盒 */
+    
     { {"PetSkillShopInit"} ,		NPC_PetSkillShopInit ,	0 },
     { {"PetSkillShopTalked"} ,		NPC_PetSkillShopTalked,	0 },
     { {"PetSkillShopLooked"} ,		NPC_PetSkillShopLooked,	0 },
     { {"PetSkillShopWindowTalked"},	NPC_PetSkillShopWindowTalked, 0 },
 
-    /* 它奴件玉它矢永玄  中潸曰盒 */
     { {"PetShopInit"} ,				NPC_PetShopInit, 		0 },
     { {"PetShopTalked"} ,			NPC_PetShopTalked,		0 },
     { {"PetShopLooked"} ,			NPC_PetShopLooked,		0 },
     { {"PetShopWindowTalked"},		NPC_PetShopWindowTalked,0 },
 
-    /* 枣   */
     { {"SignBoardInit"} ,			NPC_SignBoardInit,		0 },
     { {"SignBoardLooked"} ,			NPC_SignBoardLooked,	0 },
     { {"SignBoardWindowTalked"},	NPC_SignBoardWindowTalked, 0 },
@@ -457,12 +376,11 @@ correspondStringAndFunctionTable[]=
     /*伐□皿穴件 */
     { {"WarpManInit"},				NPC_WarpManInit,		0 },
     { {"WarpManTalked"},			NPC_WarpManTalked,		0 },
-	{ {"WarpManWatch"},				NPC_WarpManWatch,		0 },
-	{ {"WarpManLoop"} ,				NPC_WarpManLoop,		0 },
+  	{ {"WarpManWatch"},				NPC_WarpManWatch,		0 },
+	  { {"WarpManLoop"} ,				NPC_WarpManLoop,		0 },
     { {"WarpManWindowTalked"},		NPC_WarpManWindowTalked,0 },
 
 
-    /*奶矛件玄楝  exchangeman) */
     { {"ExChangeManInit"},				NPC_ExChangeManInit,		0 },
     { {"ExChangeManTalked"},			NPC_ExChangeManTalked,		0 },
     { {"ExChangeManWindowTalked"},		NPC_ExChangeManWindowTalked,0 },
@@ -497,13 +415,12 @@ correspondStringAndFunctionTable[]=
     { {"AirTalked"} ,   NPC_AirTalked ,         0 },
     { {"AirLoop"} ,     NPC_AirLoop ,           0 },
 
-    /*         楝 */
     { {"CharmInit"} , 		NPC_CharmInit ,	0 },
     { {"CharmTalked"} , 		NPC_CharmTalked,	0 },
     { {"CharmWindowTalked"}, NPC_CharmWindowTalked, 0 },
 	
     { {"PoolItemShopInit"} ,			NPC_PoolItemShopInit ,		0 },
-	{ {"PoolItemShopLoop"} ,			NPC_PoolItemShopLoop ,		0 },
+  	{ {"PoolItemShopLoop"} ,			NPC_PoolItemShopLoop ,		0 },
     { {"PoolItemShopTalked"} ,			NPC_PoolItemShopTalked ,	0 },
     { {"PoolItemShopWindowTalked"},		NPC_PoolItemShopWindowTalked, 0 },
 
@@ -578,27 +495,18 @@ correspondStringAndFunctionTable[]=
     { {"FmLetterTalked"} ,                NPC_FmLetterTalked,       0 },
     { {"FmLetterLooked"},	NPC_FmLetterLooked,0 },    
     { {"FmLetterWindowTalked"}, NPC_FmLetterWindowTalked, 0 },
-#ifdef _SERVICE    
-    // Terry 2001/08/31
-    // 石器服务员 StoneServiceMan
-    { {"StoneServiceManInit"},         NPC_StoneServiceManInit,0},
-    { {"StoneServiceManLoop"},         NPC_StoneServiceManLoop,0},
-    { {"StoneServiceManTalked"},       NPC_StoneServiceManTalked,0},
-    { {"StoneServiceManWindowTalked"}, NPC_StoneServiceManWindowTalked,0},
-#endif 
+
 
 #ifdef _GAMBLE_BANK	//银行
-	{ {"GambleBankInit"},			NPC_GambleBankInit, 0},
-	{ {"GambleBankLoop"},			NPC_GambleBankLoop,0},
+  	{ {"GambleBankInit"},			NPC_GambleBankInit, 0},
+  	{ {"GambleBankLoop"},			NPC_GambleBankLoop,0},
     { {"GambleBankTalked"},			NPC_GambleBankTalked,0},
     { {"GambleBankWindowTalked"},	NPC_GambleBankWindowTalked,0},
 #endif
 
+
 #ifdef _PET_LIMITLEVEL
 	{ {"ITEM_useOtherEditBase"}, ITEM_useOtherEditBase, 0},
-#endif
-#ifdef _ITEM_EDITBASES
-	{ {"ITEM_useFusionEditBase"}, ITEM_useFusionEditBase, 0},
 #endif
 #ifdef _GAMBLE_ROULETTE //赌场轮盘
 	{ {"GambleRouletteInit"},			NPC_Gamble_RouletteInit, 0},
@@ -615,35 +523,24 @@ correspondStringAndFunctionTable[]=
 #ifdef _TRANSER_MAN
     { {"TranserManInit"},			NPC_TranserManInit,			0 },
     { {"TranserManTalked"},			NPC_TranserManTalked,		0 },
-	{ {"TranserManLoop"} ,			NPC_TranserManLoop,			0 },
+	  { {"TranserManLoop"} ,			NPC_TranserManLoop,			0 },
     { {"TranserManWindowTalked"},	NPC_TranserManWindowTalked,	0 },
 #endif
 
-#ifdef _NPC_SELLSTH
-	{ {"SellsthManInit"},			NPC_SellsthManInit,			0 },
-	{ {"SellsthManTalked"},			NPC_SellsthManTalked,		0 },
-	{ {"SellsthManLoop"} ,			NPC_SellsthManLoop,			0 },
-	{ {"SellsthManWindowTalked"},	NPC_SellsthManWindowTalked,	0 },
+#ifdef _VIP_SHOP
+    { {"VipShopInit"},			NPC_VipshopInit,			0 },
+    { {"VipShopTalked"},			NPC_VipshopTalked,		0 },
+		{ {"VipShopLoop"} ,			NPC_VipshopLoop,			0 },
+    { {"VipShopWindowTalked"},	NPC_VipshopWindowTalked,	0 },
 #endif
 
-#ifdef _NPC_MAKEPAIR
-	{ {"MakePairManInit"},			NPC_MakePairManInit,		0 },
-    { {"MakePairManTalked"},		NPC_MakePairManTalked,		0 },
-	{ {"MakePairManLoop"} ,			NPC_MakePairManLoop,		0 },
-    { {"MakePairManWindowTalked"},	NPC_MakePairManWindowTalked,0 },
+#ifdef _AUTO_PK
+    { {"AutoPkInit"},			NPC_AutoPkInit,			0 },
+    { {"AutoPkTalked"},			NPC_AutoPkTalked,		0 },
+		{ {"AutoPkLoop"} ,			NPC_AutoPkLoop,			0 },
+    { {"AutoPkWindowTalked"},	NPC_AutoPkWindowTalked,	0 },
 #endif
-#ifdef _NPC_FUSION
-	{ {"PetFusionManInit"},			NPC_PetFusionManInit,		0 },
-    { {"PetFusionManTalked"},		NPC_PetFusionManTalked,		0 },
-	{ {"PetFusionManLoop"} ,		NPC_PetFusionManLoop,		0 },
-    { {"PetFusionManWindowTalked"},	NPC_PetFusionManWindowTalked,0 },
-#endif
-#ifdef _PAUCTION_MAN
-    { {"PauctionManInit"},			NPC_PauctionManInit,			0 },
-    { {"PauctionManTalked"},		NPC_PauctionManTalked,		0 },
-	{ {"PauctionManLoop"} ,			NPC_PauctionManLoop,			0 },
-    { {"PauctionManWindowTalked"},	NPC_PauctionManWindowTalked,	0 },
-#endif
+
 #ifdef _ITEM_NPCCHANGE
     { {"ItemchangeManInit"},		NPC_ItemchangeManInit,			0 },
     { {"ItemchangeManTalked"},		NPC_ItemchangeManTalked,		0 },
@@ -675,64 +572,66 @@ correspondStringAndFunctionTable[]=
     { {"NewNpcManWindowTalked"},	NPC_NewNpcManWindowTalked, 0},
 #endif
 
-#ifdef _MARKET_TRADE
-	{ {"MapTradeManInit"},			MapTradeManInit, 0},
-	{ {"MapTradeManLoop"},			MapTradeManLoop, 0},
-    { {"MapTradeManTalked"},		MapTradeManTalked, 0},
-    { {"MapTradeManWindowTalked"},	MapTradeManWindowTalked, 0},
-#endif
-
-#ifdef _AUCTIONEER
-    { {"AuctioneerInit"},			NPC_AuctioneerInit, 0},
-    { {"AuctioneerTalked"},			NPC_AuctioneerTalked, 0},
-    { {"AuctioneerWindowTalked"},	NPC_AuctioneerWindowTalked, 0},
-    { {"AuctioneerLoop"},			NPC_AuctioneerLoop, 0},
-#endif
-
-#ifdef _BLACK_MARKET
-    { {"BlackMarketInit"},			   NPC_BlackMarketInit, 0},
-	{ {"BlackMarketTalked"},		   NPC_BlackMarketTalked, 0},
-	{ {"BlackMarketWindowTalked"},	   NPC_BlackMarketWindowTalked, 0},
-#endif
-
 #ifdef _ALLDOMAN   // (不可开) Syu ADD 排行榜NPC
     { {"AlldomanInit"} ,                        NPC_AlldomanInit,        0 },
     { {"AlldomanTalked"} ,                      NPC_AlldomanTalked ,     0 },
     { {"AlldomanWindowTalked"},                 NPC_AlldomanWindowTalked , 0},
 #endif
 
-#ifdef _NPC_WELFARE
-    { {"WelfareInit"} ,                        NPC_WelfareInit,        0 },
-    { {"WelfareTalked"} ,                      NPC_WelfareTalked ,     0 },
-    { {"WelfareWindowTalked"},                 NPC_WelfareWindowTalked , 0},
-#endif
-
-#ifdef _NPC_WELFARE_2				// WON ADD 职业NPC-2
-    { {"WelfareInit2"} ,                        NPC_WelfareInit2,        0 },
-    { {"WelfareTalked2"} ,                      NPC_WelfareTalked2,     0 },
-    { {"WelfareWindowTalked2"},                 NPC_WelfareWindowTalked2, 0},
-#endif
-	
-#ifdef _NPC_VERYWELFARE
-    { {"VeryWelfareInit"} ,                        NPC_VeryWelfareInit,        0 },
-    { {"VeryWelfareTalked"} ,                      NPC_VeryWelfareTalked ,     0 },
-    { {"VeryWelfareWindowTalked"},                 NPC_VeryWelfareWindowTalked , 0},
-#endif
-
-#ifdef _CONTRACT
-	{ {"ITEM_contract"}, ITEM_contract, 0},
-#endif
-
 #ifdef _TIME_TICKET
-	{ {"ITEM_timeticket"}, ITEM_timeticket, 0},
+  	{ {"ITEM_timeticket"}, ITEM_timeticket, 0},
+#endif
+#ifdef _ITEM_SETLOVER	// 结婚物品
+    { {"ITEM_SetLoverUser"}, ITEM_SetLoverUser, 0 },
+    { {"ITEM_LoverWarp"}, ITEM_LoverWarp, 0 },
+    { {"ITEM_LoverUnmarry"}, ITEM_LoverUnmarry, 0 },
 #endif
 
-#ifdef _RACEMAN
-    { {"RacemanInit"} ,                        NPC_RacemanInit,			0 },
-	{ {"RacemanTalked"} ,					   NPC_RacemanTalked,		0 },
-    { {"RacemanWindowTalked"},                 NPC_RacemanWindowTalked ,0 },
+#ifdef _GM_ITEM	// GM命令物品
+		{ {"ITEM_GMFUNCTION"}, ITEM_GMFUNCTION, 0 },
 #endif
 
+#ifdef _VIP_SERVER	// 会员服务
+		{ {"ITEM_AddMemberPoint"}, ITEM_AddMemberPoint, 0 },
+#endif
+#ifdef _VIP_RIDE
+		{ {"ITEM_VipRide"}, ITEM_VipRide, 0 },
+#endif
+#ifdef _FM_ITEM
+		{ {"ITEM_AddFame"}, ITEM_AddFame, 0 },
+#endif
+#ifdef _LUCK_ITEM
+		{ {"ITEM_Luck"}, ITEM_Luck, 0 },
+#endif
+#ifdef _FM_METAMO
+		{ {"ITEM_MetamoTime"}, ITEM_MetamoTime, 0 },
+#endif
+#ifdef _ITEM_GOLD
+		{ {"ITEM_Gold"}, ITEM_Gold, 0 },
+#endif
+#ifdef _MYSTERIOUS_GIFT
+		{ {"ITEM_MysteriousGift"}, ITEM_MysteriousGift, 0 },
+#endif
+#ifdef _BATTLE_PK
+		{ {"ITEM_BattlePK"}, ITEM_BattlePK, 0 },
+#endif	
+#ifdef _SILENTZERO
+		{ {"ITEM_SetSilentZero"}, ITEM_SetSilentZero, 0 },
+#endif
+#ifdef _PET_LEVEL_ITEM
+		{ {"ITEM_PetLevelItem"}, ITEM_PetLevelItem, 0 },
+#endif
+
+#ifdef _ITEM_EFMETAMO
+		{ {"ITEM_efMetamo"}, ITEM_efMetamo, 0 },
+#endif
+#ifdef _PET_BEATITUDE
+		{ {"PET_BEATITUDE"}, PET_BEATITUDE, 0 },
+#endif
+#ifdef _GET_MULTI_ITEM
+		{ {"ITEM_GetMultiItem"}, ITEM_GetMultiItem, 0 },
+#endif
+		{ {"ITEM_NewName"}, ITEM_NewName, 0 },
 };
 
 BOOL initFunctionTable( void )
@@ -771,8 +670,7 @@ void* getFunctionPointerFromName( char* funcname )
     for( i=0 ; i<arraysizeof(correspondStringAndFunctionTable) ; i++ )
         if( correspondStringAndFunctionTable[i].hashcode == hashcode )
             if( strcmp( correspondStringAndFunctionTable[i].functionName.string,funcname ) == 0 ){
-				DebugFunctionName = correspondStringAndFunctionTable[i].functionName.string;
-                return correspondStringAndFunctionTable[i].functionPointer;
+              return correspondStringAndFunctionTable[i].functionPointer;
             }
 
 #ifdef DEBUG

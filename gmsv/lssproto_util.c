@@ -9,8 +9,7 @@
 #endif
 #include "lssproto_util.h"
 //ttom +2 for degug
-//#define IS_2BYTEWORD( _a_ ) ( (char)(0x80) <= (_a_) && (_a_) <= (char)(0xFF) )
-#define IS_2BYTEWORD(_a_) 0
+#define IS_2BYTEWORD( _a_ ) ( (char)(0x80) <= (_a_) && (_a_) <= (char)(0xFF) )
 
 #include "common.h"
 #ifdef lssproto__ENCRYPT
@@ -348,15 +347,11 @@ char*  lssproto_escapeString( char*a )
 		if( a[i] == '\0' ){
 			lssproto.escapework[c++] = '\0';
 			break;
-		}
-/* 
-		else if( ( char )0x80 <= a[i] && a[i] <= ( char )0xFF ){
+		} else if( ( char )0x80 <= a[i] && a[i] <= ( char )0xFF ){
 		        // for 2 Byte Word
 		        lssproto.escapework[c++] = a[i++];
 		        lssproto.escapework[c++] = a[i];
-		}
-*/ 
-		else if( a[i] == '\\' ){
+		} else if( a[i] == '\\' ){
 			lssproto.escapework[c++] = '\\';
 			lssproto.escapework[c++] = '\\';
 		} else if( a[i] == ' ' ){
@@ -382,15 +377,11 @@ char* lssproto_descapeString( char*a )
 		if( a[i] == '\0' ){
 			lssproto.escapework[c++]='\0';
 			break;
-		}
-/* 
-		else if( (char)0x80 <= a[i] && a[i] <= (char)0xFF ){
+		} else if( (char)0x80 <= a[i] && a[i] <= (char)0xFF ){
 		        // for 2 Byte Word
 		        lssproto.escapework[c++] = a[i++];
 		        lssproto.escapework[c++] = a[i];
-		}
-*/ 
-		else if( a[i] == '\\' ){
+		} else if( a[i] == '\\' ){
 		        if( a[i+1] == 0 ){     /* null */
 		                lssproto.escapework[c++] = a[i];
 		                continue;

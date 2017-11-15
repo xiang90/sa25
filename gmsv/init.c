@@ -31,19 +31,6 @@
 #include "petmail.h"
 #include "npc_quiz.h"
 
-
-#ifdef _M_SERVER
-#include "mclient.h"
-#endif
-
-#ifdef _NPCSERVER_NEW
-#include "npcserver.h"
-#endif
-
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-#include "profession_skill.h"
-#endif
-
 #ifdef _ITEM_QUITPARTY
 #include "init.h"
 //int itemquitparty_num = 0;
@@ -65,11 +52,8 @@ void printUsage( void )
 }
 
 /*
- * 戊穴件玉仿奶件毛质  允月
  *
  * 娄醒
- *      argc      侬  及醒
- *      argv      侬  及    
  * 忒曰袄
  *      TRUE(1)     恳橘卅戊穴件玉仿奶件娄醒分匀凶日
  *      FALSE(0)    唱橘卅戊穴件玉仿奶件娄醒分匀凶日
@@ -113,9 +97,7 @@ BOOL parseCommandLine( int argc , char** argv )
 
 
 /*
- * 棕雁  醒毛由□旦允月
  * 娄醒
- *      env     棕雁  醒及    
  *
  * 漆及赭窒手仄卅中
  */
@@ -132,7 +114,6 @@ BOOL parseEnvironment( char** env )
 
 
 
-/*lsgen迕及伐□平件弘田永白央及  五今*/
 #define LSGENWORKINGBUFFER  65536*4
 
 
@@ -143,10 +124,7 @@ BOOL parseEnvironment( char** env )
  * 娄醒
  *      argc    argv及醒
  *      argv    戊穴件玉仿奶件娄醒
- *      env     棕雁  醒
  * 忒曰袄
- *      TRUE(1) 岳  
- *      FALSE(1) 撩  
  */
 BOOL init(int argc , char** argv , char** env )
 {
@@ -179,133 +157,261 @@ BOOL init(int argc , char** argv , char** env )
         debug( sizeof( aho.workchar ),d);
     }
 
-    print( "SetupFileName: %s\n" , getConfigfilename() );
-
+    print( "配置文件: %s\n" , getConfigfilename() );
+		
     GOTORETURNFALSEIFFALSE(readconfigfile( getConfigfilename() ) );
+    
+    nice(getrunlevel());
     //ttom start
     {  int iWork = setEncodeKey();
        if( iWork == 0 ){
        // 巨件戊□玉平□毛涩烂
        printf( "----------------------------------------\n" );
-       printf( "-------------[encodekey] is not set in %s\n", getConfigfilename() );
+       printf( "-------------[编码] 无法设置 %s\n", getConfigfilename() );
        printf( "----------------------------------------\n" );
        exit( 1 );
        }else{
             // 巨件戊□玉平□毛涩烂
-               printf( "encodekey = %d\n", iWork );
+               printf( "编码 = %d\n", iWork );
        }
     }
     // AcWBuff毛涩烂
     {   int iWork = setAcWBSize();
         if( iWork == 0 ){
            printf( "----------------------------------------\n" );
-           printf( "-------------[acwbsize] is not set in %s\n", getConfigfilename() );
+           printf( "-------------[AC缓冲] 无法设置 %s\n", getConfigfilename() );
            printf( "----------------------------------------\n" );
            exit( 1 );
            }else{
-                   printf( "acwbsize = %d\n", iWork );
+                   printf( "AC缓冲 = %d\n", iWork );
            }
     }
     //ttom end
 
     if( getDebuglevel() >= 1 ){
 //		print("ServerType: %d\n", getServerType() );
-        print("DebugLevel: %d\n" , getDebuglevel() );
-        print("MemoryUnit: %d\n"  , getMemoryunit() );
-        print("MemoryUnitNum: %d\n" , getMemoryunitnum() );
+				print("调试等级: %d\n", getDebuglevel() );
+				print("运行等级: %d\n", getrunlevel() );
+				print("接收缓冲: %d\n", getrecvbuffer()*1024);
+				print("发送缓冲: %d\n", getsendbuffer()*1024);
+				print("接收缓冲下限: %d\n", getrecvlowatbuffer());
+        print("内存单元大小: %d\n", getMemoryunit() );
+        print("内存单元数量: %d\n", getMemoryunitnum() );
 
-        print("AccountServerName: %s\n" , getAccountservername() );
-        print("AccountServerPort: %d\n" , getAccountserverport() );
-        print("AccountServerRealizesGameServeras: %s\n",
+        print("账号服务器地址: %s\n", getAccountservername() );
+        print("账号服务器端口: %d\n", getAccountserverport() );
+        print("登陆服务器名称: %s\n",
               getGameservername());
-        print("AccountServerLoginPasswd: %s\n", getAccountserverpasswd());
+        print("登陆服务器密码: %s\n", getAccountserverpasswd());
 
-        print("Wait at Port: %d\n",  getPortnumber() );
+        print("等待连接端口: %d\n", getPortnumber() );
 
-        print("servernumber : %d\n",  getServernumber() );
+        print("服务端序列号: %d\n", getServernumber() );
 
-        print("Reuseaddr: %d\n",  getReuseaddr() );
+        print("重复地址使用: %d\n", getReuseaddr() );
 
 
-        print("FileDiscriptorNum ≈ about player num: %d\n",
-              getFdnum() );
-        print("PetCharNum: %d\n" , getPetcharnum() );
-        print("OtherCharNum: %d\n"  , getOtherscharnum() );
+        print("最大在线人数: %d\n", getFdnum() );
+        print("最大在线宠数: %d\n", getPetcharnum() );
+        print("最大其他数目: %d\n", getOtherscharnum() );
+        print("最大对象数目: %d\n", getObjnum() );
+        print("最大物品数目: %d\n", getItemnum() );
+        print("最大战斗数目: %d\n", getBattlenum() );
+        print("顶层文件目录: %s\n", getTopdir());
+        print("地图文件目录: %s\n", getMapdir());
+        print("地图标识文件: %s\n", getMaptilefile());
+        print("物品配置文件: %s\n", getItemfile());
+        print("不可战斗文件: %s\n", getInvfile());
+        print("显示位置文件: %s\n", getAppearfile());
+        print("遇敌配置文件: %s\n", getEffectfile());
+        print("头衔名称文件: %s\n", getTitleNamefile());
+        print("头衔配置文件: %s\n", getTitleConfigfile());
+        print("遇敌坐标文件: %s\n", getEncountfile());
+        print("遇敌组群文件: %s\n", getGroupfile());
+        print("宠物基本文件: %s\n", getEnemyBasefile());
+        print("创建宠物文件: %s\n", getEnemyfile());
+        print("精灵魔法文件: %s\n", getMagicfile());
 
-        print("Object Number: %d\n",  getObjnum() );
-        print("Item Number: %d\n",  getItemnum() );
-        print("Battle Number: %d\n",  getBattlenum() );
-
-        print("Topdirectory: %s\n"  , getTopdir());
-
-        print("Mapdirectory: %s\n"  , getMapdir());
-        print("MapTileFile: %s\n"  , getMaptilefile());
-        print("ItemFile: %s\n"  , getItemfile());
-        print("InvincibleFile: %s\n"  , getInvfile());
-        print("AppearPositionFile: %s\n"  , getAppearfile());
-        print("EffectSettingFile: %s\n"  , getEffectfile());
-        print("TitleNameFile: %s\n"  , getTitleNamefile());
-        print("TitleConfigFile: %s\n"  , getTitleConfigfile());
-        print("EncountFile: %s\n"  , getEncountfile());
-        print("EnemyBaseFile: %s\n"  , getEnemyBasefile());
-        print("EnemyFile: %s\n"  , getEnemyfile());
-        print("GroupFile: %s\n"  , getGroupfile());
-        print("MagicFile: %s\n"  , getMagicfile());
-
-#ifdef __ATTACK_MAGIC
-        print( "AttMagicFile: %s\n" , getAttMagicfileName() );
+#ifdef _ATTACK_MAGIC
+        print("攻击魔法文件: %s\n", getAttMagicfileName() );
 #endif
 
-        print("PetskillFile: %s\n"  , getPetskillfile());
-
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-        print("ProfessionFile: %s\n"  , getProfession());
-#endif
-
-        print("Itematomfile: %s\n", getItematomfile());
-        print("Quizfile: %s\n", getQuizfile());
-#ifdef _BLACK_MARKET
-		print("BlackMarketFile: %s\n", getBMItemFile());
-#endif
+        print("宠物技能文件: %s\n", getPetskillfile());
+        print("物品成份文件: %s\n", getItematomfile());
+        print("猜迷问题文件: %s\n", getQuizfile());
 #ifdef _GMRELOAD
-		print("GMSetFile: %s\n", getGMSetfile());
+				print("G M 配置文件: %s\n", getGMSetfile());
 #endif
-        print("LsgenLog: %s\n"  ,  getLsgenlogfilename() );
-        print("Storedir: %s\n"  , getStoredir());
-        print("Npcdir: %s\n"  , getNpcdir());
-        print("Logdir: %s\n",  getLogdir());
-        print("LogConfigFilename: %s\n", getLogconffile() );
-        print("ChatMagicPasswd: %s\n", getChatMagicPasswd() );
-        print("ChatMagicCDKeyCheck: %d\n", getChatMagicCDKeyCheck() );
+        print("日志记录文件: %s\n",  getLsgenlogfilename() );
+        print("还原资料目录: %s\n", getStoredir());
+        print("NPC 配置目录: %s\n", getNpcdir());
+        print("日志记载文件: %s\n",  getLogdir());
+        print("日志配置文件: %s\n", getLogconffile() );
+        print("GM的指命密码: %s\n", getChatMagicPasswd() );
+        print("使用GM的权限: %d\n", getChatMagicCDKeyCheck() );
 
-        print("NPCTemplateNum: %d\n"  , getNpctemplatenum() );
-        print("NPCCreateNum: %d\n"  , getNpccreatenum() );
+        print("NPC 模板数目: %d\n", getNpctemplatenum() );
+        print("NPC 最大数目: %d\n", getNpccreatenum() );
 
-        print("WalkSendInterval: %d\n"  , getWalksendinterval());
-        print("CASendInterval: %d\n"  , getCAsendinterval_ms());
-        print("CDSendInterval: %d\n"  , getCDsendinterval_ms());
-        print("Onelooptime: %d\n"  , getOnelooptime_ms());
-        print("Petdeletetime: %d\n"  , getPetdeletetime());
-        print("Itemdeletetime: %d\n"  , getItemdeletetime());
+        print("走路时间间隔: %d\n", getWalksendinterval());
+        print("清除所有间隔: %d\n", getCAsendinterval_ms());
+        print("清除目标间隔: %d\n", getCDsendinterval_ms());
+        print("执行一次时间: %d\n", getOnelooptime_ms());
+        print("宠物清除时间: %d\n", getPetdeletetime());
+        print("道具清除时间: %d\n", getItemdeletetime());
 #ifdef _DEL_DROP_GOLD
-		print("Golddeletetime: %d\n"  , getGolddeletetime());
+				print("石器清除时间: %d\n", getGolddeletetime());
 #endif
-        print("CharSaveSendInterval: %d\n"  , getCharSavesendinterval());
+        print("数据保存间隔: %d\n", getCharSavesendinterval());
 
-        print("AddressBookOffMesgNum: %d\n",getAddressbookoffmsgnum());
-        print("ProtocolReadFrequency: %d\n",getProtocolreadfrequency());
+        print("名片最大数目: %d\n", getAddressbookoffmsgnum());
+        print("读取频率协议: %d\n" ,getProtocolreadfrequency());
 
-        print("AllowErrorNum: %d\n",getAllowerrornum());
-
-#ifdef	_M_SERVER
-		print("mServerIP: %s\n",getmservername());
-		print("mServerPort: %d\n",getmserverport());
+        print("连接错误上限: %d\n", getAllowerrornum());
+#ifdef _GET_BATTLE_EXP
+				print("战斗经验倍数: %d倍\n", getBattleexp() );
 #endif
-#ifdef _NPCSERVER_NEW
-		print("NpcServerIP: %s\n",getnpcserveraddr());
-		print("NpcServerPort: %d\n",getnpcserverport());
+#ifdef _NEW_PLAYER_CF
+				print("出生人物转数: %d转\n", getNewplayertrans());
+				print("出生人物等级: %d级\n", getNewplayerlv());
+				print("出生人物金钱: %d S\n", getNewplayergivegold());
+				print("出生宠物等级: %d级\n", getNewplayerpetlv());
+#ifdef _VIP_SERVER
+				print("出生拥有点数: %d点\n", getNewplayergivevip());
 #endif
-		print("\n");
+				print("出生能骑等级: %d\n", getRidePetLevel());
+#ifdef _NEW_PLAYER_RIDE
+				print("出生配套骑宠: %s\n", getPlayerRide());
+#endif
+				print("出生拥有宠物: NO1:%d NO2:%d NO3:%d NO4:%d NO5:%d\n",getNewplayergivepet(0),
+																																	getNewplayergivepet(1),
+																																	getNewplayergivepet(2),
+																																	getNewplayergivepet(3),
+																																	getNewplayergivepet(4));
+				print("出生拥有物品: ITEM1:%d ITEM2:%d ITEM3:%d ITEM4:%d ITEM5:%d\n"
+							"　　　　　　　ITEM1:%d ITEM2:%d ITEM3:%d ITEM4:%d ITEM5:%d\n"
+							"　　　　　　　ITEM1:%d ITEM2:%d ITEM3:%d ITEM4:%d ITEM5:%d\n"
+																																	,getNewplayergiveitem(0)
+																																	,getNewplayergiveitem(1)
+																																	,getNewplayergiveitem(2)
+																																	,getNewplayergiveitem(3)
+																																	,getNewplayergiveitem(4)
+																																	,getNewplayergiveitem(5)
+																																	,getNewplayergiveitem(6)
+																																	,getNewplayergiveitem(7)
+																																	,getNewplayergiveitem(8)
+																																	,getNewplayergiveitem(9)
+																																	,getNewplayergiveitem(10)
+																																	,getNewplayergiveitem(11)
+																																	,getNewplayergiveitem(12)
+																																	,getNewplayergiveitem(13)
+																																	,getNewplayergiveitem(14));
+#endif
+#ifdef _UNREG_NEMA
+		print("禁止人物名称: 名字1:%s 名字2:%s 名字3:%s 名字4:%s 名字5:%s\n",getUnregname(0),
+																																	getUnregname(1),
+																																	getUnregname(2),
+																																	getUnregname(3),
+																																	getUnregname(4));
+#endif
+#ifdef _UNLAW_WARP_FLOOR
+		print("禁止传送地图: 地图1:%d 地图2:%d 地图3:%d 地图4:%d 地图5:%d\n"
+	          "              地图1:%d 地图2:%d 地图3:%d 地图4:%d 地图5:%d\n",getUnlawwarpfloor(0),
+																																					getUnlawwarpfloor(1),
+																																					getUnlawwarpfloor(2),
+																																					getUnlawwarpfloor(3),
+																																					getUnlawwarpfloor(4),
+																																					getUnlawwarpfloor(5),
+																																					getUnlawwarpfloor(6),
+																																					getUnlawwarpfloor(7),
+																																					getUnlawwarpfloor(8),
+																																					getUnlawwarpfloor(9));
+#endif
+#ifdef _WATCH_FLOOR
+		print("是否全图观战: %s\n",getWatchFloorCF());
+		if(strcmp(getWatchFloorCF(),"是"))
+			print("允许观战地图: 地图1:%d 地图2:%d 地图3:%d 地图4:%d 地图5:%d\n",getWatchFloor(1),
+																																		getWatchFloor(2),
+																																		getWatchFloor(3),
+																																		getWatchFloor(4),
+																																		getWatchFloor(5));
+#endif
+
+#ifdef _BATTLE_FLOOR
+		print("是否强制战斗: %s\n",getBattleFloorCF());
+		if(strcmp(getBattleFloorCF(),"是"))
+			print("强制战斗地图: 地图1:%d 地图2:%d 地图3:%d 地图4:%d 地图5:%d\n",getBattleFloor(1),
+																																		getBattleFloor(2),
+																																		getBattleFloor(3),
+																																		getBattleFloor(4),
+																																		getBattleFloor(5));
+#endif
+
+#ifdef _TRANS_LEVEL_CF
+		print("人物等级转数: %d级\n",getChartrans());
+		print("宠物等级转数: %d级\n",getPettrans());
+#endif
+
+#ifdef _POINT
+		print("禁止点数上限: %s\n",getPoint());
+		if(strcmp(getPoint(),"是"))
+			print("每转点数上限: 0转:%d 1转:%d 2转:%d 3转:%d 4转:%d 5转:%d 6转:%d\n",getTransPoint(0),
+																																								getTransPoint(1),
+																																								getTransPoint(2),
+																																								getTransPoint(3),
+																																								getTransPoint(4),
+																																								getTransPoint(5),
+																																								getTransPoint(6));
+#endif
+#ifdef _PET_UP
+		print("宠物能否捡获: %s\n",getPetup());
+#endif
+#ifdef _LOOP_ANNOUNCE
+		print("循环公告路径: %s\n",getLoopAnnouncePath());
+		print("循环时间间隔: %d分钟\n",getLoopAnnounceTime());
+#endif
+#ifdef _SKILLUPPOINT_CF
+		print("每级升级点数: %d\n",getSkup());
+#endif
+
+#ifdef _RIDELEVEL
+		print("骑宠等级相差: %d级\n",getRideLevel());
+#endif
+#ifdef _REVLEVEL
+		print("还原上限等级: %s级\n",getRevLevel());	
+#endif
+#ifdef _TRANS_LEVEL_CF
+		print("一般等级上限: %d级\n",getYBLevel());	
+		print("最高等级上限: %d级\n",getMaxLevel());	
+#endif
+#ifdef _FIX_CHARLOOPS
+	print("恶魔时间倍数: %d倍\n",getCharloops());	
+#endif
+#ifdef _PLAYER_ANNOUNCE
+	if(getPAnnounce()==-1)
+		print("喇叭消耗点数: 关闭使用\n");
+	else
+		print("喇叭消耗点数: %d点\n",getPAnnounce());	
+#endif
+#ifdef _PLAYER_MOVE
+	if(getPMove()==-1)
+		print("顺移消耗点数: 关闭使用\n");	
+	else
+		print("顺移消耗点数: %d点\n",getPMove());	
+#endif
+#ifdef _BATTLE_GOLD
+		print("战斗获得金钱: %d%\n",getBattleGold());	
+#endif
+#ifdef _ANGEL_TIME
+		print("精灵召唤时间: (%d人/在线人数)分\n",getAngelPlayerTime());	
+		print("精灵召唤人数: %d人\n",getAngelPlayerMun());	
+#endif
+#ifdef _RIDEMODE_20
+		print("2.0 骑宠模式: %d\n",getRideMode());	
+#endif
+#ifdef _FM_POINT_PK
+		print("庄园互抢模式: %s\n",getFmPointPK());	
+#endif
     }
 
 	{	//andy_add 2003/05/05 check GameServer Name
@@ -313,212 +419,204 @@ BOOL init(int argc , char** argv , char** env )
 		GameServerName = getGameserverID();
 		if( GameServerName == NULL || strlen( GameServerName) <= 0 )
 			return FALSE;
-		print("\n GameserverID: %s\n",  GameServerName );
+		print("\n游戏服务器ID: %s\n",  GameServerName );
 	}
-	
-    print("Start Initialize\n" );
-
+    print("开始初始化\n" );
+    
 //#define DEBUG1( arg... ) if( getDebuglevel()>1 ){##arg}
-    print( "Configuring Memory..." );
+    print( "建立内存空间..." );
     GOTORETURNFALSEIFFALSE(configmem( getMemoryunit(),
                                       getMemoryunitnum() ) );
     GOTORETURNFALSEIFFALSE(memInit());
-	print( "done\n" );
+		print( "完成\n" );
+				
+		print( "始终化连接空间..." );
     if( !initConnect(getFdnum()) )
         goto MEMEND;
+    print( "完成\n" );
     while( 1 ){
-        print( "Attempt to bind local address port %d... " , getPortnumber());
+        print( "尝试绑定本地端口 %d... " , getPortnumber());
         bindedfd = bindlocalhost( getPortnumber() );
         if( bindedfd == -1 )
             sleep( 10 );
         else
             break;
-
     }
-	print( "done\n" );
-	print( "Configuring Object..." );
+	print( "完成\n" );
+
+	print( "建立对象..." );
     if( !initObjectArray( getObjnum()) )
         goto CLOSEBIND;
-	print( "done\n" );
-	print( "Configuring character..." );
+	print( "完成\n" );
+	
+	print( "建立人物..." );
     if(!CHAR_initCharArray( getFdnum(), getPetcharnum(),getOtherscharnum()) )
         goto CLOSEBIND;
-	print( "done\n" );
-	print( "Configuring items:%s...", getItemfile());
+	print( "完成\n" );
+	print( "建立物品...");
     if(!ITEM_readItemConfFile( getItemfile()) )
         goto CLOSEBIND;
     if(!ITEM_initExistItemsArray( getItemnum() ) )
         goto CLOSEBIND;
-	print( "done\n" );
+	print( "完成\n" );
 
-	print( "Configuring battle..." );
+	print( "建立战斗..." );
     if(!BATTLE_initBattleArray( getBattlenum() ) )
         goto CLOSEBIND;
-	print( "done\n" );
+	print( "完成\n" );
 
-	print( "Configuring Function Table..." );
+	print( "建立功能模块..." );
     if( !initFunctionTable() )
         goto CLOSEBIND;
-	print( "done\n" );
+	print( "完成\n" );
 
-	print( "Initializing addressbook..." );
+	print( "初始化邮件..." );
     if( !PETMAIL_initOffmsgBuffer( getAddressbookoffmsgnum() ))
         goto CLOSEBIND;
-	print( "done\n" );
+	print( "完成\n" );
 
-	print( "Reading Invincible File..." );
+	print( "读取不可战斗文件..." );
     if( !CHAR_initInvinciblePlace( getInvfile() ) )
         goto CLOSEBIND;
-	print( "done\n" );
+	print( "完成\n" );
 
-	print( "Reading AppearPosition File..." );
+	print( "读取显示位置文件..." );
     if( !CHAR_initAppearPosition( getAppearfile() ) )
         goto CLOSEBIND;
-	print( "done\n" );
+	print( "完成\n" );
 
-	print( "Reading TitleName File..." );
+	print( "读取头衔名称文件..." );
     if( !TITLE_initTitleName( getTitleNamefile() ) )
         goto CLOSEBIND;
-	print( "done\n" );
+	print( "完成\n" );
 
-	print( "Reading TitleConfig File..." );
+	print( "读取头衔配置文件..." );
     if( !TITLE_initTitleConfig( getTitleConfigfile() ) )
         goto CLOSEBIND;
-	print( "done\n" );
+	print( "完成\n" );
 
-	print( "Reading Encount File..." );
+	print( "读取遇敌坐标文件..." );
     if( !ENCOUNT_initEncount( getEncountfile() ) )
         goto CLOSEBIND;
-	print( "done\n" );
+	print( "完成\n" );
 
-	print( "Reading EnemyBase File..." );
+	print( "读取宠物基本文件..." );
     if( !ENEMYTEMP_initEnemy( getEnemyBasefile() ) )
         goto CLOSEBIND;
-	print( "done\n" );
+	print( "完成\n" );
 
-	print( "Reading Enemy File..." );
+	print( "读取创建宠物文件..." );
     if( !ENEMY_initEnemy( getEnemyfile() ) )
         goto CLOSEBIND;
-	print( "done\n" );
+	print( "完成\n" );
 
-	print( "Reading Group File..." );
+	print( "读取遇敌组群文件..." );
     if( !GROUP_initGroup( getGroupfile() ) )
         goto CLOSEBIND;
-	print( "done\n" );
-	print( "Reading Magic File..." );
+	print( "完成\n" );
+	print( "读取魔法文件..." );
     if( !MAGIC_initMagic( getMagicfile() ) )
         goto CLOSEBIND;
-	print( "done\n" );
+	print( "完成\n" );
 
-		#ifdef __ATTACK_MAGIC
+		#ifdef _ATTACK_MAGIC
 
-	print( "Reading Attack Magic File..." );
+	print( "读取魔法攻击文件..." );
 
     if( !ATTMAGIC_initMagic( getAttMagicfileName() ) )
 //		if( !ATTMAGIC_initMagic( getMagicfile() ) )
         goto CLOSEBIND;
 
-	print( "Attack magic file -->%s..." , getAttMagicfileName());
-	print( "done\n" );
+	print( "魔法攻击文件 -->%s..." , getAttMagicfileName());
+	print( "完成\n" );
 
     #endif
  
-	print( "Reading Petskill File..." );
+	print( "读取宠物技能文件..." );
     if( !PETSKILL_initPetskill( getPetskillfile() ) )
         goto CLOSEBIND;
-	print( "done\n" );
-
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-	print( "Reading profession File..." );
-	if( !PROFESSION_initSkill( getProfession() ) ){
-		goto CLOSEBIND;
-	}
-	print( "done\n" );
-#endif
+	print( "完成\n" );
 
     /* 失奶  丞及笺    毛  戈 */
-	print( "Reading Itematomfile..." );
+	print( "读取物品成份文件..." );
     if( !ITEM_initItemAtom( getItematomfile()) )
         goto CLOSEBIND;
-	print("done\n" );
+	print("完成\n" );
 
-	print( "Initializing ItemIngCache..." );
+	print( "初始化料理合成物品..." );
     if( !ITEM_initItemIngCache() )
         goto CLOSEBIND;
-	print("done\n" );
+	print("完成\n" );
     
-	print( "Initializing Itemrandtable..." );
+	print( "初始料理合成随机设定..." );
     if( !ITEM_initRandTable() )
         goto CLOSEBIND;
-	print("done\n" );
-    
-	print( "Reading EffectSetting File..." );
+	print("完成\n" );
+  
+	print( "读取遇敌配置文件..." );
     if( !CHAR_initEffectSetting( getEffectfile() ) )
         goto CLOSEBIND;
-	print( "done\n" );
-	print( "Reading Quiz File..." );
+	print( "完成\n" );
+	print( "读取猜迷问题文件..." );
     if( !QUIZ_initQuiz( getQuizfile() ) )
         goto CLOSEBIND;
-	print( "done\n" );
-
-#ifdef _BLACK_MARKET
-	print( "Reading BlackMarket File..." );
-	if ( !LoadBMItem(getBMItemFile()) )
-		goto CLOSEBIND;
-	print( "done\n" );
-#endif
-
+	print( "完成\n" );
 #ifdef _GMRELOAD
-	print( "Reading GMSet File..." );
+	print( "读取GM配置文件..." );
 	if ( !LoadGMSet( getGMSetfile() ) )
 		goto CLOSEBIND;
-	print( "done\n" );
+	print( "完成\n" );
 #endif
 
-#ifdef _ANGEL_SUMMON
-	print("Reading MissionList File...");
-	if( !LoadMissionList( ) )
+#ifdef _USER_EXP_CF
+	print( "读取经验配置文件..." );
+	if ( !LoadEXP( getEXPfile() ) )
 		goto CLOSEBIND;
-	print("done\n");
+	print("最高等级: %d...",getMaxLevel());
+	print("一般等级: %d...",getYBLevel());
+	print( "完成\n" );
 #endif
 
-#ifdef _CONTRACT
-	print("Reading Contract File...");
-	//if( !LoadMissionList( ) )
-	//	goto CLOSEBIND;
-	if( !ITEM_initContractTable() )
-		goto CLOSEBIND;
-	print("done\n");
+#ifdef _LOOP_ANNOUNCE
+	print("读取循环公告文件...");
+	if(!loadLoopAnnounce())
+		print("...失败\n");
+	else
+	 print("完成\n");
+#endif
+#ifdef _RIDE_CF
+	print( "读取自定义骑宠文件..." );
+	if(!CHAR_Ride_CF_init())
+		print("...失败\n");
+	print("完成\n");
+#endif
+#ifdef _FM_LEADER_RIDE
+	print( "读取庄园族长专用骑宠文件..." );
+	if(!CHAR_FmLeaderRide_init())
+		print("...失败\n");
+	print("完成\n");
+#endif
+#ifdef _NEED_ITEM_ENEMY
+	print( "读取融合宠配置文件..." );
+	if(!need_item_eneny_init())
+		print("...失败\n");
+	print("完成\n");
 #endif
 
-#ifdef _JOBDAILY
-	print("Reading Jobdaily File...");
-	if(!LoadJobdailyfile())
-		goto CLOSEBIND;
-	print("done\n");
-#endif
-
-#ifdef _RACEMAN
-	print("Reading Racepet File...");
-	if(!LoadRacepetfile())
-		goto CLOSEBIND;
-	print("done\n");
-#endif
-
-	print( "Configuring map..." );
+	print( "建立地图..." );
     if( !MAP_initReadMap( getMaptilefile() , getMapdir() ))
         goto CLOSEBIND;
-	print( "done\n" );
-	print( "Reading NPC Files..." );
+	print( "完成\n" );
+	print( "读取NPC文件..." );
     if( !NPC_readNPCSettingFiles( getNpcdir(), getNpctemplatenum(),
                                   getNpccreatenum() ) )
         goto CLOSEBIND;
-	print( "done\n" );
-	print( "Initialize rpc server ... " );
+	print( "完成\n" );
+	print( "初始化 NPC 服务器... " );
     if( lssproto_InitServer( lsrpcClientWriteFunc, LSGENWORKINGBUFFER ) < 0 )
         goto CLOSEBIND;
-	print( "done\n" );
-	print( "Attempt to connect to account server... " );
+	print( "完成\n" );
+	print( "尝试连接账号服务器... " );
     acfd = connectHost( getAccountservername(), getAccountserverport());
     if(acfd == -1)
         goto CLOSEBIND;
@@ -536,23 +634,30 @@ BOOL init(int argc , char** argv , char** env )
 	}
 */
 
-	print( "done\n" );
+	print( "完成\n" );
     initConnectOne( acfd, NULL , 0 );
     if( !CONNECT_acfdInitRB( acfd)) goto CLOSEAC;
     if( !CONNECT_acfdInitWB( acfd)) goto CLOSEAC;
     CONNECT_setCtype( acfd, AC );
 	
-	print( "Initialize rpc client ... " );
+	print( "初始化 NPC 客户端 ... " );
     /*  rpc(client)及赓渝祭 */
     if( saacproto_InitClient( lsrpcClientWriteFunc,LSGENWORKINGBUFFER, acfd) < 0 )
         goto CLOSEAC;
-	print( "done\n" );
+	print( "完成\n" );
 
-	print( "Sending login request to account server... " );
+	print( "向账号服务器发送登陆请求... " );
     /*  夫弘奶件邰菲毛请允  */
-    saacproto_ACServerLogin_send(acfd, getGameservername(),
-                                 getAccountserverpasswd());
-	print( "done\n" );
+   	{
+#ifdef _VIP_ALL
+    	saacproto_ACServerLogin_send(acfd, getGameservername(), getAccountserverpasswd(), getCheckVip()*2);
+#else
+			char buff[50];
+			sprintf(buff,"longzoro-%s-%d",getAccountserverpasswd(),123);
+			saacproto_ACServerLogin_send(acfd, getGameservername(), buff);
+#endif
+    }
+	print( "完成\n" );
 
     if( isExistFile( getLsgenlogfilename() ) ){
         lssproto_SetServerLogFiles( getLsgenlogfilename(),
@@ -562,16 +667,9 @@ BOOL init(int argc , char** argv , char** env )
     }
 
 
-	print( "Initialize finished\n" );
+	print( "初始化已完成\n" );
 
-#ifdef _MUSEUM
-	if( getMuseum() )
-		print("\nThis is 石器博物馆!!\n");
-	else
-		print("\nThis is 普通星球!!\n");
-#endif
-
-	print( "Start Log\n" );
+	print( "开始记始日志\n" );
     {
         char    logconffile[512];
         snprintf( logconffile, sizeof( logconffile), "%s/%s" ,
@@ -579,31 +677,8 @@ BOOL init(int argc , char** argv , char** env )
         if( !initLog( logconffile ) )
             goto CLOSEAC;
     }
-
-#ifdef _M_SERVER
-	print( "Attempt to connect to m server... " );
-    mfd = connectmServer( getmservername(), getmserverport());
-	if (mfd ==-1 ){
-		print( "Failed to connect to m server... " );
-	}else{
-		initConnectOne( mfd, NULL , 0 );
-		print( "Successed to connect to m server... " );
-	}
-#endif
-
-#ifdef _NPCSERVER_NEW
-	npcfd = connectNpcServer( getnpcserveraddr(), getnpcserverport());
-	if( npcfd == -1 ){
-		print( "Failed to connect to NpcServer... " );
-	}else{
-		initConnectOne( npcfd, NULL , 0 );
-		print( "Successed to connect to NpcServer... " );
-		NPCS_NpcSLogin_send( npcfd);
-	}
-#endif
-	
 #ifdef _ITEM_QUITPARTY
-	print( "Reading itemquitparty File..." );
+	print( "读取队伍解散物品消失文件..." );
     
 	//读取档案
     f = fopen( getitemquitparty(), "r" );
@@ -615,14 +690,14 @@ BOOL init(int argc , char** argv , char** env )
 			itemquitparty_num++;
 		}
 		if( fseek( f, 0, SEEK_SET ) == -1 ){
-			print( "itemquitparty Seek Error\n" );
+			print( "物品录找错误\n" );
 			fclose(f);
 			goto CLOSEAC;
 		}
 		//配记忆体
 		Disappear_Item = allocateMemory( sizeof(struct tagDisappearItem) * itemquitparty_num );
 		if( Disappear_Item == NULL ){
-			print( "Can't allocate Memory %d\n", sizeof(struct tagDisappearItem) * itemquitparty_num );
+			print( "无法分配内存 %d\n", sizeof(struct tagDisappearItem) * itemquitparty_num );
 			fclose( f );
 			goto CLOSEAC;
 		}

@@ -34,7 +34,7 @@ BOOL MAP_walkAbleFromPoint( int ff, int fx, int fy, BOOL isfly )
         for( i = 0 ; i < 2 ; i ++ )
             if( MAP_getImageInt( map[i], MAP_HAVEHEIGHT ) == TRUE  ){
                 return FALSE;
-			}
+						}
         return TRUE;
     }else{
         switch( MAP_getImageInt( map[1], MAP_WALKABLE ) ){
@@ -56,7 +56,6 @@ BOOL MAP_walkAbleFromPoint( int ff, int fx, int fy, BOOL isfly )
             break;
         }
     }
-
     return FALSE;
 }
 
@@ -111,68 +110,6 @@ BOOL MAP_haveHeight( int fl, int x, int y )
     return MAP_getImageInt( map[1], MAP_HAVEHEIGHT );
 }
 
-
-
-/*----------------------------------------
- * µ©  °ı’˝µ©  º¿—Ãº∞  µ √´‘ ‘¬
- * ¬¶–—
- *  index   int     ∆Ω≈“∑¬º∞ƒÃº˛∑∏”¿€Õµ©
- *  map     int     —®”¿√Û∑∏°ı’˝
- *  outof   BOOL    Ò◊∏Í¡›£˝◊™» ¡›æÆ TRUE ÿ¶»’»… Ò◊∏Í¡›∆•ÿ§‘¬£€
- * ﬂØ‘ª∞¿
- *  ”…∑¬∂™°ı’˝  º¿√´ÿ∆–◊    TRUE
- *  ”…∑¬∂™°ı’˝  º¿√´ÿ∆ÿ¶æÆ‘»–◊  FALSE
-  ----------------------------------------*/
-static BOOL MAP_changeCharStatusFromMapDataAndTime( int index,
-                                                    int map, BOOL outof)
-{
-#if 0
-// µ©–˛°ıº˛æﬁƒÃ≥‚∆•∑¥“¯¥ıÿ¶÷–
-    int i;
-    int offset;
-    BOOL    change=FALSE;
-    static struct tagStatusInteractionOfBitAndDefine{
-        int     mapdataindex;
-        int     charadataindex;
-    }statusInteraction[]={
-        {MAP_INTOPOISON,        CHAR_POISON},
-        {MAP_INTOPARALYSIS,     CHAR_PARALYSIS},
-        {MAP_INTOSILENCE,       CHAR_SLEEP},
-        {MAP_INTOSTONE,         CHAR_STONE},
-        {MAP_INTODARKNESS,      CHAR_DRUNK},
-        {MAP_INTOCONFUSION,     CHAR_CONFUSION},
-
-        {MAP_OUTOFPOISON,       CHAR_POISON},
-        {MAP_OUTOFPARALYSIS,    CHAR_PARALYSIS},
-        {MAP_OUTOFSILENCE,      CHAR_SLEEP},
-        {MAP_OUTOFSTONE,        CHAR_STONE},
-        {MAP_OUTOFDARKNESS,     CHAR_DRUNK},
-        {MAP_OUTOFCONFUSION,    CHAR_CONFUSION},
-    };
-
-    if( outof == FALSE )offset = 6;
-    else                offset= 0;
-    for( i = 0 ; i < 6 ; i ++ ){
-        int     newdata;
-        newdata = MAP_getImageInt(map,statusInteraction[i+offset].
-                                  mapdataindex);
-        if( newdata > 0 ){
-            change=TRUE;
-            /*  µ©  °ı’˝µ©º∞…¨¿√    */
-            CHAR_setInt( index,
-                         statusInteraction[i+offset].charadataindex,
-                         CHAR_getInt(index,
-                                     statusInteraction[i+offset].
-                                     charadataindex ) + newdata );
-        }
-    }
-    return change;
-#else
-	return FALSE;
-#endif
-}
-
-
 /*------------------------------------------------------------
  * Map ƒÃ√¨º˛–˛º∞ pre post√´÷   ‘ ‘¬
  * ¬¶–—
@@ -184,7 +121,7 @@ static void MAP_dealprepostevent( int index, BOOL mode )
 {
     int     map[2];
     int     i;
-    int     damaged=FALSE,statuschange=FALSE;
+    int     damaged=FALSE;
 
     if( CHAR_getFlg(index,CHAR_ISFLYING) )
         /*     œ∆•‘¬÷ßπ¥±Â∑¥÷œ ÷ÿ∆ÿ¶÷–  */
@@ -208,16 +145,9 @@ static void MAP_dealprepostevent( int index, BOOL mode )
             CHAR_sendWatchEvent(CHAR_getWorkInt(index,CHAR_WORKOBJINDEX),
                                 CHAR_ACTDAMAGE,opt,2,TRUE);
         }
-        if( MAP_changeCharStatusFromMapDataAndTime(
-            index,map[i], mode ? TRUE : FALSE ) )
-            statuschange=TRUE;
     }
-    if( damaged )       CHAR_sendStatusString(index,"M");
-    if( statuschange ){
-        CHAR_sendCToArroundCharacter(index);
-        CHAR_sendStatusString(index,"P");
-    }
-
+    if( damaged )
+    	CHAR_sendStatusString(index,"M");
 }
 
 

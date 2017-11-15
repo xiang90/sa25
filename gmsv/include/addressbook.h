@@ -5,7 +5,7 @@
 #include "util.h"
 #include "net.h"
 
-#define ADDRESSBOOK_MAX 40
+#define ADDRESSBOOK_MAX 80
 
 typedef struct
 {

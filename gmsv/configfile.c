@@ -15,182 +15,246 @@
 #include "npcutil.h"
 // Arminius 7.12 login announce
 #include "char.h"
-
+#include "char_data.h"
 // CoolFish: add 
 #include "lssproto_serv.h"
 
-#include "npc_raceman.h"
+#ifdef _ANGEL_SUMMON
+extern struct MissionInfo missionlist[MAXMISSION];
+extern struct MissionTable missiontable[MAXMISSIONTABLE];
+#endif
 
 /* É¬ÀÃÃ«âç  ÔÊÔÂÑáÕ°   */
 typedef struct tagConfig
 {
     /*Ãó·òºë·ÂØ©  (·ß  ¶Á±å·Æ»§Ð×ÖÐØêÉýÒý·ÖòÍ  */
-    char    progname[8];
-
-    char    configfilename[32]; /* config°×ÑëÄÌ»ï   */
-    unsigned char debuglevel;   /* ·¸ÌïÓÀºëÒÁÃ¬»ï */
-
-    unsigned int  usememoryunit;    /*¶ªÆ¹Øø¼°½»ÍßÓÀÐþÈÓÄÌÊõ */
-    unsigned int  usememoryunitnum; /*¶ªÆ¹Øø¼°½»ÍßÓÀÐþÐÑ */
-
-    char    asname[32];         /*Ê§ÊÐËü¼þÐþÈÓ¡õÌï¼°  ó¡*/
-    unsigned short  acservport; /*Ê§ÊÐËü¼þÐþÈÓ¡õÌï¼°ºÌ¡õÐþ  */
-    char    acpasswd[32];       /*Ê§ÊÐËü¼þÐþÈÓ¡õÌï³ß¼°ÓÉµ©·¥¡õÓñ*/
-    char    gsnamefromas[32];   /*
+  char    progname[8];
+  char    configfilename[32]; /* config°×ÑëÄÌ»ï   */
+    unsigned int debuglevel;   /* ·¸ÌïÓÀºëÒÁÃ¬»ï */
+  unsigned int  usememoryunit;    /*¶ªÆ¹Øø¼°½»ÍßÓÀÐþÈÓÄÌÊõ */
+  unsigned int  usememoryunitnum; /*¶ªÆ¹Øø¼°½»ÍßÓÀÐþÐÑ */
+  char    asname[32];         /*Ê§ÊÐËü¼þÐþÈÓ¡õÌï¼°  ó¡*/
+  unsigned short  acservport; /*Ê§ÊÐËü¼þÐþÈÓ¡õÌï¼°ºÌ¡õÐþ  */
+  char    acpasswd[32];       /*Ê§ÊÐËü¼þÐþÈÓ¡õÌï³ß¼°ÓÉµ©·¥¡õÓñ*/
+  char    gsnamefromas[32];   /*
                                  * Ê§ÊÐËü¼þÐþÈÓ¡õÌï¾®ÈÕÎ­ÒüÔÂ
                                  * ±Ø¡õØ©ÈÓ¡õÌïÎçØÆ»¯¼°  ó¡
                                  */
                                  
     // Arminius 7.24 manor pk
-    char gsid[32];	// game server chinese id
-#ifdef _SERVICE    
-    // Terry 2001/10/03
-    char apid[32];      // service ap id
-		unsigned short apport;	//service ap port
-    int  looptime;	// ¼¸ÃëááÉè¶¨Àë¿ª
-    int  enableservice;	// ÊÇ·ñÊ¹ÓÃÊ¯Æ÷·þÎñÔ±¹¦ÄÜ
-#endif    
-    unsigned short allowmanorpk;	// is this server allow manor pk
-                                 
-    unsigned short port;        /* ÈÓ¡õÌï¼°½÷ÇÐ°¾ØêºÌ¡õÐþ */
-	
+  char gsid[32];	// game server chinese id
+  unsigned short allowmanorpk;	// is this server allow manor pk
+  unsigned short port;        /* ÈÓ¡õÌï¼°½÷ÇÐ°¾ØêºÌ¡õÐþ */
 	int				servernumber;	/* ±Ø¡õØ©ÈÓ¡õÌï¼°  Ä¯ */
 	int				reuseaddr;	/* Address already used... »¥÷±ÒýÈÕØ¦ÖÐÁÝ¼°Ð×»§±å */
-    int             do_nodelay;     /* TCP_NODELAY ±åÔÊÔÂ¾®Éýµ¤¾® */
-    int             log_write_time; /* Ì¤Îå³ðÐÄ·òºëÃ«ÔÊÔÂ¾®Éýµ¤¾®£Û */
-    int             log_io_time;    /* I/Oòå  ¼°ÁÝÃÞ·´¾®ÔÂ¾®Éýµ¤¾®£Û */
-    int             log_game_time;  /* ±Ø¡õØ©¼°ÖÊ  òå  ¼°ÁÝÃÞÃ«·´¾®ÔÂ */
-    int             log_netloop_faster; /* netloop_faster ¼°·òºë */
+  int             do_nodelay;     /* TCP_NODELAY ±åÔÊÔÂ¾®Éýµ¤¾® */
+  int             log_write_time; /* Ì¤Îå³ðÐÄ·òºëÃ«ÔÊÔÂ¾®Éýµ¤¾®£Û */
+  int             log_io_time;    /* I/Oòå  ¼°ÁÝÃÞ·´¾®ÔÂ¾®Éýµ¤¾®£Û */
+  int             log_game_time;  /* ±Ø¡õØ©¼°ÖÊ  òå  ¼°ÁÝÃÞÃ«·´¾®ÔÂ */
+  int             log_netloop_faster; /* netloop_faster ¼°·òºë */
 	int				saacwritenum;	/* Ê§ÊÐËü¼þÐþÈÓ¡õÌï³ß¼°ÖÏÚÐ  ±åwriteÔÊÔÂ¾® */
 	int				saacreadnum;	/* Ê§ÊÐËü¼þÐþÈÓ¡õÌï¾®ÈÕ¼°dispatch Ã«ÖÏ¼ÔÔÊÔÂ¾® */
-
-    unsigned short fdnum;           /*ÉýÄ¾·ÖØêÎìÉúÛÍÆËÒà¼þÃ«âç  ÔÊÔÂ¾® */
-    unsigned int   othercharnum;    /*  ¹«¼°Ö°¼°Æ½ÅÒ·Â¼°ÐÑ  */
-
-    unsigned int objnum;            /* ×óÆ¤³âÄáÛÍÐþ¼°    ÐÑ*/
-    unsigned int   petcharnum;   	/* Ê¸ÓÀÐþ¼°ÐÑ    */
-    unsigned int itemnum;           /* Ê§ÄÌ  Ø©¼°    ÐÑ*/
-    unsigned int battlenum;         /* ÌïÐþ»ï¼°    */
-
-    char    topdir[64];         	/* ÐþÓÀÃó·¸Å«ÒÁÛÍÐþØø  */
-
-    char    mapdir[64];         	/* Ñ¨ÓÀÃó·¸Å«ÒÁÛÍÐþØø  */
-    char    maptilefile[64];    	/* Ñ¨ÓÀÃóÉ¬ÀÃ°×ÑëÄÌ»ï  */
-    char    battlemapfile[64];    	/* ÌïÐþ»ïÑ¨ÓÀÃóÉ¬ÀÃ°×ÑëÄÌ»ï  */
-    char    itemfile[64];       	/* Ê§ÄÌ  Ø©É¬ÀÃ°×ÑëÄÌ»ï  */
-    char    invfile[64];        	/*   ³ÄÉ¬ÀÃ°×ÑëÄÌ»ï  */
-    char    appearfile[64];     	/* ÇëòØÞË  É¬ÀÃ°×ÑëÄÌ»ï  */
-	char	titlenamefile[64];		/* ±¹Ä¯°×ÑëÄÌ»ï   */
-	char	titleconfigfile[64];	/* ±¹Ä¯É¬ÀÃ°×ÑëÄÌ»ï   */
-	char	encountfile[64];		/* ¾Þ¼þÊÐËü¼þÐþÉ¬ÀÃ°×ÑëÄÌ»ï   */
-	char	enemybasefile[64];		/* ³ÄÏæ  É¬ÀÃ°×ÑëÄÌ»ï   */
-	char	enemyfile[64];			/* ³ÄÉ¬ÀÃ°×ÑëÄÌ»ï   */
-	char	groupfile[64];			/* ºë»ï¡õÃóÉ¬ÀÃ°×ÑëÄÌ»ï   */
-	char	magicfile[64];			/* ÈÈÖîÉ¬ÀÃ°×ÑëÄÌ»ï   */
-	        #ifdef __ATTACK_MAGIC
-
-
-        char    attmagicfile[64];       // ¹¥»÷ÐÔÖäÊõ
-
-        #endif
-
-	char	petskillfile[64];		/* Ê¸ÓÀÐþ  ÈÈÖîÉ¬ÀÃ°×ÑëÄÌ»ï   */
-    char    itematomfile[64];       /* Ê§ÄÌ  Ø©¼°¼ã    °×ÑëÄÌ»ï */
-    char    effectfile[64];     	/* ÉÒÇëÉ¬ÀÃ°×ÑëÄÌ»ï  */
-    char    quizfile[64];     		/* ÛÍÄÌÊõÉ¬ÀÃ°×ÑëÄÌ»ï  */
-
-
-    char    lsgenlog[64];       /*ÈÓ¡õÌï¼°lsgen Ê§ËüÐþÃóÓÀÐþ°×ÑëÄÌ»ï  */
-
-    char    storedir[64];       /*µ©ÐþÊ§·¸Å«ÒÁÛÍÐþØø    */
-    char    npcdir[64];         /*NPC¼°É¬ÀÃ°×ÑëÄÌ»ïÃ«  ÈÊ·¸Å«ÒÁÛÍÐþØø   */
-
-    char    logdir[64];         /*
-                                 * ·òºë·¸Å«ÒÁÛÍÐþØø
-                                 */
-    char    logconfname[64];    /*
-                                 * ·òºëÉ¬ÀÃ°×ÑëÄÌ»ï  
-                                 */
-    char	chatmagicpasswd[64];	/* ÃñÅÒÓÀÐþ  Ü·ÓÉµ©·¥¡õÓñ */
-
-#ifdef _STORECHAR
-    char	storechar[64];
+  unsigned short fdnum;           /*ÉýÄ¾·ÖØêÎìÉúÛÍÆËÒà¼þÃ«âç  ÔÊÔÂ¾® */
+  unsigned int   othercharnum;    /*  ¹«¼°Ö°¼°Æ½ÅÒ·Â¼°ÐÑ  */
+  unsigned int objnum;            /* ×óÆ¤³âÄáÛÍÐþ¼°    ÐÑ*/
+  unsigned int   petcharnum;   	/* Ê¸ÓÀÐþ¼°ÐÑ    */
+  unsigned int itemnum;           /* Ê§ÄÌ  Ø©¼°    ÐÑ*/
+  unsigned int battlenum;         /* ÌïÐþ»ï¼°    */
+  unsigned int battleexp;         /* ÌïÐþ»ï¼°    */
+  char    topdir[32];         	/* ÐþÓÀÃó·¸Å«ÒÁÛÍÐþØø  */
+  char    mapdir[32];         	/* Ñ¨ÓÀÃó·¸Å«ÒÁÛÍÐþØø  */
+  char    maptilefile[32];    	/* Ñ¨ÓÀÃóÉ¬ÀÃ°×ÑëÄÌ»ï  */
+  char    battlemapfile[32];    	/* ÌïÐþ»ïÑ¨ÓÀÃóÉ¬ÀÃ°×ÑëÄÌ»ï  */
+  char    itemfile[32];       	/* Ê§ÄÌ  Ø©É¬ÀÃ°×ÑëÄÌ»ï  */
+  char    invfile[32];        	/*   ³ÄÉ¬ÀÃ°×ÑëÄÌ»ï  */
+  char    appearfile[32];     	/* ÇëòØÞË  É¬ÀÃ°×ÑëÄÌ»ï  */
+	char	titlenamefile[32];		/* ±¹Ä¯°×ÑëÄÌ»ï   */
+	char	titleconfigfile[32];	/* ±¹Ä¯É¬ÀÃ°×ÑëÄÌ»ï   */
+	char	encountfile[32];		/* ¾Þ¼þÊÐËü¼þÐþÉ¬ÀÃ°×ÑëÄÌ»ï   */
+	char	enemybasefile[32];		/* ³ÄÏæ  É¬ÀÃ°×ÑëÄÌ»ï   */
+	char	enemyfile[32];			/* ³ÄÉ¬ÀÃ°×ÑëÄÌ»ï   */
+	char	groupfile[32];			/* ºë»ï¡õÃóÉ¬ÀÃ°×ÑëÄÌ»ï   */
+	char	magicfile[32];			/* ÈÈÖîÉ¬ÀÃ°×ÑëÄÌ»ï   */
+#ifdef _ATTACK_MAGIC
+  char    attmagicfile[32];       // ¹¥»÷ÐÔÖäÊõ
 #endif
-	
-    unsigned int 	chatmagiccdkeycheck;	/* ÃñÅÒÓÀÐþ  Ü·Æ¥CDKEYÃ«ÃñÄáÓÀÛÍÔÊÔÂ¾® */
-    
-    unsigned int    filesearchnum;     /*°×ÑëÄÌ»ïÃ«¸¹³ñÆ¥ÎåÔÂ°×ÑëÄÌ»ï¼°ÐÑ*/
-    unsigned int    npctemplatenum;     /*NPC¼°  ¼þÃóÒÁ¡õÐþ°×ÑëÄÌ»ï¼°ÐÑ*/
-    unsigned int    npccreatenum;       /*NPC¼°Ï·Ç²°×ÑëÄÌ»ï¼°ÐÑ*/
-    unsigned int    walksendinterval;   /* ÐÚÈÊ¼°Ã«ËªÔÂÃÞØÊ */
-    unsigned int    CAsendinterval_ms;     /* CAÃ«ËªÔÂÃÞØÊ (ms)*/
-    unsigned int    CDsendinterval_ms;     /* CDÃ«ËªÔÂÃÞØÊ (ms)*/
-    unsigned int    Onelooptime_ms;     	/* 1»ï¡õÃó±å¾®ØêÔÂÁÝÃÞ */
+
+	char	petskillfile[32];		/* Ê¸ÓÀÐþ  ÈÈÖîÉ¬ÀÃ°×ÑëÄÌ»ï   */
+  char    itematomfile[32];       /* Ê§ÄÌ  Ø©¼°¼ã    °×ÑëÄÌ»ï */
+  char    effectfile[32];     	/* ÉÒÇëÉ¬ÀÃ°×ÑëÄÌ»ï  */
+  char    quizfile[32];     		/* ÛÍÄÌÊõÉ¬ÀÃ°×ÑëÄÌ»ï  */
+  char    lsgenlog[32];       /*ÈÓ¡õÌï¼°lsgen Ê§ËüÐþÃóÓÀÐþ°×ÑëÄÌ»ï  */
+  char    storedir[128];       /*µ©ÐþÊ§·¸Å«ÒÁÛÍÐþØø    */
+  char    npcdir[32];         /*NPC¼°É¬ÀÃ°×ÑëÄÌ»ïÃ«  ÈÊ·¸Å«ÒÁÛÍÐþØø   */
+  char    logdir[32];         /*
+                               * ·òºë·¸Å«ÒÁÛÍÐþØø
+                               */
+  char    logconfname[32];    /*
+                               * ·òºëÉ¬ÀÃ°×ÑëÄÌ»ï  
+                               */
+  char	chatmagicpasswd[32];	/* ÃñÅÒÓÀÐþ  Ü·ÓÉµ©·¥¡õÓñ */
+#ifdef _STORECHAR
+  char	storechar[32];
+#endif
+	unsigned int 	chatmagiccdkeycheck;	/* ÃñÅÒÓÀÐþ  Ü·Æ¥CDKEYÃ«ÃñÄáÓÀÛÍÔÊÔÂ¾® */
+  unsigned int    filesearchnum;     /*°×ÑëÄÌ»ïÃ«¸¹³ñÆ¥ÎåÔÂ°×ÑëÄÌ»ï¼°ÐÑ*/
+  unsigned int    npctemplatenum;     /*NPC¼°  ¼þÃóÒÁ¡õÐþ°×ÑëÄÌ»ï¼°ÐÑ*/
+  unsigned int    npccreatenum;       /*NPC¼°Ï·Ç²°×ÑëÄÌ»ï¼°ÐÑ*/
+  unsigned int    walksendinterval;   /* ÐÚÈÊ¼°Ã«ËªÔÂÃÞØÊ */
+  unsigned int    CAsendinterval_ms;     /* CAÃ«ËªÔÂÃÞØÊ (ms)*/
+  unsigned int    CDsendinterval_ms;     /* CDÃ«ËªÔÂÃÞØÊ (ms)*/
+  unsigned int    Onelooptime_ms;     	/* 1»ï¡õÃó±å¾®ØêÔÂÁÝÃÞ */
 	unsigned int	Petdeletetime;		/* Ê¸ÓÀÐþ»¥ÛÕ  ÔÊÔÂÁÝÃÞ */
 	unsigned int	Itemdeletetime;		/* Ê§ÄÌ  Ø©»¥ÛÕ  ÔÊÔÂÁÝÃÞ */
     /* ·òºëÄÌ¼þ  ¼°Æ½ÅÒ·Â¼°±¾¡õÆ¤Ã«ÔÊÔÂÃÞØÊ */
-    unsigned int    CharSavesendinterval;
-    unsigned int    addressbookoffmsgnum;  /*
-                                            * Ê§ÓñÒÁµ©Æ¤ÓÀÛÍ±å×ó°×·ÂÄÌ¼þ
-                                            * ¶ªÓÀ±¾¡õ³âÃ«
-                                            * ÖÏ¶ªÓÀ±¾¡õ³âËáÁùÔÂ¾®
-                                            */
-
-    unsigned int    protocolreadfrequency;  /*
-                                             * Ãó·òÐþÎì»ïÃ«ÖÏÁ¢Øø    
-                                             * ±å  ¸ê¾®
-                                             */
-    unsigned int    allowerrornum;          /*
-                                             * ¾Þ·Â¡õÃ«ÖÏòÛÒýÆ¥¸¤ÔÊ¾®
-                                             */
-    unsigned int    loghour;          		/*
-                                             * ·òºëÃ«âçÐåÔÊÔÂÁÝ¶Ô  £¢ÁÝ  
-                                             */
-    unsigned int    battledebugmsg;    		/*
-                                             * ÌïÐþ»ï  ¼°·¸ÌïÓÀºë¶ªÓÀ±¾¡õ³âÃ«ÇëÔÊ¾®£Û¨ßØ¦ÈÕÇë½ñØ¦ÖÐ
-                                             */
-    //ttom add this because the second had this                                         
-    unsigned int    encodekey;              
-    unsigned int    acwbsize;             
-    unsigned int    acwritesize;
-    unsigned int    ErrUserDownFlg;
-    //ttom end
+  unsigned int    CharSavesendinterval;
+  unsigned int    addressbookoffmsgnum;  /*
+                                          * Ê§ÓñÒÁµ©Æ¤ÓÀÛÍ±å×ó°×·ÂÄÌ¼þ
+                                          * ¶ªÓÀ±¾¡õ³âÃ«
+                                          * ÖÏ¶ªÓÀ±¾¡õ³âËáÁùÔÂ¾®
+                                          */
+  unsigned int    protocolreadfrequency;  /*
+                                           * Ãó·òÐþÎì»ïÃ«ÖÏÁ¢Øø    
+                                           * ±å  ¸ê¾®
+                                           */
+  unsigned int    allowerrornum;          /*
+                                           * ¾Þ·Â¡õÃ«ÖÏòÛÒýÆ¥¸¤ÔÊ¾®
+                                           */
+  unsigned int    loghour;          		/*
+                                           * ·òºëÃ«âçÐåÔÊÔÂÁÝ¶Ô  £¢ÁÝ  
+                                           */
+  unsigned int    battledebugmsg;    		/*
+                                           * ÌïÐþ»ï  ¼°·¸ÌïÓÀºë¶ªÓÀ±¾¡õ³âÃ«ÇëÔÊ¾®£Û¨ßØ¦ÈÕÇë½ñØ¦ÖÐ
+                                           */
+  //ttom add this because the second had this                                         
+  unsigned int    encodekey;              
+  unsigned int    acwbsize;             
+  unsigned int    acwritesize;
+  unsigned int    ErrUserDownFlg;
+  //ttom end
 #ifdef _GMRELOAD
-	char	gmsetfile[64];				/* GMÕÊºÅ¡¢È¨ÏÞÉè¶¨µµ */
+	char	gmsetfile[32];				/* GMÕÊºÅ¡¢È¨ÏÞÉè¶¨µµ */
 #endif
-
-#ifdef _AUCTIONEER
-  char auctiondir[256];   // ÅÄÂô×ÊÁÏÄ¿Â¼
-#endif
-#ifdef _BLACK_MARKET 
-  char blackmarketfile[256];
-#endif
-#ifdef _M_SERVER
-    char    msname[32];         
-    unsigned short  msport;
-#endif
-#ifdef _NPCSERVER_NEW
-	char    nsaddress[64];         
-	unsigned short  nsport;
-#endif
-
-#ifdef _PROFESSION_SKILL			// WON ADD ÈËÎïÖ°Òµ¼¼ÄÜ
-	char profession[64];
-#endif
-
 #ifdef _ITEM_QUITPARTY
-    char itemquitparty[64];
-#endif
-
-#ifdef _MUSEUM
-	int museum;
+    char itemquitparty[32];
 #endif
 
 #ifdef _DEL_DROP_GOLD	
 	unsigned int	Golddeletetime;
 #endif
+#ifdef _NEW_PLAYER_CF
+	int	newplayertrans;
+	int	newplayerlv;
+	int	newplayergivepet[5];
+	int newplayergiveitem[15];
+	int	newplayerpetlv;
+	int newplayergivegold;
+	int ridepetlevel;
+#ifdef _VIP_SERVER
+	int	newplayerpetvip;
+#endif
+#ifdef _JZ_CF_DELPETITEM
+	int DelPet[5];
+	int DelItem[5];
+#endif
+#endif
+#ifdef _USER_EXP_CF
+	char	expfile[64];
+#endif
+#ifdef _UNLAW_WARP_FLOOR
+	int	unlawwarpfloor[10];
+#endif
+#ifdef _WATCH_FLOOR
+	int	watchfloor[6];
+#endif
+#ifdef _BATTLE_FLOOR
+	int	battlefloor[6];
+#endif
+#ifdef _UNREG_NEMA
+	char	unregname[5][16];
+#endif
+#ifdef _TRANS_LEVEL_CF
+	int chartrans;
+	int pettrans;
+	int yblevel;
+	int maxlevel;
+#endif
+#ifdef _POINT
+int point;
+	int transpoint[8];
+#endif
+#ifdef _VIP_SERVER
+	int vippoint;
+#endif
+#ifdef _PET_UP
+	int petup;
+#endif
+#ifdef _LOOP_ANNOUNCE
+	char loopannouncepath[32];
+	int loopannouncetime;
+	char loopannounce[10][1024];
+	int loopannouncemax;
+#endif
+#ifdef _SKILLUPPOINT_CF
+	int skup;
+#endif
+#ifdef _RIDELEVEL
+	int ridelevel;
+#endif
+#ifdef _REVLEVEL
+	int revlevel;
+#endif
+#ifdef _NEW_PLAYER_RIDE
+	int npride;
+#endif
+#ifdef _FIX_CHARLOOPS
+	int charloops;
+#endif
+#ifdef _PLAYER_ANNOUNCE
+	int pannounce;
+#endif
+#ifdef _PLAYER_MOVE
+	int pmove;
+#endif
+	int recvbuffer;
+	int sendbuffer;
+	int recvlowatbuffer;
+	int runlevel;
+#ifdef _SHOW_VIP_CF
+	int showvip;
+#endif
+#ifdef _PLAYER_NUM
+	int playernum;
+#endif
+#ifdef _BATTLE_GOLD
+	int battlegold;
+#endif
+#ifdef _ANGEL_TIME
+	int angelplayertime;
+	int angelplayermun;
+#endif
+#ifdef _RIDEMODE_20
+	int ridemode;
+#endif
+#ifdef _FM_POINT_PK
+	int fmpointpk;
+#endif
+#ifdef _ENEMY_ACTION
+	int	enemyact;
+#endif
 
+#ifdef _CHECK_PEPEAT
+	int	CheckRepeat;
+#endif
+	int	cpuuse;
+#ifdef _VIP_ALL
+	int	checkvip;
+#endif
+#ifdef _FM_JOINLIMIT
+	int	joinfamilytime;
+#endif
 }Config;
+
 Config config;
 
 /*
@@ -228,14 +292,7 @@ ReadConf readconf[]=
      NULL,0},
 
     // Arminius 7.24 manor pk
-    { "gameservid", config.gsid, sizeof(config.gsid), NULL, 0},
-#ifdef _SERVICE    
-    // Terry 2001/10/03 service ap
-    { "apid", config.apid, sizeof(config.apid), NULL, 0},
-		{ "apport",	NULL ,0 ,(void*)&config.apport ,SHORT},
-    { "looptime",NULL,0,(void*)&config.looptime,INT},
-    { "enableservice",NULL,0,(void*)&config.enableservice,INT},
-#endif    
+    { "gameservid", config.gsid, sizeof(config.gsid), NULL, 0}, 
     { "allowmanorpk", NULL, 0, (void*)&config.allowmanorpk, SHORT},
 
     { "port",			NULL ,0 , (void*)&config.port           ,SHORT},
@@ -256,7 +313,7 @@ ReadConf readconf[]=
     { "objnum",			NULL ,0 , (void*)&config.objnum,				INT},
     { "itemnum",		NULL ,0 , (void*)&config.itemnum,				INT},
     { "battlenum",		NULL ,0 , (void*)&config.battlenum,				INT},
-
+    { "battleexp",		NULL ,0 , (void*)&config.battleexp,				INT},
     { "topdir"          , config.topdir,sizeof(config.topdir),NULL,0},
     { "mapdir"          , config.mapdir,sizeof(config.mapdir),NULL,0},
     { "maptilefile"     , config.maptilefile,sizeof(config.maptilefile),NULL,0},
@@ -277,8 +334,8 @@ ReadConf readconf[]=
 #endif
 #endif
 #endif
-    { "invinciblefile"  , config.invfile,sizeof(config.invfile),NULL,0},
-    { "appearpositionfile"  , config.appearfile,sizeof(config.appearfile),NULL,0},
+  { "invinciblefile"  , config.invfile,sizeof(config.invfile),NULL,0},
+  { "appearpositionfile"  , config.appearfile,sizeof(config.appearfile),NULL,0},
 	{ "titlenamefile", config.titlenamefile, sizeof( config.titlenamefile),NULL,0},
 	{ "titleconfigfile", config.titleconfigfile, sizeof( config.titleconfigfile),NULL,0},
 	{ "encountfile", config.encountfile, sizeof( config.encountfile),NULL,0},
@@ -286,7 +343,7 @@ ReadConf readconf[]=
 	{ "enemybasefile", config.enemybasefile, sizeof( config.enemybasefile),NULL,0},
 	{ "groupfile", config.groupfile, sizeof( config.groupfile),NULL,0},
 	{ "magicfile", config.magicfile, sizeof( config.magicfile),NULL,0},
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
 	{ "attmagicfile" , config.attmagicfile , sizeof( config.attmagicfile )  , NULL , 0 },
 #endif
 
@@ -338,38 +395,186 @@ ReadConf readconf[]=
     { "acwritesize" ,NULL,0,(void*)&config.acwritesize,INT},
     { "acwbsize" ,NULL,0,(void*)&config.acwbsize,INT},
     { "erruser_down" ,NULL,0,(void*)&config.ErrUserDownFlg,INT},    
-    //ttom end
-#ifdef _AUCTIONEER
-    { "auctiondir" , config.auctiondir, sizeof(config.auctiondir),NULL,0},
-#endif
-#ifdef _BLACK_MARKET
-	{ "blackmarketfile", config.blackmarketfile, sizeof(config.blackmarketfile), NULL, 0},
-#endif
-#ifdef _M_SERVER
-    { "msname",		config.msname,sizeof(config.msname) ,NULL , 0},
-    { "msport",		NULL ,0 , (void*)&config.msport     ,SHORT},
-#endif
-#ifdef _NPCSERVER_NEW
-    { "npcaddress",		config.nsaddress, sizeof(config.nsaddress) ,NULL , 0},
-    { "nsport",		NULL, 0 , (void*)&config.nsport     ,SHORT},
-#endif
-
-#ifdef _PROFESSION_SKILL			// WON ADD ÈËÎïÖ°Òµ¼¼ÄÜ
-    { "profession",		config.profession, sizeof(config.profession) ,NULL , 0},
-#endif
 
 #ifdef _ITEM_QUITPARTY
     { "itemquitparty",	config.itemquitparty, sizeof(config.itemquitparty) ,NULL , 0},
-#endif
-
-#ifdef _MUSEUM
-    { "museum",			NULL , 0 , (void*)&config.museum ,		INT},
 #endif
 
 #ifdef _DEL_DROP_GOLD
 	{ "Golddeletetime" ,NULL,0,(void*)&config.Golddeletetime,	INT},
 #endif
 
+#ifdef _NEW_PLAYER_CF
+	{ "TRANS" ,NULL,0,(void*)&config.newplayertrans,	INT},
+	{ "LV" ,NULL,0,(void*)&config.newplayerlv,	INT},	
+	{ "PET1" ,NULL,0,(void*)&config.newplayergivepet[1],	INT},
+	{ "PET2" ,NULL,0,(void*)&config.newplayergivepet[2],	INT},	
+	{ "PET3" ,NULL,0,(void*)&config.newplayergivepet[3],	INT},	
+	{ "PET4" ,NULL,0,(void*)&config.newplayergivepet[4],	INT},	
+	{ "ITEM1" ,NULL,0,(void*)&config.newplayergiveitem[0],	INT},
+	{ "ITEM2" ,NULL,0,(void*)&config.newplayergiveitem[1],	INT},	
+	{ "ITEM3" ,NULL,0,(void*)&config.newplayergiveitem[2],	INT},	
+	{ "ITEM4" ,NULL,0,(void*)&config.newplayergiveitem[3],	INT},	
+	{ "ITEM5" ,NULL,0,(void*)&config.newplayergiveitem[4],	INT},
+	{ "ITEM6" ,NULL,0,(void*)&config.newplayergiveitem[5],	INT},	
+	{ "ITEM7" ,NULL,0,(void*)&config.newplayergiveitem[6],	INT},	
+	{ "ITEM8" ,NULL,0,(void*)&config.newplayergiveitem[7],	INT},	
+	{ "ITEM9" ,NULL,0,(void*)&config.newplayergiveitem[8],	INT},
+	{ "ITEM10" ,NULL,0,(void*)&config.newplayergiveitem[9],	INT},	
+	{ "ITEM11" ,NULL,0,(void*)&config.newplayergiveitem[10],	INT},	
+	{ "ITEM12" ,NULL,0,(void*)&config.newplayergiveitem[11],	INT},	
+	{ "ITEM13" ,NULL,0,(void*)&config.newplayergiveitem[12],	INT},	
+	{ "ITEM14" ,NULL,0,(void*)&config.newplayergiveitem[13],	INT},	
+	{ "ITEM15" ,NULL,0,(void*)&config.newplayergiveitem[14],	INT},
+	{ "PETLV" ,NULL,0,(void*)&config.newplayerpetlv,	INT},	
+	{ "GOLD" ,NULL,0,(void*)&config.newplayergivegold,	INT},
+	{ "RIDEPETLEVEL" ,NULL,0,(void*)&config.ridepetlevel,	INT},
+#ifdef _VIP_SERVER
+	{ "GIVEVIPPOINT" ,NULL,0,(void*)&config.newplayerpetvip,	INT},
+#endif
+#endif
+
+#ifdef _USER_EXP_CF
+	{ "USEREXP", config.expfile, sizeof( config.expfile),NULL,0},
+#endif
+
+#ifdef _UNLAW_WARP_FLOOR
+	{ "FLOOR1" ,NULL,0,(void*)&config.unlawwarpfloor[0],	INT},
+	{ "FLOOR2" ,NULL,0,(void*)&config.unlawwarpfloor[1],	INT},	
+	{ "FLOOR3" ,NULL,0,(void*)&config.unlawwarpfloor[2],	INT},	
+	{ "FLOOR4" ,NULL,0,(void*)&config.unlawwarpfloor[3],	INT},	
+	{ "FLOOR5" ,NULL,0,(void*)&config.unlawwarpfloor[4],	INT},
+	{ "FLOOR6" ,NULL,0,(void*)&config.unlawwarpfloor[5],	INT},
+	{ "FLOOR7" ,NULL,0,(void*)&config.unlawwarpfloor[6],	INT},	
+	{ "FLOOR8" ,NULL,0,(void*)&config.unlawwarpfloor[7],	INT},	
+	{ "FLOOR6" ,NULL,0,(void*)&config.unlawwarpfloor[8],	INT},	
+	{ "FLOOR10" ,NULL,0,(void*)&config.unlawwarpfloor[9],	INT},
+#endif
+
+#ifdef _WATCH_FLOOR
+	{ "WATCHFLOOR" ,NULL,0,(void*)&config.watchfloor[0],	INT},
+	{ "WATCHFLOOR1" ,NULL,0,(void*)&config.watchfloor[1],	INT},
+	{ "WATCHFLOOR2" ,NULL,0,(void*)&config.watchfloor[2],	INT},	
+	{ "WATCHFLOOR3" ,NULL,0,(void*)&config.watchfloor[3],	INT},	
+	{ "WATCHFLOOR4" ,NULL,0,(void*)&config.watchfloor[4],	INT},	
+	{ "WATCHFLOOR5" ,NULL,0,(void*)&config.watchfloor[5],	INT},
+#endif
+
+#ifdef _BATTLE_FLOOR
+	{ "BATTLEFLOOR" ,NULL,0,(void*)&config.battlefloor[0],	INT},
+	{ "BATTLEFLOOR1" ,NULL,0,(void*)&config.battlefloor[1],	INT},
+	{ "BATTLEFLOOR2" ,NULL,0,(void*)&config.battlefloor[2],	INT},	
+	{ "BATTLEFLOOR3" ,NULL,0,(void*)&config.battlefloor[3],	INT},	
+	{ "BATTLEFLOOR4" ,NULL,0,(void*)&config.battlefloor[4],	INT},	
+	{ "BATTLEFLOOR5" ,NULL,0,(void*)&config.battlefloor[5],	INT},
+#endif
+
+#ifdef _UNREG_NEMA
+	{ "NAME1" ,config.unregname[0], sizeof( config.unregname[0]),NULL,0},
+	{ "NAME2" ,config.unregname[1], sizeof( config.unregname[1]),NULL,0},
+	{ "NAME3" ,config.unregname[2], sizeof( config.unregname[2]),NULL,0},
+	{ "NAME4" ,config.unregname[3], sizeof( config.unregname[3]),NULL,0},
+	{ "NAME5" ,config.unregname[4], sizeof( config.unregname[4]),NULL,0},
+#endif
+#ifdef _TRANS_LEVEL_CF
+	{ "CHARTRANS" ,NULL,0,(void*)&config.chartrans,	INT},
+	{ "PETTRANS" ,NULL,0,(void*)&config.pettrans,	INT},	
+	{ "LEVEL" ,NULL,0,(void*)&config.yblevel,	INT},	
+	{ "MAXLEVEL" ,NULL,0,(void*)&config.maxlevel,	INT},	
+#endif
+#ifdef _POINT
+	{ "POINT" ,NULL,0,(void*)&config.point,	INT},
+	{ "TRANS0" ,NULL,0,(void*)&config.transpoint[0],	INT},	
+	{ "TRANS1" ,NULL,0,(void*)&config.transpoint[1],	INT},	
+	{ "TRANS2" ,NULL,0,(void*)&config.transpoint[2],	INT},	
+	{ "TRANS3" ,NULL,0,(void*)&config.transpoint[3],	INT},	
+	{ "TRANS4" ,NULL,0,(void*)&config.transpoint[4],	INT},	
+	{ "TRANS5" ,NULL,0,(void*)&config.transpoint[5],	INT},	
+	{ "TRANS6" ,NULL,0,(void*)&config.transpoint[6],	INT},	
+	{ "TRANS7" ,NULL,0,(void*)&config.transpoint[7],	INT},	
+#endif
+
+#ifdef _PET_UP
+	{ "PETUP" ,NULL,0,(void*)&config.petup,	INT},
+#endif
+#ifdef _LOOP_ANNOUNCE
+	{ "ANNOUNCEPATH" ,config.loopannouncepath, sizeof( config.loopannouncepath),NULL,0},
+	{ "ANNOUNCETIME" ,NULL,0,(void*)&config.loopannouncetime,	INT},
+#endif
+#ifdef _SKILLUPPOINT_CF
+	{ "SKILLUPPOINT" ,NULL,0,(void*)&config.skup,	INT},	
+#endif
+#ifdef _RIDELEVEL
+	{ "RIDELEVEL" ,NULL,0,(void*)&config.ridelevel,	INT},	
+#endif
+
+#ifdef _REVLEVEL
+	{ "REVLEVEL" ,NULL,0,(void*)&config.revlevel,	INT},	
+#endif
+#ifdef _NEW_PLAYER_RIDE
+	{ "NPRIDE" ,NULL,0,(void*)&config.npride,	INT},	
+#endif
+#ifdef _FIX_CHARLOOPS
+	{ "CHARLOOPS" ,NULL,0,(void*)&config.charloops,	INT},	
+#endif
+#ifdef _PLAYER_ANNOUNCE
+	{ "PANNOUNCE" ,NULL,0,(void*)&config.pannounce,	INT},
+#endif
+#ifdef _PLAYER_MOVE
+	{ "PMOVE" ,NULL,0,(void*)&config.pmove,	INT},
+#endif
+
+	{ "recvbuffer" ,NULL,0,(void*)&config.recvbuffer,	INT},
+	{ "sendbuffer" ,NULL,0,(void*)&config.sendbuffer,	INT},
+	{ "recvlowatbuffer" ,NULL,0,(void*)&config.recvlowatbuffer,	INT},
+	{ "runlevel" ,NULL,0,(void*)&config.runlevel,	INT},
+	
+#ifdef _SHOW_VIP_CF
+	{ "SHOWVIP" ,NULL,0,(void*)&config.showvip,	INT},
+#endif
+
+#ifdef _PLAYER_NUM
+	{ "PLAYERNUM" ,NULL,0,(void*)&config.playernum,	INT},
+#endif
+#ifdef _JZ_CF_DELPETITEM
+		{ "delitem1"      , NULL ,0 , (void*)&config.DelItem[0]      ,INT},
+		{ "delitem2"      , NULL ,0 , (void*)&config.DelItem[1]      ,INT},
+		{ "delitem3"      , NULL ,0 , (void*)&config.DelItem[2]      ,INT},
+		{ "delitem4"      , NULL ,0 , (void*)&config.DelItem[3]      ,INT},
+		{ "delitem5"      , NULL ,0 , (void*)&config.DelItem[4]      ,INT},
+		{ "delpet1"      , NULL ,0 , (void*)&config.DelPet[0]      ,INT},
+		{ "delpet2"      , NULL ,0 , (void*)&config.DelPet[1]      ,INT},
+		{ "delpet3"      , NULL ,0 , (void*)&config.DelPet[2]      ,INT},
+		{ "delpet4"      , NULL ,0 , (void*)&config.DelPet[3]      ,INT},
+		{ "delpet5"      , NULL ,0 , (void*)&config.DelPet[4]      ,INT},
+#endif
+#ifdef _BATTLE_GOLD
+	{ "BATTLEGOLD" ,NULL,0,(void*)&config.battlegold,	INT},
+#endif
+#ifdef _ANGEL_TIME
+	{ "ANGELPLAYERTIME" ,NULL,0,(void*)&config.angelplayertime,	INT},
+	{ "ANGELPLAYERMUN" ,NULL,0,(void*)&config.angelplayermun,	INT},
+#endif
+#ifdef _RIDEMODE_20
+	{ "RIDEMODE" ,NULL,0,(void*)&config.ridemode,	INT},
+#endif
+#ifdef _FM_POINT_PK
+	{ "FMPOINTPK" ,NULL,0,(void*)&config.fmpointpk,	INT},
+#endif
+#ifdef _ENEMY_ACTION
+	{ "ENEMYACTION" ,NULL,0,(void*)&config.enemyact,	INT},
+#endif
+
+#ifdef _CHECK_PEPEAT
+	{ "CHECKPEPEAT" ,NULL,0,(void*)&config.CheckRepeat,	INT},
+#endif
+	{ "CPUUSE" ,NULL,0,(void*)&config.cpuuse,	INT},
+#ifdef _VIP_ALL
+	{ "QQ" ,NULL,0,(void*)&config.checkvip,	INT},
+#endif
+#ifdef _FM_JOINLIMIT
+	{ "JOINFAMILYTIME" ,NULL,0,(void*)&config.joinfamilytime,	INT},
+#endif
 };
 
 // Arminius 7.12 login announce
@@ -435,7 +640,7 @@ void LoadPetTalk(void)
 		strcpy( pettalktext[i].DATA, "\0");
 	}
 
-	print("\n LoadPetTalk file:%s", fn);
+	print("\n×°ÔØ³èÎï¶Ô»°ÎÄ¼þ:%s...", fn);
 	fp = fopen( fn, "r");
     if( fp != NULL ) {
 		while( fgets( line, sizeof( line), fp)) {
@@ -449,7 +654,7 @@ void LoadPetTalk(void)
 		}
 		fclose( fp);
     }else	{
-		print("...err:not found !");
+		print("´íÎó:ÕÒ²»µ½ÎÄ¼þ!");
 	}
 
 	talkNO=1;
@@ -480,7 +685,7 @@ void LoadPetTalk(void)
 					maxid++;
 					fclose( fp);
 				}else	{
-					print("... err:[%s] not found!", fn);
+					print("´íÎó:[%s] ÕÒ²»µ½!", fn);
 					pettalktext[maxid].ID=-1;
 				}
 			}else	{
@@ -491,7 +696,7 @@ void LoadPetTalk(void)
 		if( maxid >= PETTALK_MAXID )
 			break;
 	}
-	print("\n.......maxid=%d", maxid);
+	print("×î´óID=%d...", maxid);
 	{
 		int haveid=0;
 		for( i=0;i<PETTALK_MAXID;i++)	{
@@ -499,7 +704,7 @@ void LoadPetTalk(void)
 				haveid++;
 			}
 		}
-		print("...haveid=%d", haveid);
+		print("ÔØÈë×ÜÊý=%d", haveid);
 	}
 
 }
@@ -518,7 +723,7 @@ void LoadPetTalk(void)
   
   fp = fopen( fn, "r");
     if( fp != NULL ) {
-		print("\n\n READ pettalk.mem");
+		print("\n\n ¶ÁÈ¡ pettalk.mem");
 		while( fgets( line, sizeof( line), fp)) {
 			if( strlen( pettalktext) != 0 ) {
 				if( pettalktext[strlen( pettalktext) -1] != '|' ) {
@@ -531,7 +736,7 @@ void LoadPetTalk(void)
 		fclose( fp);
 		print("\n %s", pettalktext);
     }else	{
-		print("\n Could't Found pettalk.mem");
+		print("\n ²»ÄÜÕÒµ½ pettalk.mem");
 	}
 }
 #endif
@@ -549,7 +754,7 @@ void Load_GambleBankItems( void)
 	int num,ID,type;
 	int i=0;
 	sprintf(filename, "./data/gambleitems.txt" );
-	print("\n Load GambleItems file:%s ...", filename);
+	print("\n¼ÓÔØ¶Ä²©ÎïÆ·ÎÄ¼þ %s ...", filename);
 	fp = fopen( filename, "r");
     if( fp != NULL ) {
 		while( fgets( buf1, sizeof( buf1), fp) != NULL )	{
@@ -561,10 +766,10 @@ void Load_GambleBankItems( void)
 			GB_ITEMS[i].type = type;
 			i++;
 		}
-		print("..maxID: %d ", i);
+		print("×î´óID: %d ", i);
 		fclose( fp);
     }else	{
-		print("err not found %s", filename);
+		print("´íÎó ÕÒ²»µ½ÎÄ¼þ %s", filename);
 	}
 
 }
@@ -583,7 +788,7 @@ void Load_PetSkillCodes( void)
 	int num,ID;
 	int i=0;
 	sprintf(filename, "./data/skillcode.txt" );
-	print("\n Load PetSKill Code file:%s", filename);
+	print("\n¼ÓÔØ³èÎï¼¼ÄÜ±àÂëÎÄ¼þ:%s...", filename);
 	fp = fopen( filename, "r");
     if( fp != NULL ) {
 		while( fgets( buf1, sizeof( buf1), fp) != NULL )	{
@@ -599,98 +804,9 @@ void Load_PetSkillCodes( void)
 		}
 		fclose( fp);
     }else	{
-		print("...not found %s", filename);
+		print("´ò²»µ½ÎÄ¼þ %s", filename);
 	}
-	print("\n");
-}
-#endif
-
-#ifdef _BLACK_MARKET
-BOOL LoadBMItem( char* filename)
-{
-	FILE *fp;	
-	int  i, j, k;
-	char line[512]="", cTmp[256]="";
-	char *ip=NULL, *gp=NULL;	
-    
-	for(i=0; i<BMIMAX; i++){		
-		BMItem[i].iGraphicsNum      = 0;
-		BMItem[i].GCondition        = 0;
-		for(j=0; j<4; j++){			
-		    BMItem[i].iCondition[j] = 0;
-			for(k=0; k<3; k++){			
-				BMItem[i].iId[j][k] = 0;
-			}
-		}
-		strcpy( BMItem[i].iName, "");
-	}	
-	for(i=0; i<12; i++) BMSellList[i] = -1;
-
-	fp = fopen( filename, "r");
-
-	if(fp==NULL){
-		print("\nFault!! Can't Open File:%s ...\n", filename);
-		return FALSE;
-	}else{
-		while(fgets( line, sizeof(line), fp)!=NULL){			
-			char cTmp1[256]="", cTmp2[256]="", cTmp3[256]="";
-			char iTmp1[128]="", iTmp2[128]="", iTmp3[128]="", iTmp4[128]="", iTmp5[128]="";
-
-			if(BMINum>=BMIMAX){
-				print("\nWarning!! To beyond the scope of the itemnum(%d).", BMIMAX);
-				break;
-			}
-			sscanf( line, "%s %d %s %s %s %s %s", 
-				    BMItem[BMINum].iName,
-					&BMItem[BMINum].iGraphicsNum,
-				    iTmp1, iTmp2, iTmp3, iTmp4,	cTmp);
-			
-            for(i=0; i<3; i++){
-				if(getStringFromIndexWithDelim( iTmp1, ",", i+1, iTmp5, sizeof( iTmp5))!=FALSE)
-					BMItem[BMINum].iId[0][i] = atoi(iTmp5);
-				if(getStringFromIndexWithDelim( iTmp2, ",", i+1, iTmp5, sizeof( iTmp5))!=FALSE)
-					BMItem[BMINum].iId[1][i] = atoi(iTmp5);
-				if(getStringFromIndexWithDelim( iTmp3, ",", i+1, iTmp5, sizeof( iTmp5))!=FALSE)
-					BMItem[BMINum].iId[2][i] = atoi(iTmp5);
-				if(getStringFromIndexWithDelim( iTmp4, ",", i+1, iTmp5, sizeof( iTmp5))!=FALSE)
-					BMItem[BMINum].iId[3][i] = atoi(iTmp5);
-			}
-
-			ip = strstr( cTmp, "I");
-			gp = strstr( cTmp, "G");	
-
-			if( ip && gp && gp>ip){
-				strncpy( cTmp1, ip+1, gp-ip-1);				
-				for(i=0; i<4; i++)
-					if(getStringFromIndexWithDelim( cTmp1, ",", i+1, cTmp3, sizeof( cTmp3))!=FALSE)
-						BMItem[BMINum].iCondition[i] = atoi(cTmp3);			
-				strcpy( cTmp2, gp+1);
-				BMItem[BMINum].GCondition = atoi(cTmp2);	
-			}else if( ip && gp && gp<ip){
-				strcpy( cTmp1, ip+1);				
-				for(i=0; i<4; i++)
-					if(getStringFromIndexWithDelim( cTmp1, ",", i+1, cTmp3, sizeof( cTmp3))!=FALSE)
-						BMItem[BMINum].iCondition[i] = atoi(cTmp3);				
-				strncpy( cTmp2, gp+1, ip-gp-1);
-				BMItem[BMINum].GCondition = atoi(cTmp2);
-			}else if( gp && !ip){
-				strcpy( cTmp2, gp+1);
-				BMItem[BMINum].GCondition = atoi(cTmp2);
-			}else if( !gp && ip){
-				strcpy( cTmp1, ip+1);
-				for(i=0; i<4; i++)
-					if(getStringFromIndexWithDelim( cTmp1, ",", i+1, cTmp3, sizeof( cTmp3))!=FALSE)
-						BMItem[BMINum].iCondition[i] = atoi(cTmp3);
-			}else{
-				print("\nWarning!! There is not item or gold condition..");
-				continue;
-			}
-			BMINum++;
-		}
-	}
-	for(i=0; i<12; i++)	BMSellList[i] = RAND(0, BMINum-1);		
-	fclose(fp);
-	return TRUE;
+	print("Íê³É\n");
 }
 #endif
 
@@ -702,7 +818,7 @@ BOOL LoadGMSet( char* filename )
 	fp = fopen(filename, "r");
 	if (fp == NULL)
 	{
-		print("File Open Error\n");
+		print("ÎÞ·¨´ò¿ªÎÄ¼þ\n");
 		return FALSE;
 	}
 	for (i = 0; i < GMMAXNUM; i++)
@@ -876,29 +992,6 @@ char* getGameserverID( void )
     return config.gsid;
 }
 
-#ifdef _SERVICE
-// Terry 2001/10/03
-char* getApID(void)
-{
-  return config.apid;
-}
-
-unsigned short getApPort(void)
-{
-  return config.apport; 
-}
-
-int getLoopTime(void)
-{
-  return config.looptime;
-}
-
-int getEnableService(void)
-{
-  return config.enableservice;
-}
-#endif
-  
 unsigned short getAllowManorPK( void )
 {
     return config.allowmanorpk;
@@ -1069,7 +1162,12 @@ unsigned int getBattlenum( void )
     return config.battlenum;
 }
 
-
+#ifdef _GET_BATTLE_EXP
+unsigned int getBattleexp( void )
+{
+    return config.battleexp;
+}
+#endif
 /*------------------------------------------------------------
  * topdir Ã«  ÔÂ£Û
  * Â¦ÐÑ
@@ -1236,7 +1334,7 @@ char* getMagicfile( void )
     return config.magicfile;
 }
 
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
 
 /*------------------------------------------------------------
  * È¡µÃ¹¥»÷ÐÔµÄÖäÊõ
@@ -1258,12 +1356,6 @@ char* getPetskillfile( void )
     return config.petskillfile;
 }
 
-#ifdef _PROFESSION_SKILL			// WON ADD ÈËÎïÖ°Òµ¼¼ÄÜ
-char* getProfession( void )
-{
-    return config.profession;
-}
-#endif
 
 #ifdef _ITEM_QUITPARTY
 char* getitemquitparty( void )
@@ -1295,12 +1387,6 @@ char* getLsgenlogfilename( void )
     return config.lsgenlog;
 }
 
-#ifdef _BLACK_MARKET
-char* getBMItemFile(void){
-	return config.blackmarketfile;
-}
-#endif
-
 #ifdef _GMRELOAD
 char* getGMSetfile( void )
 {
@@ -1325,13 +1411,6 @@ char* getStoredir( void )
 char* getStorechar( void )
 {
     return config.storechar;
-}
-#endif
-
-#ifdef _AUCTIONEER
-char* getAuctiondir(void)
-{
-  return config.auctiondir;
 }
 #endif
 
@@ -1732,9 +1811,10 @@ void lastConfig( void )
     strcpysafe(config.lsgenlog, sizeof(config.lsgenlog), entry);
 
     /*  µ©ÐþÊ§·¸Å«ÒÁÛÍÐþØø¼°É¬ÀÃ    */
+/*
     snprintf(entry,sizeof(entry), "%s/%s",config.topdir,config.storedir);
     strcpysafe(config.storedir, sizeof(config.storedir), entry);
-
+*/
     /*  NPCÉ¬ÀÃÐþÓÀÃó·¸Å«ÒÁÛÍÐþØø¼°É¬ÀÃ    */
     snprintf(entry,sizeof(entry), "%s/%s",config.topdir,config.npcdir);
     strcpysafe(config.npcdir, sizeof(config.npcdir), entry);
@@ -1924,52 +2004,6 @@ unsigned int getErrUserDownFlg( void )
     return config.ErrUserDownFlg;
 }
     
-    
-//tom end
-
-
-#ifdef _M_SERVER
-char* getmservername(void)
-{
-	return config.msname;
-}
-void setmservername( char *msname)
-{
-	sprintf( config.msname, "%s", msname);
-}
-unsigned int getmserverport(void)
-{
-	return config.msport;
-}
-void setmserverport( int port)
-{
-	config.msport = port;
-}
-#endif
-
-#ifdef _NPCSERVER_NEW
-char *getnpcserveraddr(void)
-{
-	return config.nsaddress;
-}
-
-unsigned int getnpcserverport(void)
-{
-	return config.nsport;
-}
-void NS_setAddressAndPort( char *address, int nport)
-{
-	sprintf( config.nsaddress, "%s", address);
-	config.nsport = nport;
-}
-#endif
-
-#ifdef _MUSEUM
-int   getMuseum( void )
-{
-    return config.museum;
-}
-#endif
 
 #ifdef _DEL_DROP_GOLD
 unsigned int getGolddeletetime( void )
@@ -1985,298 +2019,424 @@ void setIGolddeletetime( unsigned int interval )
 }
 #endif
 
-#ifdef _ANGEL_SUMMON
+#ifdef _NEW_PLAYER_CF
+int getNewplayertrans( void )
+{
+  if(config.newplayertrans > 7)
+		return 7;
+	else if(config.newplayertrans >= 0)
+		return config.newplayertrans;
+	else
+		return 0;
+}
+int getNewplayerlv( void )
+{
+  if(config.newplayerlv > 160)
+		return 160;
+	else if(config.newplayerlv >0)
+		return config.newplayerlv;
+	else
+		return 0;
+}
+int getNewplayerpetlv( void )
+{
+  if(config.newplayerpetlv > 160)
+		return 160;
+	else if(config.newplayerpetlv > 0)
+		return config.newplayerpetlv;
+	else
+		return 0;
+}
 
-extern int mission_num;
+int getNewplayergivepet( unsigned int index )
+{
+  if(config.newplayergivepet[index] > 0 )
+		return config.newplayergivepet[index];
+	else
+		return -1;
+}
 
-BOOL LoadMissionList( )
+int getNewplayergiveitem( unsigned int index )
+{
+  if(config.newplayergiveitem[index] > 0 )
+		return config.newplayergiveitem[index];
+	else
+		return -1;
+}
+
+void setNewplayergivepet( unsigned int index ,unsigned int interval)
+{
+	config.newplayergivepet[index] = interval;
+}
+
+int getNewplayergivegold( void )
+{
+  if(config.newplayergivegold > 1000000)
+		return 1000000;
+	else if(config.newplayergivegold < 0)
+		return 0;
+	else
+		return config.newplayergivegold;
+}
+int getRidePetLevel( void )
+{
+  if(config.ridepetlevel > 0 )
+		return config.ridepetlevel;
+	else
+		return -1;
+}
+#ifdef _VIP_SERVER
+int getNewplayergivevip( void )
+{
+	return config.newplayerpetvip < 0?0:config.newplayerpetvip;
+}
+#endif
+#endif
+
+#ifdef _UNLAW_WARP_FLOOR
+int getUnlawwarpfloor( unsigned int index )
+{
+  if(config.unlawwarpfloor[index] > 0 )
+		return config.unlawwarpfloor[index];
+	else
+		return -1;
+}
+#endif
+
+#ifdef _WATCH_FLOOR
+int getWatchFloor( unsigned int index )
+{
+  if(config.watchfloor[index] > 0 )
+		return config.watchfloor[index];
+	else
+		return -1;
+}
+char* getWatchFloorCF( void )
+{
+	return (config.watchfloor[0]>0)? "ÊÇ":"·ñ";
+}
+#endif
+
+#ifdef _BATTLE_FLOOR
+int getBattleFloor( unsigned int index )
+{
+  if(config.battlefloor[index] > 0 )
+		return config.battlefloor[index];
+	else
+		return -1;
+}
+char* getBattleFloorCF( void )
+{
+	return (config.battlefloor[0]>0)? "ÊÇ":"·ñ";
+}
+#endif
+
+#ifdef _USER_EXP_CF
+
+char* getEXPfile( void )
+{
+    return config.expfile;
+}
+#endif
+
+#ifdef _UNREG_NEMA
+char* getUnregname( int index )
+{
+    return config.unregname[index];
+}
+#endif
+
+#ifdef _TRANS_LEVEL_CF
+int getChartrans( void )
+{
+		if(config.chartrans>6)
+			config.chartrans=6;
+    return config.chartrans;
+}
+int getPettrans( void )
+{
+		if(config.pettrans>2)
+			return 2;
+		else if(config.pettrans<-1)
+			return -1;
+    return config.pettrans;
+}
+int getYBLevel( void )
+{
+		if(config.yblevel>config.maxlevel)
+			config.yblevel=config.maxlevel;
+    return config.yblevel;
+}
+int getMaxLevel( void )
+{
+    return config.maxlevel;
+}
+#endif
+
+#ifdef _POINT
+char* getPoint( void )
+{
+		return (config.point>0)? "ÊÇ":"·ñ";
+}
+int getTransPoint( int index )
+{
+		return config.transpoint[index];
+}
+#endif
+
+#ifdef _PET_UP
+char* getPetup( void )
+{
+		return (config.petup>0)? "ÊÇ":"·ñ";
+}
+#endif
+#ifdef _LOOP_ANNOUNCE
+char* getLoopAnnouncePath( void )
+{
+		return config.loopannouncepath;
+}
+int loadLoopAnnounce( void )
 {
 	FILE* fp;
 	int i = 0;
-
-	mission_num = 0;
-
-	fp = fopen(".//data//mission.txt", "r");
+	config.loopannouncemax=0;
+	fp = fopen(config.loopannouncepath, "r");
 	if (fp == NULL)
 	{
-		print("Mission File Open Error\n");
+		print("ÎÞ·¨´ò¿ªÎÄ¼þ\n");
 		return FALSE;
 	}
-	
-	memset( missionlist, 0, sizeof(missionlist));
-
 	while(1){
-		char	line[1024], level[64];
-		char	token[1024];
-		int		mindex;
+		char	line[1024];
 		if (fgets(line, sizeof(line), fp) == NULL)	break;
-		print("\n %s ", line);
 		chop(line);
-		// ÒÔ#Îª×¢½â*******
+
 		if( line[0] == '#' )
 			continue;
-		for( i=0; i<strlen(line); i++ ){
+		for( i=0; i<10; i++ ){
             if( line[i] == '#' ){
 			    line[i] = '\0';
 		        break;
 			}
 		}
 		//*************************************
-
-		//¸ñÊ½ #ÈÎÎñ±àºÅ,±ØÒªµÈ¼¶,ÈÎÎñËµÃ÷,½±Æ·ID,ÏÞÖÆÊ±¼ä(Ð¡Ê±)
-		
-		getStringFromIndexWithDelim(line, ",", 1, token, sizeof(token));
-		if (strcmp(token, "") == 0)	break;
-		mindex = atoi( token);
-
-		if( mindex <= 0 || mindex >= MAXMISSION) 
-			break;
-
-		missionlist[mindex].id = mindex;
-
-		getStringFromIndexWithDelim(line, ",", 2, token, sizeof(token));
-		if (strcmp(token, "") == 0)	break;
-		missionlist[mindex].level = atoi( token);
-
-		getStringFromIndexWithDelim(line, ",", 3, token, sizeof(token));
-		if (strcmp(token, "") == 0)	break;
-		strcpy( missionlist[mindex].eventflag, token);
-
-		getStringFromIndexWithDelim(line, ",", 4, token, sizeof(token));
-		if (strcmp(token, "") == 0)	break;
-		strcpy( missionlist[mindex].detail, token);
-
-		//getStringFromIndexWithDelim(line, ",", 4, token, sizeof(token));
-		//if (strcmp(token, "") == 0)	break;
-		//strcpy( missionlist[mindex].bonus, token);
-
-		getStringFromIndexWithDelim(line, ",", 5, token, sizeof(token));
-		if (strcmp(token, "") == 0)	break;
-		missionlist[mindex].limittime = atoi( token);
-
-		/*print("\nMISSION[%d] lv:%d ef:%s detail:%s limit:%d ", mindex,
-			missionlist[mindex].level, missionlist[mindex].eventflag,
-			missionlist[mindex].detail, missionlist[mindex].limittime );
-		*/
-		mission_num++;
-		//if (mission_num > MAXMISSION)	break;
+		strcpy(config.loopannounce[config.loopannouncemax],line);
+		config.loopannouncemax++;
 	}
 	fclose(fp);
 	return TRUE;
 }
-
-
-
-BOOL LoadMissionCleanList( )
+int getLoopAnnounceTime( void )
 {
-	// ¸ñÊ½... Ê¹Õß,ÓÂÕß,ÈÎÎñ,½±ÉÍ
-	FILE* fp;
-	int	listindex =0;
-	int i = 0;
-
-	memset( missiontable, 0, sizeof(missiontable));
-	fp = fopen(".//data//missionclean.txt", "r");
-	if (fp == NULL)
-	{
-		print("MissionClean File Open Error\n");
-		return FALSE;
-	}
-
-	while(1){
-		char	line[1024], angelinfo[128], heroinfo[128];
-		char	token[1024];
-		
-		if (fgets(line, sizeof(line), fp) == NULL)	break;
-		print("\n %s ", line);
-		chop(line);
-		// ÒÔ#Îª×¢½â*******
-		if( line[0] == '#' )
-			continue;
-		for( i=0; i<strlen(line); i++ ){
-            if( line[i] == '#' ){
-			    line[i] = '\0';
-		        break;
-			}
-		}
-		
-		getStringFromIndexWithDelim(line, ",", 1, token, sizeof(token));
-		if (strcmp(token, "") == 0)	break;
-		strcpy( missiontable[listindex].angelinfo, token);
-
-		getStringFromIndexWithDelim(line, ",", 2, token, sizeof(token));
-		if (strcmp(token, "") == 0)	break;
-		strcpy( missiontable[listindex].heroinfo, token);
-
-		getStringFromIndexWithDelim(line, ",", 3, token, sizeof(token));
-		if (strcmp(token, "") == 0)	break;
-		missiontable[listindex].mission = atoi( token);
-		
-		getStringFromIndexWithDelim(line, ",", 4, token, sizeof(token));
-		//if (strcmp(token, "") == 0)	break;
-		missiontable[listindex].flag = atoi( token);
-
-		getStringFromIndexWithDelim(line, ",", 5, token, sizeof(token));
-		if (strcmp(token, "") == 0)	break;
-		missiontable[listindex].time = atoi( token);
-
-		print("\nMISSIONCLEAN[%d] %s %s %d %d %d", listindex,
-			missiontable[listindex].angelinfo,
-			missiontable[listindex].heroinfo,
-			missiontable[listindex].mission,
-			missiontable[listindex].flag,
-			missiontable[listindex].time );
-
-		listindex++;
-		if ( listindex >= MAXMISSIONTABLE)	break;
-	}
-	fclose(fp);
-	return TRUE;
+    return (config.loopannouncetime<0)?-1:config.loopannouncetime;
 }
-
-
-#endif
-
-#ifdef _JOBDAILY
-extern  DailyFileType dailyfile[MAXDAILYLIST];
-BOOL LoadJobdailyfile(void)
+int getLoopAnnounceMax( void )
 {
-	char	line[20000];
-	char	token[16384];
-	int		listindex =0;
-	int     i;
-	FILE* fp;
-
-	fp = fopen(".//data//jobdaily.txt", "r");
-	if (fp == NULL)
-	{
-		print("Jobdaily File Open Error\n");
-		return FALSE;
-	}
-
-	memset( dailyfile, 0, sizeof(dailyfile));
-
-	while(1){		
-		line[0]='\0';	
-		if (fgets(line, sizeof(line), fp) == NULL)	break;
-		//print("\n %s ", line);
-		chop(line);
-
-		// #Îª×¢½â
-		if( line[0] == '#' )
-			continue;
-		for( i=0; i<strlen(line); i++ ){
-            if( line[i] == '#' ){
-			    line[i] = '\0';
-		        break;
-			}
-		}
-		
-		getStringFromIndexWithDelim(line, "|", 1, token, sizeof(token));
-		if (strcmp(token, "") == 0)	break;
-		strcpy( dailyfile[listindex].jobid, token);
-
-		getStringFromIndexWithDelim(line, "|", 2, token, sizeof(token));
-		if (strcmp(token, "") == 0)	break;
-		strcpy( dailyfile[listindex].rule, token);
-
-		getStringFromIndexWithDelim(line, "|", 3, token, sizeof(token));
-		if (strcmp(token, "") == 0)	break;
-		if(strlen(token)>96){
-			print("ÈÎÎñËµÃ÷¹ý³¤:%d",strlen(token));
-			return FALSE;
-		}
-		strcpy( dailyfile[listindex].explain, token);
-		
-		getStringFromIndexWithDelim(line, "|", 4, token, sizeof(token));
-		if (strcmp(token, "") == 0)	break;
-		strcpy( dailyfile[listindex].state, token);
-
-		/*print("\ndailyfile[%d] %s %s %s %s", listindex,
-			dailyfile[listindex].jobid,
-			dailyfile[listindex].rule,
-			dailyfile[listindex].explain,
-			dailyfile[listindex].state);	
-		*/
-		listindex++;
-		if ( listindex >= MAXDAILYLIST)	break;
-	}
-	fclose(fp);
-	return TRUE;
+    return (config.loopannouncemax>0)?config.loopannouncemax:0;
+}
+char* getLoopAnnounce( int index )
+{
+    return config.loopannounce[index];
 }
 #endif
 
-#ifdef _RACEMAN
-//extern int petflgtable[640];
-//extern struct ASKTABLE asktable[400];
-extern int asktotal;
-BOOL LoadRacepetfile(void)
+#ifdef _SKILLUPPOINT_CF
+int getSkup( void )
 {
-	char line[1000];
-	char token[64];
-	int  i;
-	FILE* fp;
+    return (config.skup>0)?config.skup:0;
+}
+#endif
+#ifdef _RIDELEVEL
+int getRideLevel( void )
+{
+    return config.ridelevel;
+}
+#endif
+#ifdef _REVLEVEL
+char* getRevLevel( void )
+{
+		return (config.revlevel>0)?"ÊÇ":"·ñ";
+}
+#endif
+#ifdef _NEW_PLAYER_RIDE
+char* getPlayerRide( void )
+{
+		if(config.npride>2)
+			return "ÅäÌ×ËÍ»¢¼ÓÀ×";
+		else if(config.npride==2)
+			return "ÅäÌ×ËÍÀ×";
+		else if(config.npride==1)
+			return "ÅäÌ×ËÍ»¢";
+		else
+			return "²»ËÍÅäÌ×Æï³è";
+}
+#endif
 
-	asktotal = 0;
-	memset(asktable,0,sizeof(asktable));
+#ifdef _FIX_CHARLOOPS
+int getCharloops( void )
+{
+    return config.charloops-1;
+}
+#endif
 
-	fp = fopen(".//data//raceman.txt", "r");
-	if (fp == NULL)
-	{
-		print("Racepet File Open Error\n");
-		return FALSE;
-	}
-	
-	while(1){		
-		line[0]='\0';	
-		if (fgets(line, sizeof(line), fp) == NULL)	break;		
-		chop(line);
+#ifdef _PLAYER_ANNOUNCE
+int getPAnnounce( void )
+{
+    return (config.pannounce>-1)?config.pannounce:-1;
+}
+#endif
+#ifdef _PLAYER_MOVE
+int getPMove( void )
+{
+    return (config.pmove>-1)?config.pmove:-1;
+}
+#endif
 
-		// #Îª×¢½â
-		if( line[0] == '#' )
-			continue;
-		for( i=0; i<strlen(line); i++ ){
-            if( line[i] == '#' ){
-			    line[i] = '\0';
-		        break;
-			}
-		}
-		getStringFromIndexWithDelim(line, "|", 1 , token, sizeof(token));
-		if( atoi(token) <= 0 )	return FALSE;
-		asktable[asktotal].no = atoi(token);
-
-		getStringFromIndexWithDelim(line, "|", 2 , token, sizeof(token));
-		if( strlen(token) == 0 ) return FALSE;
-		strcpy( asktable[asktotal].petname , token );
-
-		getStringFromIndexWithDelim(line, "|", 3 , token, sizeof(token));
-		if( atoi(token) <= 0 )	return FALSE;
-		asktable[asktotal].bbi = atoi(token);
-
-		getStringFromIndexWithDelim(line, "|", 4 , token, sizeof(token));
-		if( atoi(token) <= 0 )	return FALSE;
-		asktable[asktotal].lowlv = atoi(token);
-
-		getStringFromIndexWithDelim(line, "|", 5 , token, sizeof(token));
-		if( atoi(token) < 0 || atoi(token) > 140 )	return FALSE;
-		asktable[asktotal].highlv = atoi(token);
-		asktotal++;
-	}
-	fclose(fp);
-	return TRUE;
-
-	/*
-	for( k=0,j=0;j<ENEMYTEMP_enemynum;j++ ) {
-		if( ENEMYTEMP_getInt( j, E_T_PETFLG ) == 1 ){
-			petflgtable[k] = ENEMYTEMP_getInt(j,E_T_IMGNUMBER) ;
-			k++;
-			if(k>=640) {
-				print( "Valid petflag Num is %d...", k );
-				break;
-			}
-		}
-		//if( CHAR_getInt( petindex, CHAR_PETID) == ENEMYTEMP_getInt( j, E_T_TEMPNO ) ) {//ENEMY_getInt( j, ENEMY_TEMPNO)
-	}
-	*/
+int getrecvbuffer( void )
+{
+		if(config.recvbuffer<0)
+	    return 0;
+	  else if(config.recvbuffer>128)
+	    return 128;
+	  else
+	  	return config.recvbuffer;
 }
 
+int getsendbuffer( void )
+{
+		if(config.sendbuffer<0)
+	    return 0;
+	  else if(config.sendbuffer>128)
+	    return 128;
+	  else
+	  	return config.sendbuffer;
+}
+
+int getrecvlowatbuffer( void )
+{
+		if(config.recvlowatbuffer<0)
+	    return 0;
+	  else if(config.recvlowatbuffer>1024)
+	    return 1024;
+	  else
+	  	return config.recvlowatbuffer;
+}
+
+int getrunlevel( void )
+{
+		if(config.runlevel<-20)
+	    return -20;
+	  else if(config.runlevel>19)
+	    return 19;
+	  else
+	  	return config.runlevel;
+
+}
+
+#ifdef _SHOW_VIP_CF
+int getShowVip( void )
+{
+		if(config.showvip>2)
+			return 2;
+		else if(config.showvip<0)
+			return 0;
+		else
+			return config.showvip;
+}
+#endif
+
+#ifdef _PLAYER_NUM
+int getPlayerNum( void )
+{
+		return config.playernum;
+}
+void setPlayerNum( int num )
+{
+		config.playernum=num;
+}
+#endif
+#ifdef _JZ_CF_DELPETITEM
+int getDelPet(int Num)
+{
+	return config.DelPet[Num];
+}
+
+int getDelItem(int Num)
+{
+	return config.DelItem[Num];
+}
+#endif
+#ifdef _BATTLE_GOLD
+int getBattleGold( void )
+{
+		if(config.battlegold<0)
+	    return 0;
+	  else if(config.battlegold>100)
+	    return 100;
+	  else
+	  	return config.battlegold;
+
+}
+#endif
+
+#ifdef _ANGEL_TIME
+int getAngelPlayerTime( void )
+{
+		return (config.angelplayertime>1)?config.angelplayertime:1;
+}
+int getAngelPlayerMun( void )
+{
+		return (config.angelplayermun>2)?config.angelplayermun:2;
+}
+#endif
+
+#ifdef _RIDEMODE_20
+int getRideMode( void )
+{
+		if(config.ridemode<0)
+			config.ridemode=0;
+		return config.ridemode;
+}
+#endif
+#ifdef _FM_POINT_PK
+char *getFmPointPK( void )
+{
+		return (config.fmpointpk>0)?"ÊÇ":"·ñ";
+}
+#endif
+#ifdef _ENEMY_ACTION
+int getEnemyAction( void )
+{
+		if(config.enemyact>100)
+			return 100;
+		else if(config.enemyact<1)
+			return 1;
+		else
+			return config.enemyact;
+}
+#endif
+
+int getCpuUse( void )
+{
+	return config.cpuuse;
+}
+#ifdef _CHECK_PEPEAT
+int getCheckRepeat( void )
+{
+		return (config.CheckRepeat>0)?1:0;
+}
+#endif
+
+#ifdef _VIP_ALL
+int getCheckVip( void )
+{
+		return config.checkvip;
+}
+#endif
+
+#ifdef _FM_JOINLIMIT
+int getJoinFamilyTime( void )
+{
+		return config.joinfamilytime;
+}
 #endif

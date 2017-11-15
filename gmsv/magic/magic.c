@@ -143,19 +143,6 @@ int MAGIC_Recovery( int charaindex, int toindex, int marray, int mp )
 	CHAR_setInt( charaindex, CHAR_MP,
 		CHAR_getInt( charaindex, CHAR_MP ) - mp );
 	if( IsBATTLING( charaindex ) == TRUE ){
-#ifdef _PREVENT_TEAMATTACK	//恩惠不得 使用敌方
-		int battleindex = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEINDEX );
-		if( CHAR_getInt( charaindex, CHAR_WHICHTYPE ) == CHAR_TYPEPLAYER &&
-			BattleArray[battleindex].type != BATTLE_TYPE_P_vs_P ){
-
-			if( BATTLE_CheckSameSide( charaindex, toindex) == 0 ){//不同边
-				int battleindex = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEINDEX );
-				BATTLE_NoAction( battleindex, BATTLE_Index2No( battleindex, charaindex) );
-				CHAR_talkToCli( charaindex, -1, "恩惠精灵..不得施予非玩家敌方。", CHAR_COLORYELLOW);
-				return FALSE;
-			}
-		}
-#endif
 		if (toindex==22){print("jinchao err\n");return FALSE;}  // shan(对全体使用魔法的bug)，修改者jinchao+2001/12/07
 		MAGIC_Recovery_Battle( charaindex, toindex, marray, mp );
 	}else{
@@ -179,18 +166,6 @@ int MAGIC_OtherRecovery( int charaindex, int toindex, int marray, int mp )
 	CHAR_setInt( charaindex, CHAR_MP,
 		CHAR_getInt( charaindex, CHAR_MP ) - mp );
 	if( IsBATTLING( charaindex ) == TRUE ){
-#ifdef _PREVENT_TEAMATTACK	//滋润 不得使用敌方
-		int battleindex = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEINDEX );
-		if( CHAR_getInt( charaindex, CHAR_WHICHTYPE ) == CHAR_TYPEPLAYER &&
-			BattleArray[battleindex].type != BATTLE_TYPE_P_vs_P ){
-			if( BATTLE_CheckSameSide( charaindex, toindex) == 0 ){//不同边
-				int battleindex = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEINDEX );
-				BATTLE_NoAction( battleindex, BATTLE_Index2No( battleindex, charaindex) );
-				CHAR_talkToCli( charaindex, -1, "滋润精灵..不得施予非玩家敌方。", CHAR_COLORYELLOW);
-				return FALSE;
-			}
-		}
-#endif
 		MAGIC_Recovery_Battle( charaindex, toindex, marray, mp );
 	}else{
 		if( CHAR_CHECKINDEX( toindex ) == FALSE )return FALSE; //｛撩  
@@ -240,18 +215,6 @@ int	MAGIC_StatusChange( int charaindex, int toindex, int marray, int mp )
 	if( CHAR_getInt( charaindex, CHAR_MP ) < mp )return FALSE;
 	CHAR_setInt( charaindex, CHAR_MP, CHAR_getInt( charaindex, CHAR_MP ) - mp );
 	if( IsBATTLING( charaindex ) == TRUE ){
-#ifdef _PREVENT_TEAMATTACK	//异常状态不得使用友方
-		int battleindex = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEINDEX );
-		if( CHAR_getInt( charaindex, CHAR_WHICHTYPE ) == CHAR_TYPEPLAYER &&
-			BattleArray[battleindex].type != BATTLE_TYPE_P_vs_P ){
-			if( BATTLE_CheckSameSide( charaindex, toindex) == 1 ){//同边
-				int battleindex = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEINDEX );
-				BATTLE_NoAction( battleindex, BATTLE_Index2No( battleindex, charaindex) );
-				CHAR_talkToCli( charaindex, -1, "异常状态..不得施予友方。", CHAR_COLORYELLOW);
-				return FALSE;
-			}
-		}
-#endif
 		return MAGIC_StatusChange_Battle( charaindex, toindex, marray, mp );
 	}else{
 		return FALSE;
@@ -350,18 +313,6 @@ int	MAGIC_MagicDef( int charaindex, int toindex, int marray, int mp )
 	if( CHAR_getInt( charaindex, CHAR_MP ) < mp )return FALSE;
 	CHAR_setInt( charaindex, CHAR_MP, CHAR_getInt( charaindex, CHAR_MP ) - mp );
 	if( IsBATTLING( charaindex ) == TRUE ){
-#ifdef _PREVENT_TEAMATTACK //光镜守..不得使用敌方
-		int battleindex = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEINDEX );
-		if( CHAR_getInt( charaindex, CHAR_WHICHTYPE ) == CHAR_TYPEPLAYER 
-			/*&& BattleArray[battleindex].type != BATTLE_TYPE_P_vs_P*/ ){
-			if( BATTLE_CheckSameSide( charaindex, toindex) == 0 ){//不同边
-				int battleindex = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEINDEX );
-				BATTLE_NoAction( battleindex, BATTLE_Index2No( battleindex, charaindex) );
-				CHAR_talkToCli( charaindex, -1, "光镜守..不得施予敌方。", CHAR_COLORYELLOW);
-				return FALSE;
-			}
-		}
-#endif
 		return MAGIC_MagicDef_Battle( charaindex, toindex, marray, mp );
 	}else{
 		return FALSE;
@@ -463,7 +414,7 @@ int	MAGIC_ResAndDef( int charaindex, int toindex, int marray, int mp )
 
 
 
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
 
 int MAGIC_AttMagic( int charaindex , int toindex , int marray , int mp )
 {
@@ -613,7 +564,7 @@ int MAGIC_AttSkill( int charaindex, int toindex,int marray, int mp )
 	memset( funName, 0, sizeof( char)*256 );
 	//MAGIC_Recovery_Battle( charaindex, toindex, marray, mp );
 	magicarg = MAGIC_getChar( marray, MAGIC_OPTION );
-	if (!magicarg) return FALSE;
+	if ( magicarg == "\0") return FALSE;
 	if( strstr( magicarg, ";" ) != NULL )	{
 		char buff1[256];
 		if( getStringFromIndexWithDelim( magicarg, ";", 1, buff1, sizeof( buff1)) == FALSE )
@@ -666,7 +617,7 @@ int	MAGIC_Barrier( int charaindex, int toindex, int marray, int mp )
 		CHAR_getInt( charaindex, CHAR_MP ) - mp );
     //魔法名称
 	magicarg = MAGIC_getChar( marray, MAGIC_OPTION );
-	if( magicarg == NULL )	{
+	if( magicarg == "\0" )	{
 		print("\n magicarg == NULL ");
 		return FALSE;
 	}
@@ -740,7 +691,7 @@ int	MAGIC_Nocast( int charaindex, int toindex, int marray, int mp )
 		CHAR_getInt( charaindex, CHAR_MP ) - mp );
     //魔法名称
 	magicarg = MAGIC_getChar( marray, MAGIC_OPTION );
-	if( magicarg == NULL )	{
+	if( magicarg == "\0" )	{
 		print("\n magicarg == NULL ");
 		return FALSE;
 	}
@@ -822,7 +773,7 @@ int MAGIC_ToCallDragon( int charaindex, int toindex,int marray, int mp )
 {
 	int battlemode;
    
-	print("MAGIC_ToCallDragon in .................\n");
+	//print("MAGIC_ToCallDragon in .................\n");
 	if( FALSE == CHAR_CHECKINDEX( charaindex ) )
 		return FALSE;
    	

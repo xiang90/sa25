@@ -12,7 +12,7 @@
 #include "map_warppoint.h"
 
 #ifdef _MAP_WARPPOINT
-#define MAP_MAXWARPPOINT 5000
+#define MAP_MAXWARPPOINT 6000
 
 typedef struct _tagMAPwarpPoints{
 	int use;
@@ -129,7 +129,7 @@ int  MAPPOINT_setMapWarpFrom( int ps, char *buf)
 	char buf1[256];
 
 	if( MAPPOINT_CHECKINDEX( ps) ){
-		print(" setMapWarpFrom reapet :%s!!\n", buf);
+		print(" 放置传送点从 %s 获得!!\n", buf);
 		return -1;
 	}
 
@@ -147,7 +147,7 @@ int  MAPPOINT_setMapWarpGoal( int ps, char *buf)
 {
 	char buf1[256];
 	if( MAPPOINT_CHECKINDEX( ps) ){
-		print(" setMapWarpGoal reapet :%s!!\n", buf);
+		print(" 放置传送点获得 :%s!!\n", buf);
 		return -1;
 	}
 
@@ -164,18 +164,18 @@ int  MAPPOINT_setMapWarpGoal( int ps, char *buf)
 int MAPPOINT_getMapWarpGoal( int ps, int ofl, int ox, int oy, int *fl, int *x, int *y)
 {
 	if( !MAPPOINT_CHECKINDEX( ps) ){
-		print("getMapWarpGoal ps:%d err!!\n", ps);
+		print("获取传送点PS:%d 错误!!\n", ps);
 		return -1;
 	}
 
 	if( MapWarppoint[ps].ofloor != ofl ||
 		MapWarppoint[ps].ox != ox || MapWarppoint[ps].oy != oy ){
-		print( "Warp MAPPOINT: old Invalid %d %d %d !!\n" , ofl,ox,oy );
+		print( "不正常传送点: 旧的有问题传送点 %d %d %d !!\n" , ofl,ox,oy );
 		return -1;
 	}
 	//可加判断条件
 	if( MAP_IsValidCoordinate( MapWarppoint[ps].floor, MapWarppoint[ps].x, MapWarppoint[ps].y)== FALSE ){
-		print( "*Warp MAPPOINT:Invalid %d %d %d !!\n" ,
+		print( "不正常传送点:有问题 %d %d %d !!\n" ,
 			MapWarppoint[ps].floor,MapWarppoint[ps].x, MapWarppoint[ps].y );
 		return -1;
 	}
@@ -204,7 +204,7 @@ int MAPPOINT_loadMapWarpPoint( )
 			if( !strcmp( buf1, PointType[i]) )break;
 		}
 		if( i >= arraysizeof( PointType) ){
-			print(" 1.map point err %s \n", buf);
+			print(" 1.map 传送点错误 %s \n", buf);
 			continue;
 		}
 		MapWarppoint[ps].type = i;
@@ -222,25 +222,25 @@ int MAPPOINT_loadMapWarpPoint( )
 		if( getStringFromIndexWithDelim( buf, ":", 3, buf1, sizeof(buf1)) ==FALSE )continue;
 
 		if( MAPPOINT_setMapWarpFrom( ps, buf1) == -1){
-			print(" 2-1.map point err %s [%s] \n", buf, buf1);
+			print(" 2-1.map 传送点错误 %s [%s] \n", buf, buf1);
 			continue;
 		}
 		if( MAPPOINT_creatMapWarpObj( ps, buf1, objtype) == -1 ){
-			print(" 2.map point err %s [%s] \n", buf, buf1);
+			print(" 2.map 传送点错误 %s [%s] \n", buf, buf1);
 			continue;
 		}
 		memset( buf1, 0, sizeof(buf1));
 		if( getStringFromIndexWithDelim( buf, ":", 4, buf1, sizeof(buf1)) ==FALSE ){
-			print(" 3.map point err %s [%s] \n", buf, buf1);
+			print(" 3.map 传送点错误 %s [%s] \n", buf, buf1);
 			continue;
 		}
 		if( MAPPOINT_setMapWarpGoal( ps, buf1) == -1 ){
-			print(" 4.map point err %s \n", buf);
+			print(" 4.map 传送点错误 %s \n", buf);
 			continue;
 		}
 		memset( buf1, 0, sizeof(buf1));
 		if( getStringFromIndexWithDelim( buf, ":", 5, buf1, sizeof(buf1)) ==FALSE ){
-			print(" 5.map point err %s [%s] \n", buf, buf1);
+			print(" 5.map 传送点错误 %s [%s] \n", buf, buf1);
 			continue;
 		}
 		MapWarppoint[ps].use = 1;
@@ -251,8 +251,9 @@ int MAPPOINT_loadMapWarpPoint( )
 		}
 	}
 	//andy_log
-	print("Init %d MapWarpPoint..\n", MapWarpPoints);
+	print("初始化 %d 地图传送点...", MapWarpPoints);
 	fclose( fp);
+	print("完成\n");
 	return 1;
 }
 
@@ -261,7 +262,7 @@ void MAPPOINT_MapWarpHandle( int charaindex, int ps, int ofl, int ox, int oy )
 	int floor, x, y;
 	if( MAPPOINT_getMapWarpGoal( ps, ofl, ox, oy, &floor, &x, &y) == -1 ){
 		//andy_log
-		print( "getMapWarpGoal( %d, %d,%d,%d) err!!\n", ps, ofl, ox, oy);
+		print( "获取传送点( %d, %d,%d,%d)错误!!\n", ps, ofl, ox, oy);
 		return;
 	}
 	if( floor == 777 ) return;

@@ -30,11 +30,6 @@ BOOL NPC_WarpMsg(int meindex,int talker,char *buf);
 BOOL NPC_NpcWarpMsg(int meindex,int talker,char *arg);
 int NPC_FloorUseOtherFloor(int charaindex, char *buf);
 
-
-#ifdef  _NPC_ADDLEVELUP
-void NPC_LevelAndTransUp( int meindex, int charindex, int level, int skillpoint, int exp, int ridepet);
-#endif
-
 #define WARPMAN_STANDBY 3000
 #define WARPMAN_WAIT 150
 //ANDY_ADD
@@ -81,7 +76,7 @@ enum	{
 
 BOOL NPC_WarpManInit( int meindex )
 {
-	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	char buff2[256];
 	char buf[1024];
 	int fl,x,y;
@@ -142,7 +137,7 @@ BOOL NPC_WarpManInit( int meindex )
 
 void NPC_WarpManTalked( int meindex , int talkerindex , char *szMes ,int color )
 {
-	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	char token[256];
 	int RunType=-1;
 	
@@ -214,7 +209,7 @@ void NPC_WarpManTalked( int meindex , int talkerindex , char *szMes ,int color )
 static void NPC_WarpMan_selectWindow( int meindex, int toindex, int num,int select)
 {
 	
-	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	char token[1024];
 	char buf[256];
 	char buf2[1024];
@@ -349,8 +344,8 @@ static void NPC_WarpMan_selectWindow( int meindex, int toindex, int num,int sele
 void NPC_WarpManWindowTalked( int meindex, int talkerindex, 
 								int seqno, int select, char *data)
 {
-	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE];
-	char buf[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
+	char buf[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 #ifdef _NEW_WARPMAN
 	BOOL checkp=TRUE;
 	char buf1[1024];
@@ -506,7 +501,6 @@ void NPC_WarpManWindowTalked( int meindex, int talkerindex,
 
 BOOL NPC_BigSmallLastCheck(int point1,int mypoint,int flg)
 {
-
 	if(flg==0){
 		if(point1==mypoint) {
 			return TRUE;
@@ -577,7 +571,7 @@ void NPC_ERR_DiSP(int meindex,int talker,int errNO)
 	int i=0;
 	int otherindex;
 	int fd = getfdFromCharaIndex( talker);
-	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	
 	if(NPC_Util_GetArgStr( meindex, npcarg, sizeof(npcarg))==NULL){
 		print("GetArgStrErr");
@@ -585,9 +579,8 @@ void NPC_ERR_DiSP(int meindex,int talker,int errNO)
 	}	
 	if(errNO==1){
 		if(NPC_Util_GetStrFromStrWithDelim( npcarg, "PartyMsg",token, sizeof( token))==NULL) {
-			sprintf(token,
-					"\n\n        无法加入团队。    "
-					"\n\n       请解散团队 。  ");
+			sprintf(token,"\n\n　　　　无法加入团队。　　"
+				"\n\n　　　 请解散团队 。　");
 		}
 		if(CHAR_getWorkInt(talker,CHAR_WORKPARTYMODE)==CHAR_PARTY_CLIENT){			
 		}else{	
@@ -607,9 +600,8 @@ void NPC_ERR_DiSP(int meindex,int talker,int errNO)
 		}
 	}else if (errNO==2){
 		if(NPC_Util_GetStrFromStrWithDelim( npcarg, "MoneyMsg", token, sizeof( token))==NULL){
-			sprintf(token,
-					"\n\n        似乎金钱不足唷。    "
-					"\n\n  请存好钱後，再过来。");
+			sprintf(token,"\n\n　　　　似乎金钱不足唷。　　"
+				"\n\n　请存好钱後，再过来。");
 		}
 	}
 	lssproto_WN_send( fd, WINDOW_MESSAGETYPE_MESSAGE,
@@ -723,10 +715,10 @@ BOOL NPC_WarpMsg(int meindex,int talker,char *arg)
 #ifdef _NEW_WARPMAN
 static void NPC_NewWarpMan_selectWindow( int meindex, int toindex, int num,int select,char *TalkStr)
 {	
-	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	char token[1024];
 	int buttontype = 0, windowtype = 0, windowno = 0;
-	char buf[NPC_UTIL_GETARGSTR_BUFSIZE],buf1[256];
+	char buf[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20],buf1[256];
 	int fd = getfdFromCharaIndex( toindex);
 	BOOL tenflg =FALSE;
 	int talkNo=1,RunType=-1;
@@ -879,7 +871,7 @@ BOOL NPC_NpcWarpMsg(int meindex,int talker,char *arg)
 void NPC_WarpManLoop( int meindex)
 {
 	int born, dead;
-	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	if( !CHAR_CHECKINDEX( meindex) ) return;
 
 	if( NPC_Util_GetArgStr( meindex, npcarg, sizeof(npcarg)) == NULL ){
@@ -901,7 +893,7 @@ void NPC_WarpManWatch( int meobjindex, int objindex, CHAR_ACTION act,
 	int born, dead;
 	int meindex, index;
 
-	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 
 	if( OBJECT_getType( objindex) != OBJTYPE_CHARA) return;
 	index = OBJECT_getIndex( objindex);
@@ -941,7 +933,7 @@ void NPC_WarpManWatch( int meobjindex, int objindex, CHAR_ACTION act,
 BOOL NPC_TreasureEventRunMsg( int meindex)
 {
 	char buf[256];	
-	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char npcarg[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 
 	int fl,x,y;
 	
@@ -1031,106 +1023,3 @@ BOOL NPC_TreasureRandItemGet(int meidex,int talker,int rand_j,char *buf)
 	return TRUE;
 
 }
-
-#ifdef  _NPC_ADDLEVELUP				// (不可开) ANDY 外部测试机用来增加玩家等级
-extern  tagRidePetTable ridePetTable[122];
-void NPC_LevelAndTransUp( int meindex, int charindex, int level, int skillpoint, int exp, int ridepet)
-{
-	char szBuffer[256]="";
-	if( !CHAR_CHECKINDEX( charindex) )
-		return;
-//int CHAR_LevelUpCheck( int charaindex , int toindex)
-	if( exp > 0 ){
-		int LevelUp=0;
-		int myexp = CHAR_getInt( charindex, CHAR_EXP);
-		myexp += exp;
-		if( myexp > 300000000 ) myexp = 300000000;
-		CHAR_setInt( charindex, CHAR_EXP, myexp);
-		snprintf( szBuffer, sizeof(szBuffer),
-			"(%s) 得到 EXP %d", CHAR_getUseName( charindex ), exp);
-		CHAR_talkToCli( charindex, -1, szBuffer, CHAR_COLORYELLOW);
-		LevelUp = CHAR_LevelUpCheck( charindex , -1);
-		if( LevelUp > 0 ){
-			snprintf( szBuffer, sizeof(szBuffer),
-				"(%s) 升级至 %d",
-				CHAR_getUseName( charindex ),
-				CHAR_getInt( charindex, CHAR_LV )
-			);
-			CHAR_talkToCli( charindex, -1, szBuffer, CHAR_COLORYELLOW);
-			CHAR_setInt( charindex, CHAR_SKILLUPPOINT,
-				CHAR_getInt( charindex, CHAR_SKILLUPPOINT) +  LevelUp*3 );
-			CHAR_complianceParameter( charindex );
-		}
-	}
-
-	if( level > 0 ){
-		CHAR_setInt( charindex, CHAR_LV, level);
-		snprintf( szBuffer, sizeof(szBuffer),
-			"(%s) 等级设定为 %d",
-			CHAR_getUseName( charindex ),	CHAR_getInt( charindex, CHAR_LV )
-		);
-		CHAR_talkToCli( charindex, -1, szBuffer, CHAR_COLORYELLOW);
-	}
-
-	if( skillpoint > 0 ){
-		int MySp = CHAR_getInt( charindex, CHAR_SKILLUPPOINT);
-		MySp += skillpoint;
-		CHAR_setInt( charindex, CHAR_SKILLUPPOINT, MySp);
-	}
-	if( ridepet >= 0 ){
-		int basepet[2][4]={	{2066,2067,2068,2069},
-							{2072,2073,2074,2075}};
-		int petTemp[]={-1,-1,-1,-1,-1};
-		char msgbuf[256];
-		int petNum=0;
-		int i,j=0;
-		int k=0, petindex,enemyarray;
-		petTemp[j++] = basepet[0][rand()%4];
-		petTemp[j++] = basepet[1][rand()%4];
-
-		for( i=0; i< arraysizeof(ridePetTable) ; i++ ){
-			if( CHAR_getInt( charindex, CHAR_BASEBASEIMAGENUMBER) == ridePetTable[i].charNo ){
-				petTemp[j]= ridePetTable[i].petId;
-				j++;
-				if( j >= arraysizeof( petTemp) )
-					break;
-			}
-		}
-		j=0;
-		for( petNum=0; petNum<arraysizeof( petTemp); petNum++)	{
-			enemyarray = ENEMY_getEnemyArrayFromId( petTemp[ petNum]); //白虎
-			petindex = ENEMY_createPetFromEnemyIndex( charindex, enemyarray);
-			if( petindex == -1 ) {
-				continue;
-			}
-			j++;
-			for( k = 1; k < 120; k ++ ){	//升级
-				CHAR_PetLevelUp( petindex );
-				CHAR_PetAddVariableAi( petindex, AI_FIX_PETLEVELUP );
-				CHAR_setInt( petindex, CHAR_LV, CHAR_getInt( petindex, CHAR_LV) +1 );
-			}
-			CHAR_complianceParameter( petindex );
-			CHAR_setInt( petindex , CHAR_HP , CHAR_getWorkInt( petindex , CHAR_WORKMAXHP ) );
-			snprintf( szBuffer, sizeof(szBuffer), "得到%s", CHAR_getUseName( petindex) );
-			CHAR_talkToCli( charindex, -1, szBuffer, CHAR_COLORYELLOW);
-		}
-		for(j = 0; j < CHAR_MAXPETHAVE; j++){
-			petindex = CHAR_getCharPet(charindex, j);
-			if( !CHAR_CHECKINDEX( petindex) )
-				continue;
-			CHAR_complianceParameter( petindex );
-			snprintf( msgbuf, sizeof( msgbuf ), "K%d", j );
-			CHAR_sendStatusString( charindex, msgbuf );
-			snprintf( msgbuf, sizeof( msgbuf ), "W%d", j );
-			CHAR_sendStatusString( charindex, msgbuf );
-		}
-		CHAR_setInt( charindex, CHAR_LEARNRIDE, ridepet);
-	}
-	CHAR_send_P_StatusString(  charindex, CHAR_P_STRING_DUELPOINT|
-		CHAR_P_STRING_TRANSMIGRATION| CHAR_P_STRING_RIDEPET|
-		CHAR_P_STRING_BASEBASEIMAGENUMBER| CHAR_P_STRING_GOLD|
-		CHAR_P_STRING_EXP| CHAR_P_STRING_LV| CHAR_P_STRING_HP|CHAR_P_STRING_LEARNRIDE);
-	CHAR_Skillupsend( charindex);
-}
-#endif
-//ANDY_END                             									

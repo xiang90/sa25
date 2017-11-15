@@ -299,10 +299,6 @@ void NPC_FamilymanWindowTalked( int meindex, int talkerindex,
 			print( "familyman:readdata error\n");
 			return;
 		}
-#if 0
-
-#endif
-		
 		//fd = getfdFromCharaIndex( talkerindex);
 		if( fd != -1 ) {
 			lssproto_WN_send( fd, w.windowtype, 

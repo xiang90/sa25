@@ -1,5 +1,6 @@
 #include "version.h"
 #include <time.h>
+#include <string.h>
 #include "char.h"
 #include "object.h"
 #include "lssproto_serv.h"
@@ -12,26 +13,13 @@
 #define DENGONFILELINENUM      35     // 整个公布栏的资料笔数
 #define FMSDENGONFILELINENUM   140    // 家族间的留言板资料笔数
 #define DENGONFILEENTRYSIZE    128    // 本文大小
-#ifdef _NEW_MANOR_LAW
-#define MESSAGEINONEWINDOW     9      // 每页所显示的笔数
-#else
 #define MESSAGEINONEWINDOW     7      // 每页所显示的笔数
-#endif
 #define FMMAXNUM               1000   // 家族数量的最大值
 #define FM_MEMBERLIST          2      // 家族成员列表    (主功能表的按键)
 #define FM_MEMBERMEMO          3      // 家族留言        (主功能表的按键)
-#ifdef _UN_FMMEMO
-#define FM_FMPOINT             4      // 申请家族据点    (主功能表的按键)
-#define FM_FMDPTOP             5      // 家族间强者表    (主功能表的按键)
-#else
 #define FM_FMMEMO              4      // 家族之间留言板  (主功能表的按键)
-#ifdef _UN_FMPOINT
-#define FM_FMDPTOP			   5      // 家族间强者表    (主功能表的按键)
-#else
 #define FM_FMPOINT             5      // 申请家族据点    (主功能表的按键)
 #define FM_FMDPTOP             6      // 家族间强者表    (主功能表的按键)
-#endif//_UN_FMPOINT
-#endif//_UN_FMMEMO
 #define FM_WAITTIME            (3*60)
 #define FMSDENGON_SN           10000  // 家族之间的留言板的识别码
 
@@ -48,42 +36,46 @@ unsigned long READTIME1 = 0,
               READTIME3 = 0,
               READTIME4 = 0;
 
+#ifdef _FIX_FM_FMPOINT
+void ApplyFamilyPoint( int meindex, int toindex, int select);
+#endif
+
 // 公布栏的初始化(when gmsv start)
 BOOL NPC_FmDengonInit( int meindex)
 {
-    int i;
-    
+    int fmindex=CHAR_getInt(meindex, CHAR_FMINDEX);
     CHAR_setInt( meindex, CHAR_WHICHTYPE, CHAR_TYPEDENGON);
-    
-    if( CHAR_getInt(meindex, CHAR_FLOOR) == 777 ){
-        leaderdengonindex = meindex;
-    }
-    
-    if( READTIME1 == 0 || READTIME2 == 0 || READTIME3 == 0 || READTIME4 == 0 ){
-        READTIME1 = NowTime.tv_sec+FM_WAITTIME,
-        READTIME2 = NowTime.tv_sec+FM_WAITTIME,
-        READTIME3 = NowTime.tv_sec+FM_WAITTIME,
-        READTIME4 = NowTime.tv_sec+FM_WAITTIME;
-       
-        // 取得家族的成员列表(memberlist struct)，以及家族的留言板
-        for( i=0; i<FMMAXNUM; i++){
-            saacproto_ACShowMemberList_send( acfd, i);
-            saacproto_ACFMReadMemo_send( acfd, i);
-        }
-        // 家族之间的留言板所传的值预设为 FMSDENGON_SN
-        saacproto_ACFMReadMemo_send( acfd, FMSDENGON_SN);
-        saacproto_ACFMPointList_send(acfd);
-        saacproto_ACShowTopFMList_send(acfd, FM_TOP_INTEGRATE);
-        saacproto_ACShowTopFMList_send(acfd, FM_TOP_ADV);    
-        saacproto_ACShowTopFMList_send(acfd, FM_TOP_FEED);
-        saacproto_ACShowTopFMList_send(acfd, FM_TOP_SYNTHESIZE);
-        saacproto_ACShowTopFMList_send(acfd, FM_TOP_DEALFOOD);
-        saacproto_ACShowTopFMList_send(acfd, FM_TOP_PK);
-#ifdef _NEW_MANOR_LAW
-				saacproto_ACShowTopFMList_send(acfd, FM_TOP_MOMENTUM);
-#endif
-    }
-    return TRUE;
+    if(fmindex>0){
+	    
+	    
+//    if( CHAR_getInt(meindex, CHAR_FLOOR) == 777 ){
+//        leaderdengonindex = meindex;
+//    }
+	    
+	    if( READTIME1 == 0 || READTIME2 == 0 || READTIME3 == 0 || READTIME4 == 0 ){
+	        READTIME1 = NowTime.tv_sec+FM_WAITTIME,
+	        READTIME2 = NowTime.tv_sec+FM_WAITTIME,
+	        READTIME3 = NowTime.tv_sec+FM_WAITTIME,
+	        READTIME4 = NowTime.tv_sec+FM_WAITTIME;
+	       
+	        // 取得家族的成员列表(memberlist struct)，以及家族的留言板
+
+	        saacproto_ACShowMemberList_send( acfd, fmindex);
+	        saacproto_ACFMReadMemo_send( acfd, fmindex);
+
+	        // 家族之间的留言板所传的值预设为 FMSDENGON_SN
+	        saacproto_ACFMReadMemo_send( acfd, FMSDENGON_SN);
+	        saacproto_ACFMPointList_send(acfd);
+	        saacproto_ACShowTopFMList_send(acfd, FM_TOP_INTEGRATE);
+	        saacproto_ACShowTopFMList_send(acfd, FM_TOP_ADV);    
+	        saacproto_ACShowTopFMList_send(acfd, FM_TOP_FEED);
+	        saacproto_ACShowTopFMList_send(acfd, FM_TOP_SYNTHESIZE);
+	        saacproto_ACShowTopFMList_send(acfd, FM_TOP_DEALFOOD);
+	        saacproto_ACShowTopFMList_send(acfd, FM_TOP_PK);
+	    }
+	    
+	 }
+	 return TRUE;
 }
 
 // Select Event
@@ -94,7 +86,6 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
     int  buttonevent;
     int  buttontype = 0;
     struct timeval recvtime;
-    
     if (!CHAR_CHECKINDEX(talker)) return;
     
     CONNECT_getLastrecvtime_D( getfdFromCharaIndex( talker), &recvtime);
@@ -444,30 +435,115 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
     // 说明视窗(家族据点)
     else if( seqno == CHAR_WINDOWTYPE_FM_MESSAGE1)
     {
-			int fd,i;
-			char pointbuf[4096];
-			
+			int fd;
+			char pointbuf[1024];
+			strcpy( pointbuf, "");
 			fd = getfdFromCharaIndex( talker );
 			if( fd == -1 )  return;
-			
+
 			switch( select ){
 			case WINDOW_BUTTONTYPE_OK:
 				{
+#ifdef _FIX_FM_FMPOINT
+					char x[4];
+					char y[4];
+					char fmindex[4];
+					char name[32];
+					int windowtype = WINDOW_MESSAGETYPE_MESSAGE;
+					if( CHAR_getInt( talker, CHAR_FMLEADERFLAG) == FMMEMBER_LEADER &&
+						          CHAR_getWorkInt(talker, CHAR_WORKFMSETUPFLAG)==1){
+						CHAR_setInt( talker, CHAR_LISTPAGE,0);
+						int tkfmindex = CHAR_getWorkInt(talker, CHAR_WORKFMINDEXI);
+						int i,check=TRUE;
+						char fmindex[4];
+						for(i=0; i<MANORNUM; i++){	// 10个庄园
+						  getStringFromIndexWithDelim(fmpointlist.pointlistarray[i], "|", 5, fmindex, sizeof(fmindex));
+						  if(tkfmindex==atoi(fmindex)-1 ){
+						  	 check=FALSE;
+						   	 break;
+						  }
+						}
+					  if(check==TRUE){
+							for (i=CHAR_getInt( talker, CHAR_LISTPAGE); i<CHAR_getInt( talker, CHAR_LISTPAGE)+5; i++){	// 10个庄园
+							  getStringFromIndexWithDelim(fmpointlist.pointlistarray[i], "|", 5, fmindex, sizeof(fmindex));
+						 	  if(atoi(fmindex)<=0 ){
+						   		check=TRUE;
+						    	break;
+						  	}
+						  }
+						}
+					  if(check==TRUE){
+					   	windowtype = WINDOW_MESSAGETYPE_SELECT;
+							strcpy(pointbuf,"3\n        　    “家族据地列表”\n\n");
+					  }else{
+					  	windowtype = WINDOW_MESSAGETYPE_MESSAGE;
+					   	strcpy(pointbuf,"        　    “家族据地列表”\n\n");
+							
+						}
+					}else{
+						strcpy(pointbuf,"        　    “家族据地列表”\n\n");
+					}
+					strcat(pointbuf," “地　点”“东”“南”“状　　态”\n");
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[0],"|",3, x, sizeof( x));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[0],"|",4, y, sizeof( y));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[0],"|",5, fmindex, sizeof( fmindex));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[0],"|",6, name, sizeof( name));
+					if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+					sprintf(pointbuf,"%s  萨姆吉尔  %3s   %3s   %s\n", pointbuf, x, y, name);
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[1],"|",3, x, sizeof( x));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[1],"|",4, y, sizeof( y));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[1],"|",5, fmindex, sizeof( fmindex));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[1],"|",6, name, sizeof( name));
+					if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+					sprintf(pointbuf,"%s  玛丽娜斯  %3s   %3s   %s\n", pointbuf, x, y, name);
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[2],"|",3, x, sizeof( x));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[2],"|",4, y, sizeof( y));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[2],"|",5, fmindex, sizeof( fmindex));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[2],"|",6, name, sizeof( name));
+					if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+					sprintf(pointbuf,"%s  加　　加  %3s   %3s   %s\n", pointbuf, x, y, name);
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[3],"|",3, x, sizeof( x));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[3],"|",4, y, sizeof( y));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[3],"|",5, fmindex, sizeof( fmindex));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[3],"|",6, name, sizeof( name));
+					if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+					sprintf(pointbuf,"%s  卡鲁他那  %3s   %3s   %s\n", pointbuf, x, y, name);
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[4],"|",3, x, sizeof( x));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[4],"|",4, y, sizeof( y));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[4],"|",5, fmindex, sizeof( fmindex));
+					getStringFromIndexWithDelim( fmpointlist.pointlistarray[4],"|",6, name, sizeof( name));
+					if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+					sprintf(pointbuf,"%s  伊　　甸  %3s   %3s   %s\n", pointbuf, x, y, name);
+#else
+					int i;
 					strcpy( pointbuf, fmpointlist.pointlistarray[0]);
 					strcat( pointbuf, "\n");
 					for( i=1; i<=FMPOINTNUM; i++){
 						strcat( pointbuf, fmpointlist.pointlistarray[i]);
 						strcat( pointbuf, "\n");
 					}
+#endif
+
+#ifdef _FIX_FM_FMPOINT
+					lssproto_WN_send( fd, windowtype,
+						WINDOW_BUTTONTYPE_OK|WINDOW_BUTTONTYPE_NEXT,
+						CHAR_WINDOWTYPE_FM_POINTLIST,
+#else
 					lssproto_WN_send( fd, WINDOW_FMMESSAGETYPE_POINTLIST,
 						WINDOW_BUTTONTYPE_OK,
 						CHAR_WINDOWTYPE_FM_POINTLIST,
+#endif
 #ifndef _FM_MODIFY
 						CHAR_getWorkInt( index, CHAR_WORKOBJINDEX),
 #else
 						-1,
 #endif
-						makeEscapeString( pointbuf, buf, sizeof(buf)));
+
+#ifdef _FIX_FM_FMPOINT
+					pointbuf);
+#else
+					makeEscapeString( pointbuf, buf, sizeof(buf)));
+#endif
 				}
 				break;
 			default:
@@ -615,7 +691,6 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 						makeEscapeString( listbuf, buf, sizeof(buf)));
 				}
 				break;
-#ifndef _NEW_MANOR_LAW
 			case 4:				// 前十大家族合成列表
 				{
 					int  fd,i;
@@ -668,12 +743,7 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 						makeEscapeString( listbuf, buf, sizeof(buf)));
 				}
 				break;
-#endif
-#ifdef _NEW_MANOR_LAW
-			case 4:				// 前十大家族ＰＫ列表
-#else
 			case 6:				// 前十大家族ＰＫ列表
-#endif
 				{
 					int  fd,i;
 					char listbuf[4096];
@@ -699,39 +769,7 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 						makeEscapeString( listbuf, buf, sizeof(buf)));
 				}
 				break;
-#ifdef _NEW_MANOR_LAW
-			case 5:						// 十大气势家族
-				{
-					int  fd,i;
-					char listbuf[4096];
-					fd = getfdFromCharaIndex( talker );
-					if( fd == -1 )  return;
-					
-					strcpy( listbuf, fmdptop.momentum_topmemo[0]);
-					strcat( listbuf, "\n");
-					for( i=1; i<10; i++){
-						strcat( listbuf, fmdptop.momentum_topmemo[i]);
-						strcat( listbuf, "\n");
-					}
-					
-					lssproto_WN_send( fd, WINDOW_FMMESSAGETYPE_10_MEMONTUM,
-						WINDOW_BUTTONTYPE_OK|
-						WINDOW_BUTTONTYPE_PREV,
-						CHAR_WINDOWTYPE_FM_DPME,
-#ifndef _FM_MODIFY
-						CHAR_getWorkInt( index, CHAR_WORKOBJINDEX),
-#else
-						-1,
-#endif
-						makeEscapeString( listbuf, buf, sizeof(buf)));
-				}
-				break;
-#endif
-#ifndef _NEW_MANOR_LAW
 			case 7:				// 自己家族声望排行榜
-#else
-			case 6:
-#endif
 				{
 					int  fd,i,h,k,fmid;
 					char listbuf[4096];
@@ -782,42 +820,6 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 							makeEscapeString( listbuf, buf, sizeof(buf)));
 				}
 				break;
-#ifdef _NEW_MANOR_LAW
-			case 7:		// 自己家族气势排名
-				{
-					int  fd,h,fmid;
-					char listbuf[4096];
-					char szTempbuf[12];
-					
-					fd = getfdFromCharaIndex( talker );
-					if( fd == -1 )  return;
-					
-					fmid = CHAR_getWorkInt(talker, CHAR_WORKFMINDEXI);
-					if( fmid < 0 ){
-						sprintf( NPC_sendbuf, "              『警       告』\n 抱歉！你不是家族人员，无法查看。");
-						lssproto_WN_send( fd, WINDOW_MESSAGETYPE_MESSAGE, WINDOW_BUTTONTYPE_OK,
-							-1,
-							-1,
-							makeEscapeString( NPC_sendbuf, buf, sizeof(buf)));
-						return;
-					}
-					
-					for( h=0; h<FMMAXNUM; h++)
-						if( fmdptop.momentum_topid[h] == fmid ) 
-							break;
-						
-						strcpy( listbuf, fmdptop.momentum_topmemo[h]);
-						sprintf(szTempbuf,"|%d",CHAR_getInt(talker,CHAR_MOMENTUM)/100);
-						strcat(listbuf,szTempbuf);
-						lssproto_WN_send( fd, WINDOW_FMMESSAGETYPE_FM_MEMONTUM,
-							WINDOW_BUTTONTYPE_OK|
-							WINDOW_BUTTONTYPE_PREV,
-							CHAR_WINDOWTYPE_FM_DPME,
-							-1,
-							makeEscapeString( listbuf, buf, sizeof(buf)));
-				}
-				break;
-#endif
 			default:
 				break;
         }
@@ -893,8 +895,6 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 							makeEscapeString( NPC_sendbuf, buf, sizeof(buf)));
           }
           break;
-#ifdef _UN_FMPOINT
-#else
 			case FM_FMPOINT:
 				{
 					int fd;
@@ -931,7 +931,6 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 							makeEscapeString( NPC_sendbuf, buf, sizeof(buf)));
           }
           break;
-#endif //_UN_FMPOINT
 			case FM_FMDPTOP:
 				{
 					int  fd;
@@ -946,27 +945,16 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 						saacproto_ACShowTopFMList_send( acfd, FM_TOP_SYNTHESIZE );
 						saacproto_ACShowTopFMList_send( acfd, FM_TOP_DEALFOOD );
 						saacproto_ACShowTopFMList_send( acfd, FM_TOP_PK );                           
-#ifdef _NEW_MANOR_LAW
-						saacproto_ACShowTopFMList_send(acfd, FM_TOP_MOMENTUM);
-#endif
 						READTIME3 = NowTime.tv_sec+FM_WAITTIME;
 					}
 					memset(NPC_sendbuf,0,sizeof(NPC_sendbuf));
-					strcpy( NPC_sendbuf, "\n              叁十大家族声望列表\n");
+					strcpy( NPC_sendbuf, "\n              三十大家族声望列表\n");
 					strcat( NPC_sendbuf, "              十大冒险家族\n");
 					strcat( NPC_sendbuf, "              十大饲育家族\n");
-#ifndef _NEW_MANOR_LAW
 					strcat( NPC_sendbuf, "              十大合成家族\n");
 					strcat( NPC_sendbuf, "              十大料理家族\n");
-#endif
 					strcat( NPC_sendbuf, "              十大战斗家族\n");
-#ifdef _NEW_MANOR_LAW
-					strcat( NPC_sendbuf, "              十大气势家族\n");
-#endif
-					strcat( NPC_sendbuf, "              自己家族声望列表\n");
-#ifdef _NEW_MANOR_LAW
-					strcat( NPC_sendbuf, "              自己家族气势排名\n");
-#endif					
+					strcat( NPC_sendbuf, "              自己家族声望列表\n");			
 						
 					lssproto_WN_send( fd, WINDOW_MESSAGETYPE_SELECT,
 						WINDOW_BUTTONTYPE_NONE,
@@ -1047,8 +1035,6 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 						makeEscapeString( NPC_sendbuf, buf, sizeof(buf)));
 				}
 				break;
-#ifdef _UN_FMMEMO
-#else
 			case FM_FMMEMO:
 				{
 					int fd,i,dengonindex;
@@ -1103,7 +1089,6 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 #endif
 						makeEscapeString( NPC_sendbuf, buf, sizeof(buf)));
 				}   
-#endif//_UN_FMMEMO
 				break;
 			default:
 				break;
@@ -1342,9 +1327,9 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
     // 据点列表
     else if( seqno == CHAR_WINDOWTYPE_FM_POINTLIST)
     {
-			char pointlistbuf[4096];
+			char pointbuf[1024];
 			int  pointlistindex;
-			
+			strcpy( pointbuf, "");
 			pointlistindex = 0;
 			buttonevent = atoi(data);
 			
@@ -1352,11 +1337,131 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 			case WINDOW_BUTTONTYPE_NEXT:
 			case WINDOW_BUTTONTYPE_PREV:
 				{
-					int fd,i;
+					int fd;
 					
 					fd = getfdFromCharaIndex( talker );
 					if( fd == -1 )  return;
+#ifdef _FIX_FM_FMPOINT
+					char x[4];
+					char y[4];
+					char fmindex[4];
+					char name[32];
+					int windowtype = WINDOW_MESSAGETYPE_MESSAGE;
+					pointlistindex += 5 * (( select == WINDOW_BUTTONTYPE_NEXT) ? 1 : -1);
 					
+					if( pointlistindex > 5) 
+						pointlistindex -= 5;
+					else if( pointlistindex < 1 ) 
+						pointlistindex = 0;
+						
+					buttontype = WINDOW_BUTTONTYPE_OK;
+					if( CHAR_getInt( talker, CHAR_FMLEADERFLAG) == FMMEMBER_LEADER &&
+						          CHAR_getWorkInt(talker, CHAR_WORKFMSETUPFLAG)==1){
+						if(select==WINDOW_BUTTONTYPE_NEXT)
+							CHAR_setInt( talker, CHAR_LISTPAGE,1);
+						else if(select==WINDOW_BUTTONTYPE_PREV)
+							CHAR_setInt( talker, CHAR_LISTPAGE,0);
+						int tkfmindex = CHAR_getWorkInt(talker, CHAR_WORKFMINDEXI);
+						int i,check=TRUE;
+						char fmindex[4];
+						for(i=0; i<MANORNUM; i++){	// 10个庄园
+						  getStringFromIndexWithDelim(fmpointlist.pointlistarray[i], "|", 5, fmindex, sizeof(fmindex));
+						  if(tkfmindex==atoi(fmindex)-1 ){
+						  	 check=FALSE;
+						   	 break;
+						  }
+						}
+					  if(check==TRUE){
+							for (i=CHAR_getInt( talker, CHAR_LISTPAGE); i<CHAR_getInt( talker, CHAR_LISTPAGE)+5; i++){	// 10个庄园
+							  getStringFromIndexWithDelim(fmpointlist.pointlistarray[i], "|", 5, fmindex, sizeof(fmindex));
+						 	  if(atoi(fmindex)<=0 ){
+						   		check=TRUE;
+						    	break;
+						  	}
+						  }
+						}
+					  if(check==TRUE){
+					   	windowtype = WINDOW_MESSAGETYPE_SELECT;
+							strcpy(pointbuf,"3\n        　    “家族据地列表”\n\n");
+					  }else{
+					  	windowtype = WINDOW_MESSAGETYPE_MESSAGE;
+					   	strcpy(pointbuf,"        　    “家族据地列表”\n\n");
+							
+						}
+					}else{
+						strcpy(pointbuf,"        　    “家族据地列表”\n\n");
+					}
+					strcat(pointbuf," “地　点”“东”“南”“状　　态”\n");
+					if( (pointlistindex + 5) > 5){
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[5],"|",3, x, sizeof( x));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[5],"|",4, y, sizeof( y));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[5],"|",5, fmindex, sizeof( fmindex));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[5],"|",6, name, sizeof( name));
+							if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+							sprintf(pointbuf,"%s  塔 尔 塔  %3s   %3s   %s\n", pointbuf, x, y, name);
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[6],"|",3, x, sizeof( x));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[6],"|",4, y, sizeof( y));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[6],"|",5, fmindex, sizeof( fmindex));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[6],"|",6, name, sizeof( name));
+							if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+							sprintf(pointbuf,"%s  尼 克 斯  %3s   %3s   %s\n", pointbuf, x, y, name);
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[7],"|",3, x, sizeof( x));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[7],"|",4, y, sizeof( y));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[7],"|",5, fmindex, sizeof( fmindex));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[7],"|",6, name, sizeof( name));
+							if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+							sprintf(pointbuf,"%s  弗 列 顿  %3s   %3s   %s\n", pointbuf, x, y, name);
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[8],"|",3, x, sizeof( x));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[8],"|",4, y, sizeof( y));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[8],"|",5, fmindex, sizeof( fmindex));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[8],"|",6, name, sizeof( name));
+							if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+							sprintf(pointbuf,"%s  亚 伊 欧  %3s   %3s   %s\n", pointbuf, x, y, name);
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[9],"|",3, x, sizeof( x));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[9],"|",4, y, sizeof( y));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[9],"|",5, fmindex, sizeof( fmindex));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[9],"|",6, name, sizeof( name));
+							if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+							sprintf(pointbuf,"%s  瑞尔亚斯  %3s   %3s   %s\n", pointbuf, x, y, name);
+							buttontype |= WINDOW_BUTTONTYPE_PREV;
+					}else if( pointlistindex==0 ){
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[0],"|",3, x, sizeof( x));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[0],"|",4, y, sizeof( y));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[0],"|",5, fmindex, sizeof( fmindex));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[0],"|",6, name, sizeof( name));
+							if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+							sprintf(pointbuf,"%s  萨姆吉尔  %3s   %3s   %s\n", pointbuf, x, y, name);
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[1],"|",3, x, sizeof( x));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[1],"|",4, y, sizeof( y));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[1],"|",5, fmindex, sizeof( fmindex));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[1],"|",6, name, sizeof( name));
+							if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+							sprintf(pointbuf,"%s  玛丽娜斯  %3s   %3s   %s\n", pointbuf, x, y, name);
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[2],"|",3, x, sizeof( x));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[2],"|",4, y, sizeof( y));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[2],"|",5, fmindex, sizeof( fmindex));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[2],"|",6, name, sizeof( name));
+							if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+							sprintf(pointbuf,"%s  加　　加  %3s   %3s   %s\n", pointbuf, x, y, name);
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[3],"|",3, x, sizeof( x));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[3],"|",4, y, sizeof( y));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[3],"|",5, fmindex, sizeof( fmindex));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[3],"|",6, name, sizeof( name));
+							if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+							sprintf(pointbuf,"%s  卡鲁他那  %3s   %3s   %s\n", pointbuf, x, y, name);
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[4],"|",3, x, sizeof( x));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[4],"|",4, y, sizeof( y));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[4],"|",5, fmindex, sizeof( fmindex));
+							getStringFromIndexWithDelim( fmpointlist.pointlistarray[4],"|",6, name, sizeof( name));
+							if(atoi(fmindex)<=0)strcpy(name,"  未占领");
+							sprintf(pointbuf,"%s  伊　　甸  %3s   %3s   %s\n", pointbuf, x, y, name);
+							buttontype |= WINDOW_BUTTONTYPE_NEXT;
+					}else{
+							buttontype |= WINDOW_BUTTONTYPE_PREV;
+							buttontype |= WINDOW_BUTTONTYPE_NEXT;
+					}
+#else
+					int i;
 					pointlistindex += 10 * (( select == WINDOW_BUTTONTYPE_NEXT) ? 1 : -1);
 					
 					if( pointlistindex > FMPOINTNUM) 
@@ -1374,14 +1479,18 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 						buttontype |= WINDOW_BUTTONTYPE_NEXT;
 					}
 					
-					strcpy( pointlistbuf, fmpointlist.pointlistarray[pointlistindex]);
-					strcat( pointlistbuf, "\n");
+					strcpy( pointbuf, fmpointlist.pointlistarray[pointlistindex]);
+					strcat( pointbuf, "\n");
 					for( i=(pointlistindex+1); i<pointlistindex+10; i++){
-						strcat( pointlistbuf, fmpointlist.pointlistarray[i]);
-						strcat( pointlistbuf, "\n");
+						strcat( pointbuf, fmpointlist.pointlistarray[i]);
+						strcat( pointbuf, "\n");
 					}
-					
+#endif
+#ifdef _FIX_FM_FMPOINT
+					lssproto_WN_send( fd, windowtype,
+#else
 					lssproto_WN_send( fd, WINDOW_FMMESSAGETYPE_POINTLIST,
+#endif
 						buttontype,
 						CHAR_WINDOWTYPE_FM_POINTLIST,
 #ifndef _FM_MODIFY
@@ -1389,12 +1498,19 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 #else
 						-1,
 #endif
-						makeEscapeString( pointlistbuf, buf, sizeof(buf)));
+#ifndef _FIX_FM_FMPOINT
+					pointbuf);	
+#else
+					makeEscapeString( pointbuf, buf, sizeof(buf)));
+#endif
 				}
 				break;
 			case WINDOW_BUTTONTYPE_OK:
 				break;
 			default:
+#ifdef _FIX_FM_FMPOINT
+					ApplyFamilyPoint( index, talker, atoi(data)+CHAR_getInt( talker, CHAR_LISTPAGE)*5);
+#endif
 				break;
 			}
     }        
@@ -1417,27 +1533,16 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 						saacproto_ACShowTopFMList_send(acfd, FM_TOP_SYNTHESIZE);
 						saacproto_ACShowTopFMList_send(acfd, FM_TOP_DEALFOOD);
 						saacproto_ACShowTopFMList_send(acfd, FM_TOP_PK);                           
-#ifdef _NEW_MANOR_LAW
-						saacproto_ACShowTopFMList_send(acfd, FM_TOP_MOMENTUM);
-#endif
 						READTIME3 = NowTime.tv_sec+FM_WAITTIME;
 					}
 					
-					strcpy( NPC_sendbuf, "\n              叁十大家族声望列表\n");
+					strcpy( NPC_sendbuf, "\n              三十大家族声望列表\n");
 					strcat( NPC_sendbuf, "              十大冒险家族\n");
 					strcat( NPC_sendbuf, "              十大饲育家族\n");
-#ifndef _NEW_MANOR_LAW
 					strcat( NPC_sendbuf, "              十大合成家族\n");
 					strcat( NPC_sendbuf, "              十大料理家族\n");
-#endif
 					strcat( NPC_sendbuf, "              十大战斗家族\n");
-#ifdef _NEW_MANOR_LAW
-					strcat( NPC_sendbuf, "              十大气势家族\n");
-#endif
-					strcat( NPC_sendbuf, "              自己家族声望列表\n");
-#ifdef _NEW_MANOR_LAW
-					strcat( NPC_sendbuf, "              自己家族气势排名\n");
-#endif					
+					strcat( NPC_sendbuf, "              自己家族声望列表\n");		
 					lssproto_WN_send( fd, WINDOW_MESSAGETYPE_SELECT,
 						WINDOW_BUTTONTYPE_NONE,
 						CHAR_WINDOWTYPE_FM_DPSELECT,
@@ -1455,7 +1560,7 @@ void NPC_FmDengonWindowTalked( int index, int talker, int seqno, int select, cha
 				break;
 			}
 			
-    }        
+    }  
 }
 
 // call FmDengon NPC event
@@ -1477,14 +1582,8 @@ void NPC_FmDengonLooked( int meindex, int lookedindex )
     strcpy( menubuf, "                『家族布告栏』\n\n");
 	strcat( menubuf, "                 家族成员列表\n");
 	strcat( menubuf, "                   家族留言\n");
-#ifdef _UN_FMMEMO
-#else
 	strcat( menubuf, "                家族之间留言板\n");
-#endif
-#ifdef _UN_FMPOINT
-#else
 	strcat( menubuf, "                 申请家族据点\n");
-#endif
 	strcat( menubuf, "                家族之间强者表");
         
     lssproto_WN_send(fd, WINDOW_MESSAGETYPE_SELECT,
@@ -1509,14 +1608,8 @@ void NPC_FmDengonLooked( int meindex, int lookedindex )
     strcpy( menubuf, "                『家族布告栏』\n\n");
 		strcat( menubuf, "                 家族成员列表\n");
 		strcat( menubuf, "                   家族留言\n");
-#ifdef _UN_FMMEMO
-#else
 		strcat( menubuf, "                家族之间留言板\n");
-#endif
-#ifdef _UN_FMPOINT
-#else
 		strcat( menubuf, "                 申请家族据点\n");
-#endif
 		strcat( menubuf, "                家族之间强者表");
         
     lssproto_WN_send(fd,
@@ -1527,3 +1620,43 @@ void NPC_FmDengonLooked( int meindex, int lookedindex )
 										 makeEscapeString( menubuf, buf, sizeof(buf)));        
 }
 #endif
+
+#ifdef _FIX_FM_FMPOINT
+void ApplyFamilyPoint( int meindex, int toindex, int select)
+{
+		int fd = getfdFromCharaIndex(toindex);
+		if (fd == -1) return;
+		char fmindex[4];
+		char buf[64];
+		int tkfmindex = CHAR_getWorkInt(toindex, CHAR_WORKFMINDEXI);
+		int i,check=0;
+		for (i=0; i<=MANORNUM-1; i++) {	// 10个庄园
+       getStringFromIndexWithDelim(fmpointlist.pointlistarray[i], "|", 5, fmindex, sizeof(fmindex));
+       if (tkfmindex==atoi(fmindex)-1){
+       	 return;
+       }
+    }
+    if(memberlist[tkfmindex].fmjoinnum<30)
+    	check=1;
+    else if(CHAR_getInt( toindex, CHAR_FAME)<300000)
+    	check=2;
+		getStringFromIndexWithDelim( fmpointlist.pointlistarray[select-1],"|",5, fmindex, sizeof( fmindex));
+		if(atoi(fmindex)<=0 && check==0){
+			saacproto_ACFixFMPoint_send(acfd,CHAR_getChar(toindex, CHAR_FMNAME),tkfmindex+1,tkfmindex,
+																		CHAR_getChar(toindex, CHAR_FMNAME),tkfmindex+1,tkfmindex,select);
+			sprintf(buf, "恭喜你！\n    该庄园已经是你的了。");
+			lssproto_WN_send( fd, WINDOW_MESSAGETYPE_MESSAGE,	WINDOW_BUTTONTYPE_OK,
+	    												0,	CHAR_getWorkInt(meindex, CHAR_WORKOBJINDEX),	buf);
+	  }else{
+	  	if(check==0)
+					sprintf(buf, "该庄园据点已有人占领了，请到该庄园的踢馆管理员处申请踢馆抢夺庄园吧！");
+			else if(check==1)
+					sprintf(buf, "很抱歉，申请庄园据点家族人必数需满30人！");
+			else if(check==2)
+					sprintf(buf, "很抱歉，申请庄园据点家族声望必需3000以上！");
+			lssproto_WN_send( fd, WINDOW_MESSAGETYPE_MESSAGE,	WINDOW_BUTTONTYPE_OK,
+	    												0,	CHAR_getWorkInt(meindex, CHAR_WORKOBJINDEX),	buf);
+	  }
+}
+#endif
+

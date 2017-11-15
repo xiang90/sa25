@@ -80,12 +80,7 @@ void BATTLE_MultiRecovery(
 	int power,
 	int per,
 	int UseEffect,
-#ifdef _CHANGEITEMUSE	 // Syu ADD 调整战斗中使用料理设定
-	int RecevEffect,
-	int power1
-#else
 	int RecevEffect
-#endif
 
 );
 
@@ -276,7 +271,7 @@ int	MAGIC_ResAndDef_Battle(
 //  撩  仄凶日 FALSE
 //****************************************************************
 
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
 int MAGIC_AttMagic_Battle( int charaindex , int toNo , int marray , int mp );
 #ifdef _FIX_MAGICDAMAGE
 void BATTLE_MultiAttMagic( int battleindex, int attackNo, int toNo,
@@ -308,34 +303,8 @@ void BATTLE_MultiParamChangeTurn( int battleindex,int attackNo,int toNo,int stat
 #endif
 int BATTLE_MagicEffect(	int battleindex,int attackNo,int ToList[],int MyEffect,int ToEffect );
 
-
-
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-void PROFESSION_MAGIC_ATTAIC( int battleindex, int attackNo, int toNo, int attIdx, int FieldAttr, int skill);
-int PROFESSION_MAGIC_ATTAIC_Effect( int battleindex, int attackNo, int ToList[], int AttackMgcNo );
-int analysis_profession_parameter( int attIdx, int skill, int toNo, int charaindex );
-void PROFESSION_MAGIC_GET_PRACTICE( float *hp_power, float *mp_power, float *dec_hp, float *dec_mp, int charaindex );
-void PROFESSION_MAGIC_TOLIST_SORT( int *list, int *listidx, int charaindex );
-void PROFESSION_MAGIC_CHANGE_STATUS( int charaindex, int hp_power, float mp_power, float *add_hp, float *add_mp );
-void PROFESSION_MAGIC_GET_IMG2( int toNo, int charaindex, int attIdx, char *pszOption );
-#ifdef _PROFESSION_ADDSKILL
-int PROFESSION_MAGIC_GET_DAMAGE( int attackindex, int defindex, int magic_type, int power, int command );
-#else
-int PROFESSION_MAGIC_GET_DAMAGE( int attackindex, int defindex, int magic_type, int power );
-#endif
-int PROFESSION_MAGIC_DODGE( int atk_index, int def_index, int magic_type );
-void PROFESSION_MAGIC_CHANG_IMG2( int img2, char *pszOption, int attIdx );
-int PROFESSION_MAGIC_CHANG_STATUS(int command,int battleindex, int charaindex, int charaidx, int power, int no);
-int PROFESSION_MAGIC_GET_ICE_MIRROR_DAMAGE( int attackindex, int defindex, int command, int power );
-#endif
-
 #ifdef _PETSKILL_FIREKILL
 void BATTLE_MultiAttMagic_Fire( int battleindex, int attackNo, int defNo,
 						  int FieldAttr , int Power);
 #endif
-
-#ifdef _PROFESSION_ADDSKILL
-unsigned int GET_PROFESSION_magic_uiSpriteNum(int idx);
-#endif
-
 #endif

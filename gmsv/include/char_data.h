@@ -34,7 +34,7 @@ BOOL CHAR_getDefaultChar( Char*  nc, int imagenumber );
 int CHAR_getNewImagenumberFromEquip( int basebaseimagenumber,
                                      ITEM_CATEGORY category );
 /*====================  飓  寞  侬   ->   寞楮溢====================*/
-void CHAR_initSeekGraphicNumberFromString();
+//void CHAR_initSeekGraphicNumberFromString();
 int CHAR_seekGraphicNumberFromString( char* string );
 
 
@@ -75,9 +75,7 @@ BOOL CHAR_ElderSetPosition( int elderindex ,int fl,int x ,int y);
 
 int GetEnemyExp( int level );
 
-int CHAR_GetLevel();
-int CHAR_GetLevelExp( int level );
-int CHAR_GetOldLevelExp( int level);
+int CHAR_GetLevelExp( int charaindex, int level );
 
 int CHAR_LevelUpCheck( int charaindex , int toindex);
 
@@ -89,12 +87,6 @@ BOOL CHAR_checkPlayerImageNumber( int imagenumber);
 int CHAR_PetTakeLevelUp( int petindex, int lv);	//强制宠物升级
 int CHAR_PetTakeDrop( int petindex, int floor, int ox, int oy);	//强制丢弃宠物升级
 
-#ifdef _NPC_FUSION
-int PETFUSION_FusionPetSub( int charaindex, int Subindex1, int Subindex2, int *work, int *skill);
-BOOL PETFUSION_FusionPetMain( int charaindex, int Mainindex, int *work, int *skill);
-BOOL PETFUSION_DelPet( int toindex, int Mainindex, int Subindex1, int Subindex2, int flg);
-int PETFUSION_Evolution( int charaindex, int petindex);
-#endif
 int PETTRANS_PetTransManStatus( int toindex, int petindex1, int petindex2);
 #ifdef _PET_2TRANS
 int NPC_PetTransManGetAns( int total1, int total2, int LV, int rank, int tran);
@@ -106,10 +98,19 @@ int NPC_PetTransManGetAns( int total1, int total2, int LV, int rank);
 void CHAR_AutoChikulaStone( int charaindex, int Dflg);
 #endif
 
-#ifdef _STATUS_WATERWORD //水世界状态
-void CHAR_CheckWaterStatus( int charaindex);
-#endif
-
 int CHAR_findSurplusPetBox( int charaindex );
 
+#ifdef _USER_EXP_CF
+void setNeedLevelUpTbls(int level,int exp);
+void setMaxLevel(int level);
+#endif 
+#ifdef _FM_METAMO
+void CHAR_ReMetamo( int charaindex );
+#endif 
+#ifdef _NEW_PLAYER_RIDE
+void CHAR_PlayerRide( int charaindex );
+#endif 
+#ifdef _USER_EXP_CF
+BOOL LoadEXP( char* filename );
+#endif 
 #endif 

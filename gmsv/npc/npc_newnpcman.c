@@ -79,7 +79,7 @@ static void NPC_NewNpcMan_selectWindow( int meindex, int toindex, int num, int f
 void NPC_reCheckMyPetUnusual( int meindex, int toindex);//检查宠物异常
 
 BOOL CHECK_ReplacePET( int toindex); //更换宠物
-void NPC_reCheckItemPilenum( int meindex, int toindex);//还原铁枪叁堆叠
+void NPC_reCheckItemPilenum( int meindex, int toindex);//还原铁枪三堆叠
 BOOL CHECK_ITEMEQUIT( int toindex);//更换灵力铠
 BOOL CHECK_PETBBI( int toindex);//修正宠物图号
 
@@ -182,7 +182,7 @@ static void NPC_NewNpcMan_selectWindow( int meindex, int toindex, int num, int f
 #ifdef _PET_LOSTPET
 				  "\n             《领回遗失宠物》"
 #endif
-//				  "\n            《还原铁枪叁堆叠》"
+//				  "\n            《还原铁枪三堆叠》"
 
 				  );
 		windowtype = WINDOW_MESSAGETYPE_SELECT;
@@ -218,7 +218,7 @@ static void NPC_NewNpcMan_selectWindow( int meindex, int toindex, int num, int f
 			windowno = NPC_PROGRAMEGINEER_SELECTLOSTPET;
 #endif
 			break;
-		case 5: //还原铁枪叁堆叠
+		case 5: //还原铁枪三堆叠
 //			NPC_reCheckItemPilenum( meindex, toindex);
 			return;
 			break;
@@ -265,12 +265,9 @@ static void NPC_NewNpcMan_selectWindow( int meindex, int toindex, int num, int f
 					ltime = ltime/(60*60*24);
 				if( getStringFromIndexWithDelim( petstring[ti-1], "|", 4, buf1, sizeof( buf1)) == FALSE ) return;
 					cost = atoi( buf1);
-#if 0	// 修正保释金
-				cost = cost + (ltime*100);
-				cost = (cost>10000)?10000:cost;
-#else
+
 				cost = cost + (ltime*10000);
-#endif
+
 				if( CHAR_getInt( toindex, CHAR_GOLD) < cost ) {
 					sprintf( buf1, "宠物已寄放%d天，共需%d石币才可领回。", ltime, cost);
 					CHAR_talkToCli( toindex, meindex, buf1, CHAR_COLORYELLOW);
@@ -339,7 +336,6 @@ static void NPC_NewNpcMan_selectWindow( int meindex, int toindex, int num, int f
 		return;
 		break;
 	case WINDOW_DEFIND:
-#ifdef _NPCCHANGE_PLAYERIMG
 		{
 			int i;
 			int face = CHAR_getInt( toindex, CHAR_FACEIMAGENUMBER);
@@ -360,13 +356,10 @@ static void NPC_NewNpcMan_selectWindow( int meindex, int toindex, int num, int f
 			buttontype = WINDOW_BUTTONTYPE_YESNO;
 			windowno = NPC_PROGRAMEGINEER_END;
 		}
-#endif
 		break;
 	case WINDOW_END:
 		{
-#ifdef _NPCCHANGE_PLAYERIMG
 			CHAR_setWorkInt( toindex, CHAR_WORKNPCMETAMO, -1);
-#endif
 			CHAR_setInt( toindex, CHAR_BASEBASEIMAGENUMBER,
 				CHAR_getInt( toindex, CHAR_BASEIMAGENUMBER) );
 
@@ -391,16 +384,12 @@ void NPC_NewNpcManWindowTalked( int meindex, int talkerindex, int seqno, int sel
 
 	if( select == WINDOW_BUTTONTYPE_CANCEL || select == WINDOW_BUTTONTYPE_NO){
 		CHAR_setWorkInt( talkerindex, CHAR_WORKSHOPRELEVANT, 0);
-#ifdef _NPCCHANGE_PLAYERIMG
 		CHAR_setWorkInt( talkerindex, CHAR_WORKNPCMETAMO, -1);
-#endif
 		return;
 	}
 	switch( seqno)	{
-#ifdef _TRANSER_MAN
 	case NPC_TRANSERMAN_START:
 		break;
-#endif
 	case NPC_PROGRAMEGINEER_SELECT1:
 		NPC_NewNpcMan_selectWindow( meindex, talkerindex, WINDOW_SELECT1, atoi( data));
 		break;
@@ -525,7 +514,7 @@ void NPC_reCheckMyPetUnusual( int meindex, int toindex)//检查宠物异常
 	for( i=0; i<CHAR_MAXPETHAVE; i++)	{
 		petindex = CHAR_getCharPet( toindex, i);
 		if( !CHAR_CHECKINDEX( petindex) )continue;
-		if( (buf=CHAR_getChar( petindex, CHAR_NAME)) == NULL ||
+		if( (buf=CHAR_getChar( petindex, CHAR_NAME)) == "\0" ||
 			strlen( buf) <= 0 ){
 			char *PetNAME;
 			int array, parry, petID;
@@ -539,7 +528,7 @@ void NPC_reCheckMyPetUnusual( int meindex, int toindex)//检查宠物异常
 				continue;
 			}
 			parry = ENEMYTEMP_getEnemyTempArray( array);
-			if( (PetNAME = ENEMYTEMP_getChar( parry, E_T_NAME)) == NULL ||
+			if( (PetNAME = ENEMYTEMP_getChar( parry, E_T_NAME)) == "\0" ||
 				strlen( PetNAME) <= 0 ){
 				print("ANDY Pet(ID:%d) Array:%d err Name:%s (file:%s %d) !! \n",
 					petID, array, (PetNAME==NULL)?"NULL":PetNAME, __FILE__, __LINE__ );
@@ -640,10 +629,9 @@ BOOL CHECK_ReplacePET( int toindex)
 
 	return Finds;
 }
-//还原铁枪叁堆叠
+//还原铁枪三堆叠
 void NPC_reCheckItemPilenum( int meindex, int toindex)
 {
-#ifdef _ITEMSET4_TXT
 	int i, itemindex;
 	for( i=0; i<CHAR_MAXITEMHAVE; i++){
 		itemindex = CHAR_getItemIndex( toindex , i );
@@ -675,8 +663,7 @@ void NPC_reCheckItemPilenum( int meindex, int toindex)
 			CHAR_sendItemDataOne( toindex, i);
 		}
 	}
-	CHAR_talkToCli( toindex, -1, "铁枪叁处理完毕。", CHAR_COLORYELLOW);
-#endif
+	CHAR_talkToCli( toindex, -1, "铁枪三处理完毕。", CHAR_COLORYELLOW);
 }
 
 #ifdef _PET_LOSTPET
@@ -691,7 +678,7 @@ BOOL NPC_reFindMyLostPet( int meindex, int toindex, char *buf)
 	char buf2[10][256]={"\n","\n","\n","\n","\n",
 						"\n","\n","\n","\n","\n" };
 	CdKey = CHAR_getChar( toindex, CHAR_CDKEY );
-	if( CdKey == NULL ) return FALSE;
+	if( CdKey == "\0" ) return FALSE;
 	sprintf( filename, "lostpet/%s.txt", CdKey);
 	strcpy( buf, "==宠物遗失纪录==\n");
 	if( (fp=fopen( filename, "r")) == NULL ) return FALSE;
@@ -743,7 +730,7 @@ BOOL NPC_getLostPetString( int meindex, int toindex)
 		strcpy( petstring[i], "");
 
 	CdKey = CHAR_getChar( toindex, CHAR_CDKEY );
-	if( CdKey == NULL ) return FALSE;
+	if( CdKey == "\0" ) return FALSE;
 	sprintf( filename, "lostpet/%s.txt", CdKey);
 	if( (fp=fopen( filename, "r")) == NULL ) return FALSE;
 
@@ -772,7 +759,7 @@ BOOL NPC_backupLostPetString( int toindex)
 	char filename[256];
 
 	CdKey = CHAR_getChar( toindex, CHAR_CDKEY );
-	if( CdKey == NULL ) return FALSE;
+	if( CdKey == "\0" ) return FALSE;
 	sprintf( filename, "lostpet/%s.txt", CdKey);
 	if( (fp=fopen( filename, "w")) == NULL ) return FALSE;
 

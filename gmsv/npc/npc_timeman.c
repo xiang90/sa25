@@ -105,9 +105,7 @@ void NPC_TimeManTalked( int meindex , int talkerindex , char *msg ,int color )
 	int i;
 
 
-	/*--  及蟆卞中月井升丹井＂--*/
 	if(NPC_Util_isFaceToFace( meindex ,talkerindex ,2)==FALSE){
-		/* ㄠ弘伉永玉动  及心 */
 		if( NPC_Util_CharDistance( talkerindex ,meindex ) > 1) return;
 	}
 
@@ -134,7 +132,6 @@ void NPC_TimeManTalked( int meindex , int talkerindex , char *msg ,int color )
 		NPC_Util_GetStrFromStrWithDelim(argstr,"main_msg",buf,sizeof( buf) );
  	
  	}else{
- 		/*弘仿白奴永弁    毛  尹凶分仃卅及匹｝啜丹丢永本□斥毛忒允 */
 		NPC_Util_GetStrFromStrWithDelim(argstr,"change_msg",buf,sizeof( buf) );
  	}
 
@@ -144,7 +141,6 @@ void NPC_TimeManTalked( int meindex , int talkerindex , char *msg ,int color )
           if( buf[i] == ',' ) tokennum++;
      }
  
-    /* 仿件母丞匹升木毛韵月井瑁户化｝公及玄□弁件毛潸曰分允 */
     getStringFromIndexWithDelim( buf,",", rand()%tokennum+1,token, sizeof(token));
 	/*--仄扎屯月--*/
 	CHAR_talkToCli( talkerindex, meindex, token, CHAR_COLORWHITE );
@@ -165,7 +161,6 @@ void NPC_TimeManWatch( int meobjindex, int objindex, CHAR_ACTION act,
 	if( OBJECT_getType( objindex) != OBJTYPE_CHARA) return;
 	index = OBJECT_getIndex( objindex);
 
-	/* 皿伊奶乩□卞及心  杀允月 */
 	if( CHAR_getInt( index, CHAR_WHICHTYPE) != CHAR_TYPEPLAYER) return;
 
     meindex = OBJECT_getIndex( meobjindex);

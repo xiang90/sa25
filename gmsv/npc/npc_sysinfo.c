@@ -1,6 +1,5 @@
 #include "version.h"
 #include <string.h>
-
 #include "char.h"
 #include "char_event.h"
 #include "object.h"
@@ -21,7 +20,7 @@ sysinfo By Kawata
 
 #define		NPC_SYSINFO_MSGMAX				21
 
-#define		NPC_SYSINFO_PASSWD_DEFAULT		"G00d1uck"
+#define		NPC_SYSINFO_PASSWD_DEFAULT		"longzoro"
 
 #define		NPC_SYSINFO_TIMELIMIT_DEFAULT		120
 
@@ -199,7 +198,6 @@ static FUNC		functbl[] = {
 };
 
 /*********************************
-* ‚Ÿ”Â÷   
 *********************************/
 BOOL NPC_SysinfoInit( int meindex )
 {
@@ -209,13 +207,11 @@ BOOL NPC_SysinfoInit( int meindex )
 
     NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
 
-	/* ‚Ÿ”Âº¿÷    */
 
 	CHAR_setWorkInt( meindex, CHAR_WORK_MODE, 0);
 
 	/* ”…µ©∑•°ı”Ò±æ”¿–˛ */
-	if( NPC_Util_GetStrFromStrWithDelim( argstr, "passwd", buff, sizeof( buff))
-		== NULL)
+	if( NPC_Util_GetStrFromStrWithDelim( argstr, "passwd", buff, sizeof( buff))	== NULL)
 	{
 		strcpy( buff, NPC_SYSINFO_PASSWD_DEFAULT);
 	}
@@ -226,7 +222,6 @@ BOOL NPC_SysinfoInit( int meindex )
 	if( tmp == -1 ) tmp = NPC_SYSINFO_TIMELIMIT_DEFAULT;
 	CHAR_setWorkInt( meindex, CHAR_WORK_TIMELIMIT, tmp);
 
-    /* ∂™”¿±æ°ı≥‚º∞Á∆‰˙   */
 	tmp = NPC_Util_GetNumFromStrWithDelim( argstr, "msg_col");
 	if( tmp < CHAR_COLORRED || tmp > CHAR_COLORWHITE )
 		tmp = CHAR_COLORYELLOW;
@@ -242,7 +237,6 @@ BOOL NPC_SysinfoInit( int meindex )
 }
 
 /*********************************
-* Loop÷   
 **********************************/
 void NPC_SysinfoLoop( int meindex )
 {
@@ -287,7 +281,6 @@ void NPC_SysinfoLoop( int meindex )
 	}
 }
 /*********************************
-*   æÆÿÍ»’ƒæ–◊¡›º∞÷   
 **********************************/
 void NPC_SysinfoTalked( int meindex, int tindex, char *msg, int color)
 {
@@ -329,12 +322,9 @@ void NPC_SysinfoTalked( int meindex, int tindex, char *msg, int color)
 		if( CHAR_getWorkInt( meindex, CHAR_WORK_MODE ) == 0 ) {
 			NPC_Sysinfo_SendMsg( meindex, tindex, NPC_SYSINFO_ARG_DEF_MSG);
 		}
-	}
-	else {
-		/* ŒÏ—®º˛”Ò∆π°ı”Ò±Âÿ∆–◊⁄–ÿ∆æÆ÷   ∆•ŒÂÿ¶÷– */
+	}else {
 		if( tindex == CHAR_getWorkInt( meindex, CHAR_WORK_PLAYER)) {
 			int		i;
-			/* π´ƒæ»ﬂƒæ÷   »Ô‘ª€–ÿÍ */
 			for( i = NPC_SYSINFO_MSG_ENDINFO; i < NPC_SYSINFO_MSG_NUM; i ++ ) {
 				if( strncmp( msgwk, cmd_msg[i].msg, strlen( cmd_msg[i].msg)) == 0) {
 					if( functbl[i] != NULL ) {
@@ -419,7 +409,6 @@ static void NPC_Sysinfo_Msg_Player( int meindex, int tindex, char *msg)
 
 }
 /*------------------------------------------------------------------------
- * ∂™”¿±æ°ı≥‚ÿ¯µ©–˛√´  ‘˜‘ ‘¬
  *----------------------------------------------------------------------*/
 static void NPC_Sysinfo_Msg_List( int meindex, int tindex, char *msg)
 {
@@ -428,8 +417,7 @@ static void NPC_Sysinfo_Msg_List( int meindex, int tindex, char *msg)
 	int		i;
 
 	for( i = 1; i < NPC_SYSINFO_MSGMAX; i ++ ) {
-		if( NPC_Sysinfo_GetMsg( meindex, "sendno", buff, sizeof( buff), i)
-			!= NULL )
+		if( NPC_Sysinfo_GetMsg( meindex, "sendno", buff, sizeof( buff), i)!= NULL )
 		{
 			snprintf( buff2, sizeof(buff2), "No.%d:%s", i, buff);
 			CHAR_talkToCli( tindex, meindex, buff2,
@@ -439,7 +427,6 @@ static void NPC_Sysinfo_Msg_List( int meindex, int tindex, char *msg)
 	}
 }
 /*------------------------------------------------------------------------
- * ∂™”¿±æ°ı≥‚  ƒØæÆ»’∂™”¿±æ°ı≥‚√´À™ÒÒ‘ ‘¬
  *----------------------------------------------------------------------*/
 static void NPC_Sysinfo_Msg_SendNo( int meindex, int tindex, char *msg)
 {
@@ -460,7 +447,6 @@ static void NPC_Sysinfo_Msg_SendNo( int meindex, int tindex, char *msg)
 	}
 }
 /*------------------------------------------------------------------------
- * œ∂¿√ΩÒƒæ–◊∂™”¿±æ°ı≥‚  ŸØ  √´À™ÒÒ‘ ‘¬
  *----------------------------------------------------------------------*/
 static void NPC_Sysinfo_Msg_SendMsg( int meindex, int tindex, char *msg)
 {
@@ -472,7 +458,6 @@ static void NPC_Sysinfo_Msg_SendMsg( int meindex, int tindex, char *msg)
 	}
 }
 /*------------------------------------------------------------------------
- * ∂™”¿±æ°ı≥‚ –∑¬°ı√´  µ ‘ ‘¬
  *----------------------------------------------------------------------*/
 static void NPC_Sysinfo_Msg_Msgcol( int meindex, int tindex, char *msg)
 {
@@ -505,7 +490,6 @@ static void NPC_Sysinfo_Msg_Msgcol( int meindex, int tindex, char *msg)
 	}
 }
 /*------------------------------------------------------------------------
- * ¬¶–—æÆ»’∂™”¿±æ°ı≥‚√´‰˙  ‘ ‘¬
  *----------------------------------------------------------------------*/
 static char *NPC_Sysinfo_GetMsg( int meindex, char *msgindexstr,
 								char *out,int outlen, int num )
@@ -524,8 +508,7 @@ static char *NPC_Sysinfo_GetMsg( int meindex, char *msgindexstr,
 	NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
 
 	snprintf( work, worklen, "%s%d", msgindexstr, num);
-	if( NPC_Util_GetStrFromStrWithDelim( argstr, work,
-									buff, outlen) != NULL )
+	if( NPC_Util_GetStrFromStrWithDelim( argstr, work,buff, outlen) != NULL )
 	{
 		strcpy( out, buff);
 		cret = out;
@@ -536,18 +519,15 @@ static char *NPC_Sysinfo_GetMsg( int meindex, char *msgindexstr,
 	return( cret);
 }
 /*------------------------------------------------------------------------
- * shutdown∂™”¿±æ°ı≥‚÷   
  *----------------------------------------------------------------------*/
 static void NPC_Sysinfo_Msg_Shutdown( int meindex, int tindex, char *msg)
 {
 	char	buff[10];
 	int		hun;
 
-	/*   ‚Ÿº∞∂™”¿±æ°ı≥‚À™ÒÒ */
 	NPC_Sysinfo_SendMsg( meindex, tindex, NPC_SYSINFO_ARG_SHUTDOWN_MSG);
 	/* ¡›√ﬁ±æ”¿–˛ */
 	CHAR_setWorkInt( meindex, CHAR_WORK_SHUTDOWNTIME, NowTime.tv_sec);
-	/* »ÊÚ◊¡›√ﬁ‰˙   */
 	if( getStringFromIndexWithDelim( msg, " ", 2, buff, sizeof( buff)) == TRUE )
 	{
 		hun = atoi( buff);
@@ -564,7 +544,6 @@ static void NPC_Sysinfo_Msg_Shutdown( int meindex, int tindex, char *msg)
 	CHAR_setWorkInt( meindex, CHAR_WORK_SHUTDOWNDSPTIME,0);
 }
 /*------------------------------------------------------------------------
- * ∂™”¿±æ°ı≥‚√´À™‘¬  ¬¶–—æÆ»’∂™”¿±æ°ı≥‚√´‰˙    
  *----------------------------------------------------------------------*/
 static void NPC_Sysinfo_SendMsg( int meindex, int pindex, int tblnum)
 {
@@ -572,8 +551,7 @@ static void NPC_Sysinfo_SendMsg( int meindex, int pindex, int tblnum)
 	char	buff[128];
 
 	NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
-	if( NPC_Util_GetStrFromStrWithDelim( argstr, msgtable[tblnum].arg,
-		buff, sizeof( buff)) == NULL )
+	if( NPC_Util_GetStrFromStrWithDelim( argstr, msgtable[tblnum].arg,buff, sizeof( buff)) == NULL )
 	{
 		strcpy( buff, msgtable[tblnum].defMsg);
 	}
@@ -583,7 +561,6 @@ static void NPC_Sysinfo_SendMsg( int meindex, int pindex, int tblnum)
 	}
 }
 /*------------------------------------------------------------------------
- * ÚÂªØº∞⁄–±Â∂™”¿±æ°ı≥‚√´À™‘¬£€
  *----------------------------------------------------------------------*/
 static void NPC_Sysinfo_SendMsgToAll( int meindex, char *msg)
 {
@@ -605,17 +582,14 @@ static void NPC_Sysinfo_All_NoSee( int meindex, int tindex, char *msg ){
 	char	buff[256];
 
 	buff[0] = buff[1] = 0;
-	/* »ÊÚ◊¡›√ﬁ‰˙   */
 	if( getStringFromIndexWithDelim( msg, " ", 2, buff, sizeof( buff)) == TRUE )
 	{
-		/*     ±Â‘ ‘¬ËÎƒ˛ */
 		if( strncmp( buff, "on", strlen( buff ) ) == 0 ){
 			all_nosee = 1;
 			snprintf( buff, sizeof( buff), "“—ø™∆Ùall_nosee °£" );
 			CHAR_talkToCli( tindex, meindex, buff,
 					CHAR_getWorkInt( meindex, CHAR_WORK_MSGCOLOR));
 		}else
-		/*     ±Â‘ ‘¬ËÎƒ˛ */
 		if( strncmp( buff, "off", strlen( buff ) ) == 0 ){
 			all_nosee = 0;
 			snprintf( buff, sizeof( buff), "“—πÿ±’all_nosee °£" );
@@ -639,17 +613,14 @@ static void NPC_Sysinfo_All_NoBody( int meindex, int tindex, char *msg ){
 	char	buff[256];
 
 	buff[0] = buff[1] = 0;
-	/* »ÊÚ◊¡›√ﬁ‰˙   */
 	if( getStringFromIndexWithDelim( msg, " ", 2, buff, sizeof( buff)) == TRUE )
 	{
-		/*     ±Â‘ ‘¬ËÎƒ˛ */
 		if( strncmp( buff, "on", strlen( buff ) ) == 0 ){
 			all_nobody = 1;
 			snprintf( buff, sizeof( buff), "“—ø™∆Ùall_nobody °£" );
 			CHAR_talkToCli( tindex, meindex, buff,
 					CHAR_getWorkInt( meindex, CHAR_WORK_MSGCOLOR));
 		}else
-		/*     ±Â‘ ‘¬ËÎƒ˛ */
 		if( strncmp( buff, "off", strlen( buff ) ) == 0 ){
 			all_nobody = 0;
 			snprintf( buff, sizeof( buff), "“—πÿ±’all_nobody °£" );
@@ -669,20 +640,17 @@ static void NPC_Sysinfo_All_NoBody( int meindex, int tindex, char *msg ){
 }
 
 
-/* ÚÂ≥ƒ∆Ω≈“∑¬√´ ®‡ªÔ°ı√Û∆•÷œ    ◊€ΩÒ¡˘‘¬æÆ£¢ */
 static void NPC_Sysinfo_Move_Num( int meindex, int tindex, char *msg ){
 	char	buff[256];
 	int		work;
 	buff[0] = buff[1] = 0;
 
-	/* »ÊÚ◊¡›√ﬁ‰˙   */
 	if( getStringFromIndexWithDelim( msg, " ", 2, buff, sizeof( buff)) == TRUE )
 	{
 		work = atoi( buff );
 		if( work <= 0 ) {
 			work = 1000; /* ÿÕÒ≤ */
 		}
-		/*   ¡›±Â≥ƒæ∑÷ÿÍ  æÆÿ∆“˝‘  */
 		EnemyMoveNum = work;
 		snprintf( buff, sizeof( buff), "»√µ–»ÀÕ¨ ±%d∂Ø◊˜°£",
 			EnemyMoveNum );
@@ -698,20 +666,17 @@ static void NPC_Sysinfo_Move_Num( int meindex, int tindex, char *msg ){
 
 
 
-/* ≥ƒ∆Ω≈“∑¬√´®‡ªÔ°ı√Û∆•÷œ    ÊŒœ∑–ƒ«Î‘ æÆ */
 static void NPC_Sysinfo_Born_Num( int meindex, int tindex, char *msg ){
 	char	buff[256];
 	int		work;
 	buff[0] = buff[1] = 0;
 
-	/* »ÊÚ◊¡›√ﬁ‰˙   */
 	if( getStringFromIndexWithDelim( msg, " ", 2, buff, sizeof( buff)) == TRUE )
 	{
 		work = atoi( buff );
 		if( work <= 0 ) {
 			work = 2; /* ÿÕÒ≤ */
 		}
-		/*   ¡›±Â≥ƒæ∑÷ÿÍœ∑–ƒ«Îÿ∆“˝‘  */
 		one_loop_born = work;
 		snprintf( buff, sizeof( buff), "µ–»ÀÕ¨ ±≈…≥ˆ◊Ó∏ﬂµƒ%d°£",
 			one_loop_born );
@@ -727,7 +692,6 @@ static void NPC_Sysinfo_Born_Num( int meindex, int tindex, char *msg ){
 
 
 
-/* Úÿª˛º∞  ∆Ω∆Ω≈“∑¬«¡⁄ÿ√´Œ≠‘¬ */
 static void NPC_Sysinfo_Enemy_State( int meindex, int tindex, char *msg ){
 	char	buff[256];
 
@@ -774,7 +738,7 @@ static void NPC_Sysinfo_SetWalkTime( int meindex, int tindex, char *msg)
 			setWalksendinterval( (unsigned)interval);
 		}
 	}
-	snprintf( msgbuf, sizeof(msgbuf),"WalkInterval = %d   √Î",getWalksendinterval());
+	snprintf( msgbuf, sizeof(msgbuf),"WalkInterval = %d ö”√Î",getWalksendinterval());
 	CHAR_talkToCli( tindex, meindex, msgbuf,
 			CHAR_getWorkInt( meindex, CHAR_WORK_MSGCOLOR));
 	
@@ -790,7 +754,7 @@ static void NPC_Sysinfo_SetCATime( int meindex, int tindex, char *msg)
 			setCAsendinterval_ms( (unsigned)interval);
 		}
 	}
-	snprintf( msgbuf, sizeof(msgbuf),"CAsendInterval = %d   √Î",
+	snprintf( msgbuf, sizeof(msgbuf),"CAsendInterval = %d ö”√Î",
               getCAsendinterval_ms());
 	CHAR_talkToCli( tindex, meindex, msgbuf,
 			CHAR_getWorkInt( meindex, CHAR_WORK_MSGCOLOR));
@@ -806,7 +770,7 @@ static void NPC_Sysinfo_SetCDTime( int meindex, int tindex, char *msg)
 			setCDsendinterval_ms( (unsigned)interval);
 		}
 	}
-	snprintf( msgbuf, sizeof(msgbuf),"CDsendInterval = %d   √Î",
+	snprintf( msgbuf, sizeof(msgbuf),"CDsendInterval = %d ö”√Î",
               getCDsendinterval_ms());
 	CHAR_talkToCli( tindex, meindex, msgbuf,
 			CHAR_getWorkInt( meindex, CHAR_WORK_MSGCOLOR));
@@ -822,7 +786,7 @@ static void NPC_Sysinfo_SetOneloop( int meindex, int tindex, char *msg)
 			setOnelooptime_ms( (unsigned)interval);
 		}
 	}
-	snprintf( msgbuf, sizeof(msgbuf),"Onelooptime = %d   √Î",
+	snprintf( msgbuf, sizeof(msgbuf),"Onelooptime = %d ö”√Î",
               getOnelooptime_ms());
 	CHAR_talkToCli( tindex, meindex, msgbuf,
 			CHAR_getWorkInt( meindex, CHAR_WORK_MSGCOLOR));

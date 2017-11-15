@@ -14,7 +14,6 @@ static int readblock;
 static int NowMemory;
 static struct timeval AllocOldTime;
 
-
 typedef struct tagMemory
 {
     char*   pointer;
@@ -27,10 +26,10 @@ static Memory *mem;
 
 void memEnd( void )
 {
-    if( mem != NULL && mem[0].pointer != NULL ){
-        free(mem[0].pointer);
-        free(mem);
-    }
+  if( mem != NULL && mem[0].pointer != NULL ){
+    free(mem[0].pointer);
+    free(mem);
+  }
 }
 
 BOOL configmem( int unit , int unitnumber )
@@ -64,12 +63,12 @@ BOOL memInit( void )
     }
     mem[0].pointer = calloc( 1, UNIT*UNITNUMBER );
     if( mem[0].pointer == NULL ){
-        print( "memInit: Can't Allocate %d byte\n" , UNIT*UNITNUMBER );
+        print( "²»¿É·ÖÅä %d byte\n" , UNIT*UNITNUMBER );
         free( mem );
         return FALSE;
     }
     memset( mem[0].pointer , 0 , sizeof( UNIT*UNITNUMBER ));
-
+		print( "ÄÚ´æÒÑ·ÖÅä %.2f MB..." ,UNIT*UNITNUMBER/1024.0/1024.0);
 #ifdef DEBUG
     print( "Allocate %d byte( %.2fK byte %.2fM byte )\n" ,
            UNIT*UNITNUMBER,
@@ -85,10 +84,10 @@ BOOL memInit( void )
 	AllocOldTime.tv_sec = NowTime.tv_sec;
 	AllocOldTime.tv_usec = NowTime.tv_usec;
 	
-    return TRUE;
+  return TRUE;
 }
 
-void*   allocateMemory( const unsigned int nbyte )
+void* allocateMemory( const unsigned int nbyte )
 {
     int i;
     int arrayAllocSize;
@@ -100,6 +99,7 @@ void*   allocateMemory( const unsigned int nbyte )
     if( arrayAllocSize == 0 )return NULL;
 #ifdef DEBUG
     debug( arrayAllocSize , d );
+    printf("(%.2f KB)\n",nbyte/1024.0);
 #endif
 	i = readblock;
 	while( 1 ) {
@@ -158,15 +158,12 @@ void*   allocateMemory( const unsigned int nbyte )
 	}
 
 	return ret;
-	
 }
 
 
 
 /*------------------------------------------------------------
- * allocateMemoryÆ¥¸îâçØÆÐ×¶ªÆ¹Øø¡õÃ«freeÔÊÔÂ£Û
  * Â¦ÐÑ
- *  freepointer     int     ¸îâçÔÊÔÂÛÆ  ¼°ºÌÄÌ¼þÕý¡õ
  * ß¯Ô»°À
  *  Ø¦ØÆ
  ------------------------------------------------------------*/

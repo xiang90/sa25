@@ -12,10 +12,6 @@
 #include "magic_base.h"
 #include "handletime.h"
 
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-#include "profession_skill.h"
-#endif
-
 int NowBattlerFd;
 #if 1
 int BATTLE_MpDown( int charaindex, int down )
@@ -49,7 +45,6 @@ int BATTLE_MpDown( int charaindex, int down )
 }
 #endif
 
-int checkErrorStatus (int charaindex);
 
 void BattleCommandDispach( int fd,	char *command )
 {
@@ -88,7 +83,7 @@ void BattleCommandDispach( int fd,	char *command )
 		EscapeFree = 0; 
 		if (CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEWATCH )!=TRUE){
 			CHAR_talkToCli( charaindex, -1,
-                "系统把你定在战斗里。", CHAR_COLORYELLOW );
+                "华义大魔王使出定身法，定定定定定定把你定在战斗里。", CHAR_COLORYELLOW );
             CHAR_setWorkInt( charaindex, CHAR_WORKBATTLECOM1, BATTLE_COM_GUARD );
             CHAR_setWorkInt( charaindex, CHAR_WORKBATTLEMODE, BATTLE_CHARMODE_C_OK );
             //sprintf( szBuffer, "Command(%s)(防御)", CHAR_getUseName( charaindex ) );
@@ -365,7 +360,7 @@ void BattleCommandDispach( int fd,	char *command )
 				int magic_array = -1;
 				magic_array = MAGIC_getMagicArray( magicindex );
 				magicarg = MAGIC_getChar( magic_array, MAGIC_OPTION );
-				if( magicarg != NULL && strstr( magicarg, "SKILL") != NULL )	{
+				if( magicarg != "\0" && strstr( magicarg, "SKILL") != NULL )	{
 					int mp = ITEM_getInt( itemindex, ITEM_MAGICUSEMP );
 					if( MAGIC_AttSkill( charaindex, ToNo, magic_array, mp) == FALSE )	{
 						CHAR_setWorkInt( charaindex, CHAR_WORKBATTLECOM1, BATTLE_COM_WAIT );
@@ -430,59 +425,6 @@ void BattleCommandDispach( int fd,	char *command )
 			min( 100, CHAR_getInt( charaindex, CHAR_MP ) + 30 ) );
 
 	}else
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-	if( strncmp( command, "P", 1 ) == 0 ){
-		int iNum=-1, ToNo=-1;
-		int skillindex=-1;
-		int char_pskill=-1, profession_skill=-1, Pskillid=-1;
-
-		if( checkErrorStatus( charaindex) )	{
-			BattleCommandDispach( fd, "N");
-			return;
-		}
-
-		EscapeFree = 0;
-
-		if( sscanf( command+2, "%X|%X", &iNum, &ToNo ) < 1 ){
-			iNum = -1; ToNo = -1;
-		}
-
-		if( CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEMODE) == BATTLE_CHARMODE_NONE ){
-			print("\n\n 非法封包(19001)(%s)(%s)\n\n", CHAR_getChar(charaindex, CHAR_CDKEY), CHAR_getChar(charaindex, CHAR_NAME) );
-			return;
-		}
-#ifndef _PROSKILL_OPTIMUM	// Robin fix cancel 此处略过职业检查, 改在 PROFESSION_SKILL_Use 中检查
-		// 人物的职业
-		char_pskill = CHAR_getInt( charaindex, PROFESSION_CLASS );
-		// 技能的职业
-		skillindex = PROFESSION_SKILL_GetArray( charaindex, iNum);
-		Pskillid = PROFESSION_SKILL_getskillArray( skillindex);
-		profession_skill = PROFESSION_SKILL_getInt( Pskillid, PROFESSION_SKILL_PROFESSION_CLASS);
-
-		//if( (char_pskill > 0) && (char_pskill == profession_skill) ){
-#else
-		if( 1 ) {
-#endif
-			if( PROFESSION_SKILL_Use( charaindex, iNum, ToNo, NULL ) == 1 ){
-				//sprintf( szBuffer, "Command(%s)(职业技能)", CHAR_getUseName( charaindex ) );
-				endFlg = 1;
-			}else{
-				print("\n 职技失败!! ");
-				CHAR_setWorkInt( charaindex, CHAR_WORKBATTLECOM1, BATTLE_COM_WAIT );
-				CHAR_setWorkInt( charaindex, CHAR_WORKBATTLEMODE, BATTLE_CHARMODE_C_OK );
-				//sprintf( szBuffer, "Command(%s)(待机)", CHAR_getUseName( charaindex ) );			
-			}
-		}else{
-			print("\n 改封包??职业技能ID不正确:%s:%d:%d \n",
-					CHAR_getChar( charaindex, CHAR_CDKEY), char_pskill, profession_skill);
-			CHAR_setWorkInt( charaindex, CHAR_WORKBATTLECOM1, BATTLE_COM_WAIT );
-			CHAR_setWorkInt( charaindex, CHAR_WORKBATTLEMODE, BATTLE_CHARMODE_C_OK );
-			//sprintf( szBuffer, "Command(%s)(待机)", CHAR_getUseName( charaindex ) );
-		}
-
-		EscapeFree = 0;		
-	}else
-#endif
 
 	{
 		//sprintf( szBuffer, "Command(%s)(失败)", CHAR_getUseName( charaindex ) );
@@ -704,61 +646,6 @@ BOOL BATTLE_MakeCharaString(
 				flg |= BC_FLG_SARS;
 			}
 #endif
-#ifdef _PROFESSION_SKILL			// WON ADD 人物职业技能
-			if( CHAR_getWorkInt( charaindex, CHAR_WORKDIZZY ) > 0 ){
-				flg |= BC_FLG_DIZZY;			// 晕眩	
-			}
-			if( CHAR_getWorkInt( charaindex, CHAR_WORKENTWINE ) > 0 ){
-				flg |= BC_FLG_ENTWINE;			// 树根缠绕
-			}
-			if( CHAR_getWorkInt( charaindex, CHAR_WORKDRAGNET ) > 0 ){
-				flg |= BC_FLG_DRAGNET;			// 天罗地网	
-			}
-			if( CHAR_getWorkInt( charaindex, CHAR_WORKICECRACK ) > 0 ){
-			//	flg |= BC_FLG_ICECRACK;			// 冰爆术	
-			}			
-			if( CHAR_getWorkInt( charaindex, CHAR_WORKOBLIVION ) > 0 ){
-				flg |= BC_FLG_OBLIVION;			// 遗忘
-			}
-			if( CHAR_getWorkInt( charaindex, CHAR_WORKICEARROW ) > 0 ){
-				flg |= BC_FLG_ICEARROW;			// 冰箭
-			}
-			if( CHAR_getWorkInt( charaindex, CHAR_WORKBLOODWORMS ) > 0 ){
-				flg |= BC_FLG_BLOODWORMS;		// 嗜血蛊
-			}
-			if( CHAR_getWorkInt( charaindex, CHAR_WORKSIGN ) > 0 ){
-				flg |= BC_FLG_SIGN;				// 一针见血
-			}		
-			if( CHAR_getWorkInt( charaindex, CHAR_WORKINSTIGATE ) > 0 ){
-				flg |= BC_FLG_CARY;				// 挑拨
-			}
-			if( CHAR_getWorkInt( charaindex, CHAR_WORK_F_ENCLOSE ) > 0 ){
-				flg |= BC_FLG_F_ENCLOSE;		// 火附体
-			}
-			if( CHAR_getWorkInt( charaindex, CHAR_WORK_I_ENCLOSE ) > 0 ){
-				flg |= BC_FLG_I_ENCLOSE;		// 冰附体
-			}
-			if( CHAR_getWorkInt( charaindex, CHAR_WORK_T_ENCLOSE ) > 0 ){
-				flg |= BC_FLG_T_ENCLOSE;		// 雷附体
-			}
-#endif
-#ifdef _PROFESSION_ADDSKILL
-			if( CHAR_getWorkInt( charaindex, CHAR_WORKANNEX ) > 0 ){
-				flg |= BC_FLG_T_ENCLOSE;		// 附身术
-			}
-			if( CHAR_getWorkInt( charaindex, CHAR_WORKWATER ) > 0 ){
-				flg |= BC_FLG_WATER;		// 水附体
-			}
-			if( CHAR_getWorkInt( charaindex, CHAR_WORKFEAR ) > 0 ){
-				flg |= BC_FLG_FEAR;		// 恐惧
-			}
-#endif
-#ifdef _PETSKILL_LER
-			if(CHAR_getWorkInt(charaindex,CHAR_WORK_RELIFE) > 0){
-				flg |= BC_FLG_CHANGE;		// 雷尔变身
-				CHAR_setWorkInt(charaindex,CHAR_WORK_RELIFE,0);
-			}
-#endif
 			makeEscapeString( CHAR_getUseName( charaindex ),
 				szEscapeName, 
 				sizeof( szEscapeName ) );
@@ -906,9 +793,9 @@ void BATTLE_CharSendAll( int battleindex )
 	{
 /*
 		让开,让开~~~~~~~
-                     
-               ΘΘ  
-             ⊙  ⊙  我来给你送月饼了
+             ╭══╮
+           ╭╯ΘΘ║
+           ╰⊙═⊙╯我来给你送月饼了
 */
 		char msg[32]={0};
 		//print("\n宠物id:%d",CHAR_getInt( pindex, CHAR_PETID)); 
@@ -1005,7 +892,7 @@ void BattleEncountOut( int charaindex)
 		pmode = CHAR_getWorkInt( pindex, CHAR_WORKBATTLEMODE );
 		if( pmode > 0 && pmode != BATTLE_CHARMODE_FINAL ){
 				BATTLE_RescueParentTry( charaindex, pindex );
-				print( "较慢参加战斗(%s)\n", CHAR_getUseName( charaindex ) );
+//				print( "较慢参加战斗(%s)\n", CHAR_getUseName( charaindex ) );
 		}
 	}
 
@@ -1031,20 +918,6 @@ BOOL	BATTLE_PetDefaultCommand( int petindex )
 	return TRUE;
 }
 
-#if 0
-{
-	int Sign, Damage, i;
-	Sign = (LifeUp >= 0)?(1):(0);
-	Damage = ABS( LifeUp );
-
-	for( i = 0; i < ; i ++ ){
-	// (蕙滇)仇仇匹戊穴件玉毛中木月
-	snprintf( szCommand, sizeof(szCommand),	"BD|r%X|0|%X|d%X|", ToList[i], Sign, Damage );
-	BATTLESTR_ADD( szCommand );
-}
-
-#endif
-
 // Robin fix 检查石化昏睡不可战斗
 int checkErrorStatus( int charaindex)
 {
@@ -1054,15 +927,7 @@ int checkErrorStatus( int charaindex)
 		CHAR_getWorkInt( charaindex, CHAR_WORKPARALYSIS ) > 0	// 麻痹
 		|| CHAR_getWorkInt( charaindex, CHAR_WORKSTONE ) > 0	// 石化
 		|| CHAR_getWorkInt( charaindex, CHAR_WORKSLEEP ) > 0	// 睡眠
-#ifdef _PROFESSION_SKILL
 		//|| CHAR_getWorkInt( charaindex, CHAR_WORKBARRIER ) > 0	// 魔障
-		|| CHAR_getWorkInt( charaindex, CHAR_WORKDIZZY ) > 0	// 晕眩
-		|| CHAR_getWorkInt( charaindex, CHAR_WORKDRAGNET ) > 0	// 天罗地网
-		//|| CHAR_getWorkInt( charaindex, CHAR_WORK_T_ENCLOSE ) > 0 // 雷附体
-#endif
-#ifdef _PROFESSION_ADDSKILL
-//		|| CHAR_getWorkInt( charaindex, CHAR_DOOMTIME ) > 0 //世界末日集气
-#endif
 	)
 	{
 
@@ -1072,7 +937,7 @@ int checkErrorStatus( int charaindex)
 		else
 			strcpy( cdkey, CHAR_getChar( charaindex, CHAR_OWNERCDKEY) );
 	
-		print("\n 改封包!不可战斗的状态!!:%s ", cdkey );
+//		print("\n 改封包!不可战斗的状态!!:%s ", cdkey );
 
 		return 1;
 	}

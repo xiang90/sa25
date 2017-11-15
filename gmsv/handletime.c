@@ -8,22 +8,11 @@
 
 #define LSTIME_SECONDS_PER_DAY 5400 /* LSTIMEÓò  ÉÙÊÏ¼°òØ  ¼°  ÐÑ */
 
-/*
-  LSTIME_SECONDS_PER_DAY Ã«  ÒüÔÂÎç£ýÁÝÃÞ¼°ñ×ÐÄÌîÄþÃ«  ÒüÔÂ³ðÎç»¥Æ¥ÎåÔÂ£Û
-
-  °À            LSÁÝÃÞÆ¥Óò  Ø¤Ð×Ô»¼°òØ  ¼°ÁÝÃÞÐÑ
-  9000 (  ÉÍ)   2.5 [hour]
-  900           0.25[hour] = 15[min]
-  90            0.025[hour] = 1.5[min] = 90[sec]
-  9             9[sec]
-
-*/
    
 #define LSTIME_HOURS_PER_DAY 1024 /* LSTIMEÓò  ÉÙÊÏ¼°LSTIME¼°ÁÝÃÞÐÑ */
 #define LSTIME_DAYS_PER_YEAR 100 /* LSTIMEÓò  ÉÙÊÏ¼°LSTIME¼°  ÐÑ */
 
 
-// WON REM 
 /*
 // Nuke 0701: localtime
 
@@ -44,12 +33,9 @@ struct tm *localtime(const time_t *timep)
 */
 
 /*------------------------------------------------------------
- * Óò»ï¡õÃó±åÓò¼ÔôÄÈÉÄ¾»¯£ýÁÝÃÞÃ«ñ×»§ÔÂ£Û
  * Â¦ÐÑ
  *  Ø¦ØÆ
  * ß¯Ô»°À
- *  ÔÀ      TRUE(1)
- *  ÁÃ      FALSE(0)
  ------------------------------------------------------------*/
 BOOL setNewTime( void )
 {
@@ -65,44 +51,28 @@ BOOL setNewTime( void )
 
 
 /*******************************************************************
-ÆáÝçÒï±åØÆÐ×£ÛbyHiO 1998/12/4 18:37
 *******************************************************************/
 static long era = (long)912766409 + 5400; 
 									/* SA¼°¿Ð±åÄÚÈÕØÆÐ× */
-									/* LSÝç  Ã«ÀÃñøÔÊÔÂ»¯ÎåÎç¡õØ¦ÐÑ°À£Û
-                                    ÛÍ·ÂÄÌÊ§¼þÐþÎç  ÔªÔªÔúØ¦ÖÐÎç·Ö»§£Û*/
-
-/*******************************************************************
-	Ñ¨ÆË¼þÁÝÃÞ¾®ÈÕLSÁÝÃÞ±åÔÊÔÂ
-	long t : timeÆ¥ÇëÔÂ
-	LSTIME *lstime : LSTIMEÑáÕ°  ³ß¼°ºÌÄÌ¼þÕý
-*******************************************************************/
 void RealTimeToLSTime(long t , LSTIME *lstime)
 {
 	long lsseconds = t - era; /* LSÝç  ¾®ÈÕ¼°  ÐÑ */
     long lsdays; /* LSÝç  ¾®ÈÕ¼°  ÐÑ */
 
-    /* Ýç  ¾®ÈÕ¼°  ÐÑÃ«1  ñ²Ô»¼°  ÐÑÆ¥à«ÔÂÎç£ý  ±åØ¦ÔÂ */
 	lstime->year = (int)( lsseconds/(LSTIME_SECONDS_PER_DAY*LSTIME_DAYS_PER_YEAR) );
 
     lsdays = lsseconds/LSTIME_SECONDS_PER_DAY;/* ÒýÄÚÝç  ¾®ÈÕ¼°  ÐÑÃ«»ÍÒ£ØÆ»¯ */
 	lstime->day  = lsdays % LSTIME_DAYS_PER_YEAR;/*   ñ²Ð×Ô»¼°  ÐÑÆ¥à«ÔÈÐ×Ø¤ÒýÔ»»¥  */
 
 
-    /*(450*12)  Æ¥1  */
     lstime->hour = (int)(lsseconds % LSTIME_SECONDS_PER_DAY )
-/* ³ð³ðÒýÆ¥Æ¥£ýÓò  »¥ï§ÒýÔÈ»¯¾®ÈÕÖÏ  Ð×ÔÈÐ×¾®£Û */
         * LSTIME_HOURS_PER_DAY / LSTIME_SECONDS_PER_DAY;
-    /* Óò  Ø¤Ð×Ô»¼°  ÐÑÆ¥à«ÔÈ»¯¾®ÈÕÓò  Ø¤Ð×Ô»¼°ÁÝÃÞÐÑÃ«¾®ØêÔÂÎçòØ»þÖÏÁÝ
-     Ø¦¼°¾®»¥´õ¾®ÔÂ£Û*/
 
 	return;
 }
 
 /*******************************************************************
 	LSÁÝÃÞ¾®ÈÕÑ¨ÆË¼þÁÝÃÞ±åÔÊÔÂ
-	LSTIME *lstime : LSTIMEÑáÕ°  ³ß¼°ºÌÄÌ¼þÕý
-	long *t :   ÁÝÃÞ³ß¼°ºÌÄÌ¼þÕý
 *******************************************************************/
 void LSTimeToRealTime( LSTIME *lstime, long *t)
 {
@@ -111,7 +81,6 @@ void LSTimeToRealTime( LSTIME *lstime, long *t)
                *LSTIME_HOURS_PER_DAY
 
         +     lstime->year)
-        /*³ð¼°èúÐÑ·´ÈÉÊ²ÔÈ»¯ÖÐÔÂ·½µ¤±åÎ­ÒüÔÂ£Ûnakamura      */
 
 
         *450;
@@ -119,9 +88,6 @@ void LSTimeToRealTime( LSTIME *lstime, long *t)
 }
 
 /*******************************************************************
-	LSÁÝÃÞÆ¥Æá¼°ÁÝÃÞà¼ÛÐÃ«  ÔÂ
-	  Ô»°À int :   0£ýÆ»1£ýïß2£ý  3
-	LSTIME *lstime : LSTIMEÑáÕ°  ³ß¼°ºÌÄÌ¼þÕý
 *******************************************************************/
 LSTIME_SECTION getLSTime (LSTIME *lstime)
 {
@@ -312,70 +278,4 @@ void ASSESS_getSysEfficacy_sub( float *TVsec, int loop_index)
 #endif
 
 #endif
-
-#ifdef _CHECK_BATTLETIME
-
-#include "battle.h"
-static clock_t battleComClock = 0;
-double battleComTotalTime[BATTLE_COM_END];
-long battleComTotalUse[BATTLE_COM_END];
-
-void check_battle_com_init( void)
-{
-	print("\n check_battle_com_init... ");
-	print("\n BATTLE_COM_END = %d ", BATTLE_COM_END);
-	memset( battleComTotalTime, 0, sizeof(double)*BATTLE_COM_END);
-	memset( battleComTotalUse, 0, sizeof(long)*BATTLE_COM_END);
-}
-
-void check_battle_com_begin( void)
-{
-	print(" bi ");
-	battleComClock = clock();
-}
-
-void check_battle_com_end( int b_com)
-{
-	clock_t	endClock;
-	double	usedClock;
-
-	endClock = clock();
-	usedClock = (double)(endClock - battleComClock)/CLOCKS_PER_SEC;
-
-	print(" BC[%d,%0.10f] ", b_com, usedClock);
-	battleComTotalTime[b_com] += usedClock;
-	battleComTotalUse[b_com] ++;
-
-	print(" bo ");
-
-}
-
-void check_battle_com_show( void)
-{
-	FILE *outfile;
-	int i;
-	char outstr[1024];
-
-	outfile = fopen( "battle_com_time.txt", "w");
-	if( !outfile)
-	{
-		print("\n OPEN battle_com_time.txt ERROR!!! \n");
-		return;
-	}
-	
-	for( i =0; i <BATTLE_COM_END; i++)
-	{
-		sprintf( outstr, "%d\t=\t%0.10f\t*\t%d\n",
-				i,
-				(double)(battleComTotalTime[i]/battleComTotalUse[i]),
-				battleComTotalUse[i] );
-		fputs( outstr, outfile);
-	}
-	fclose( outfile);
-
-	print("\n RECORD battle_com_time.txt COMPLETE \n");
-}
-
-#endif
-
 

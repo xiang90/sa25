@@ -23,7 +23,7 @@ typedef enum
 	MAGIC_TARGET_WITHOUTMYSELFANDPET,  /* 愤坌午矢永玄动陆 */
 	MAGIC_TARGET_WHOLEOTHERSIDE,/*     及扔奶玉蝈   */
 
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
 
         MAGIC_TARGET_SINGLE,            // 针对敌方的某一人
         MAGIC_TARGET_ONE_ROW,           // 针对敌方的某一列
@@ -38,7 +38,7 @@ typedef enum
 	MAGIC_FIELD,				/* 银尹月桦赭 */
 	MAGIC_TARGET,				/* 覆擂 */
 	MAGIC_TARGET_DEADFLG,		/* 韶氏分樊手覆擂卞殖户月井 */
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
   MAGIC_IDX ,
 #endif
 	MAGIC_DATAINTNUM,
@@ -60,7 +60,7 @@ typedef struct tagMagic
 
 }Magic;
 
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
 
 typedef struct tagAttMagic
 {
@@ -126,7 +126,7 @@ int MAGIC_getMagicNum( void);
 BOOL MAGIC_initMagic( char *filename);
 BOOL MAGIC_reinitMagic( void );
 
-#ifdef __ATTACK_MAGIC
+#ifdef _ATTACK_MAGIC
 
 BOOL ATTMAGIC_initMagic( char *filename );
 BOOL ATTMAGIC_reinitMagic( void );

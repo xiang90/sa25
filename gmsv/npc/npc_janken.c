@@ -89,8 +89,7 @@ static void NPC_Janken_selectWindow( int meindex, int talker, int num)
 	  case 0:
 
 	  	/*-- 旦正□玄及丢永本□斥互  仃木壬巨仿□  憎 --*/
-		if(NPC_Util_GetStrFromStrWithDelim( argstr, "MainMsg", token, sizeof( token))
-	 		== NULL)
+		if(NPC_Util_GetStrFromStrWithDelim( argstr, "MainMsg", token, sizeof( token))	== NULL)
 		{
 			print("Janken:MainMsg:%s", CHAR_getChar( meindex, CHAR_NAME));
 			return ;
@@ -106,9 +105,7 @@ static void NPC_Janken_selectWindow( int meindex, int talker, int num)
 	case 1:
 		
 		//失奶  丞及民尼永弁
-		if(NPC_Util_GetStrFromStrWithDelim( argstr, "EntryItem",
-		 buf, sizeof( buf))
-		!= NULL) {
+		if(NPC_Util_GetStrFromStrWithDelim( argstr, "EntryItem", buf, sizeof( buf))!= NULL) {
 	
 			if(NPC_JankenEntryItemCheck(talker,buf) == FALSE)
 			{
@@ -269,8 +266,7 @@ void NPC_JnakenJudge(int meindex,int talker,int sel)
 			    CHAR_warpToSpecificPoint(talker, fl, x, y);
 			    
 			    //  匀凶午五反＞减少＝及失弁扑亦件毛允月［
-			    CHAR_sendWatchEvent( CHAR_getWorkInt( talker, CHAR_WORKOBJINDEX),
-							CHAR_ACTPLEASURE,NULL,0,TRUE);
+			    CHAR_sendWatchEvent( CHAR_getWorkInt( talker, CHAR_WORKOBJINDEX),	CHAR_ACTPLEASURE,NULL,0,TRUE);
 				CHAR_setWorkInt( talker, CHAR_WORKACTION, CHAR_ACTPLEASURE);
 
 	}else if(shouhai == 2){
@@ -294,8 +290,7 @@ void NPC_JnakenJudge(int meindex,int talker,int sel)
 				CHAR_warpToSpecificPoint(talker, fl, x, y);
 
 				//  仃凶午五反＞  仄中＝失弁扑亦件毛允月
-			    CHAR_sendWatchEvent( CHAR_getWorkInt( talker, CHAR_WORKOBJINDEX),
-							CHAR_ACTSAD,NULL,0,TRUE);
+			    CHAR_sendWatchEvent( CHAR_getWorkInt( talker, CHAR_WORKOBJINDEX),	CHAR_ACTSAD,NULL,0,TRUE);
 				CHAR_setWorkInt( talker, CHAR_WORKACTION, CHAR_ACTSAD);
 
 
@@ -513,7 +508,5 @@ BOOL NPC_JankenItemGet(int meindex,int talker, char *wl)
 	if(NPC_Util_GetStrFromStrWithDelim( argstr, wl, buf, sizeof( buf) ) !=NULL){
 			NPC_EventAddItem( meindex, talker, buf);
 	}
-	return TRUE;
-	
 }
 

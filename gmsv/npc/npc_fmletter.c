@@ -115,7 +115,7 @@ void NPC_FmLetterTalked( int meindex , int talkerindex , char *szMes ,int color 
 	if( CHAR_getInt( talkerindex, CHAR_FMLEADERFLAG ) == FMMEMBER_LEADER
 #else
 	if( CHAR_getInt( talkerindex, CHAR_FMLEADERFLAG ) == 1
-#endif 	
+#endif 
 			&& CHAR_getInt( talkerindex, CHAR_FMINDEX ) == fmindex )
 		NPC_FmLetter_selectWindow( meindex, talkerindex, 1 );
 	else
@@ -124,6 +124,7 @@ void NPC_FmLetterTalked( int meindex , int talkerindex , char *szMes ,int color 
 			WINDOW_BUTTONTYPE_OK,
 			-1, -1,
 			makeEscapeString( "\n只有本庄园的族长才能制作邀请函及同意书！", buf, sizeof(buf)));
+
 
 }
 /*********************************

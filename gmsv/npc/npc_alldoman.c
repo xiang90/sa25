@@ -21,23 +21,9 @@
 #ifdef _ALLDOMAN
 #include "npc_alldoman.h"
 
-#ifdef _FIX_ALLDOMAN
-void Send_S_herolist( int ti );
-#define MAX_HERO_LIST 50
-typedef struct _tagHerolistBase
-{
-	char strings[3][64];
-	int intdata[3];
-	int use;
-}HerolistBase;
-HerolistBase Herolist[MAX_HERO_LIST];
-#else
 #define MAX_HERO_COLUMN 7
 #define MAX_HERO_LIST 100
 char Herolist[MAX_HERO_LIST][MAX_HERO_COLUMN][72];
-#endif
-
-
 
 int sort[MAX_HERO_LIST][2];
 int countnum = -1 ;
@@ -169,7 +155,7 @@ static void NPC_Alldoman_selectWindow( int meindex, int talker, int num, char *d
 	 case 4:
 		 if ( showpage == 1 ) {
 			 buttontype = WINDOW_BUTTONTYPE_NEXT;
-			 sprintf( token, "４８５４４７圣饼时，吉鲁出现大批机暴横行，所到之处皆无一幸免，尼斯各村的长老达成共识，调集各村勇士，前往消灭这群发狂的机暴，这群勇士在海底隧道入口跟这群机暴激战，不料，实力相差悬殊，勇士们伤亡惨重，残馀的勇士，选择在霍特尔海底通路的入口做最");
+			 sprintf( token, "４８５４４７圣饼时，吉鲁出现大批机暴横行，所到之处皆无一幸免，尼斯各村的长老达成共识，调集各村勇士，前往消灭这群发狂的机暴，这群勇士在海底隧道入口跟这群机暴激战，不料，实力相差悬殊，勇士们伤亡惨重，残余的勇士，选择在霍特尔海底通路的入口做最");
 		 }
 		 else if ( showpage == 2 ) {
 			 buttontype = WINDOW_BUTTONTYPE_NEXT;
@@ -209,15 +195,6 @@ static void NPC_Alldoman_selectWindow( int meindex, int talker, int num, char *d
 		 windowno = NPC_ALLDOMAN_LIST_WND;
 		 sprintf ( token2 , "            姓名          头衔    楼层    等级    转生\n");
 		 for ( i=0+(showpage-1 )*15; i<showpage*15; i++) {
-#ifdef _FIX_ALLDOMAN
-			if( i >= MAX_HERO_LIST || i<0 ) break;
-			if( Herolist[i].use == 0 ) continue;
-			sprintf( token , "%16s %13s %7d %7d %7d\n" , 
-				Herolist[i].strings[1], Herolist[i].strings[2],
-				Herolist[i].intdata[3], Herolist[i].intdata[0],
-				Herolist[i].intdata[1] );
-			strcat( token2, token);
-#else
 			 if( atoi ( Herolist[sort[MAX_HERO_LIST - 1 - i ][1]][6] ) == 0 || 
 				 atoi ( Herolist[sort[MAX_HERO_LIST - 1 - i ][1]][3] ) == 0 )
 				 continue ; 
@@ -231,7 +208,6 @@ static void NPC_Alldoman_selectWindow( int meindex, int talker, int num, char *d
 			strcat ( token2 , token ) ; 
 			if ( i + 1 == countnum )
 				break;
-#endif
 		 }
 		 lssproto_WN_send( fd, windowtype, buttontype, windowno,
 			 CHAR_getWorkInt( meindex, CHAR_WORKOBJINDEX),token2);
@@ -242,8 +218,6 @@ static void NPC_Alldoman_selectWindow( int meindex, int talker, int num, char *d
 static int loadherolist = 0;
 BOOL NPC_AlldomanInit( int meindex )
 {
-//andy_log
-//print( "\n\nNPC_AlldomanInit( %d)\n\n", meindex);
 	if( loadherolist == 0){
 		loadherolist = 1;
 		saacproto_UpdataStele_send ( acfd , "FirstLoad", "LoadHerolist" , "华义" , 0 , 0 , 0 , 999 ) ; 
@@ -260,82 +234,9 @@ void NPC_AlldomanTalked( int meindex , int talker , char *msg ,int color )
 	 showpage = 1 ; 
 	 NPC_Alldoman_selectWindow(meindex, talker , 4 ,"");
 }
-#ifdef _FIX_ALLDOMAN
-void NPC_rePlaceHeroList( int fti, int tti)
-{
-	int i;
-	if( tti<0 || tti>=MAX_HERO_LIST ) return;
-	if( fti<0 || fti>=MAX_HERO_LIST ) return;
-	for( i=0; i<3; i++ ){
-		sprintf( Herolist[tti].strings[i], "%s", Herolist[fti].strings[i]);
-	}
-	for( i=0; i<4; i++ ){
-		Herolist[tti].intdata[i] = Herolist[fti].intdata[i];
-	}
-	Herolist[tti].use = Herolist[fti].use;
-	Herolist[fti].use = 0;
-}
-#endif
 void NPC_AlldomanWriteStele ( char *token )
 {
-/*#ifdef _FIX_ALLDOMAN
-	char buf1[512], buf2[256];
-	int k=0, ti=-1, i;
-	BOOL rePlace = FALSE;
 
-	if( token==NULL || strlen( token)<=0 ) return;
-
-//andy_log
-print( "token:[%s]\n", token);
-
-	if( getStringFromIndexWithDelim( token, ",", 1, buf1, sizeof( buf1) ) == FALSE ) return;
-//andy_log
-print( "buf1:[%s]\n", buf1);
-	if( !strcmp( buf1, "A|") ){
-		for( i=0; i<MAX_HERO_LIST; i++ )
-			Herolist[i].use = 0;
-	}else{
-		rePlace = TRUE;
-	}
-	k = 2;
-	while( getStringFromIndexWithDelim( token, ",", k, buf1, sizeof( buf1)) != FALSE ){
-		k++;
-		if( getStringFromIndexWithDelim( buf1, "|", 1, buf2, sizeof( buf2) ) == FALSE ) continue;
-		ti = atoi( buf2);
-		if( ti<0 || ti>=MAX_HERO_LIST ) continue;
-		if( rePlace == TRUE ){
-			for( i=MAX_HERO_LIST-1; i>ti; i++ ){
-				NPC_rePlaceHeroList( i-1, i);
-			}
-			Herolist[ti].use = 0;
-		}
-		if( getStringFromIndexWithDelim( buf1, "|", 2, buf2, sizeof( buf2) ) == FALSE ) continue;
-		sprintf( Herolist[ti].strings[0], "%s", buf2 );
-		if( getStringFromIndexWithDelim( buf1, "|", 3, buf2, sizeof( buf2) ) == FALSE ) continue;
-		sprintf( Herolist[ti].strings[1], "%s", buf2 );
-		if( getStringFromIndexWithDelim( buf1, "|", 4, buf2, sizeof( buf2) ) == FALSE ) continue;
-		sprintf( Herolist[ti].strings[3], "%s", buf2 );
-
-		if( getStringFromIndexWithDelim( buf1, "|", 5, buf2, sizeof( buf2) ) == FALSE ) continue;
-		Herolist[ti].intdata[0] = atoi( buf2);
-		if( getStringFromIndexWithDelim( buf1, "|", 6, buf2, sizeof( buf2) ) == FALSE ) continue;
-		Herolist[ti].intdata[1] = atoi( buf2);
-		if( getStringFromIndexWithDelim( buf1, "|", 7, buf2, sizeof( buf2) ) == FALSE ) continue;
-		Herolist[ti].intdata[3] = atoi( buf2);
-		Herolist[ti].use = 1;
-//andy_log
-print( "ti:[%d]\n", ti);
-	}
-	//andy_log
-	for( i=0; i<MAX_HERO_LIST; i++){
-		if( Herolist[i].use == 0 ) continue;
-		print( "hero[%d]:[%s,%s,%s,%d,%d,%d,%d]\n", i,
-			Herolist[i].strings[0], Herolist[i].strings[1],
-			Herolist[i].strings[2],
-			Herolist[i].intdata[0], Herolist[i].intdata[1],
-			Herolist[i].intdata[2], Herolist[i].intdata[3] );
-	}
-#else*/
 	int linenum = 0 , i , flag , temp , temp1 , j  ; 
 	int lens=0;
 	char *addr;
@@ -376,7 +277,6 @@ print( "ti:[%d]\n", ti);
 			}
 		}
 		linenum ++;
-//#endif
 
 		if ( (addr = strstr ( token , "\n" )) == NULL ) break;
 		strcpy ( token , addr + 1 ) ;
@@ -448,9 +348,6 @@ print( "ti:[%d]\n", ti);
 void NPC_Alldoman_S_WriteStele( char *ocdkey , char *oname , char *ncdkey , 
 		   char *nname , char *title , int level , int trns , int floor ) 
 {
-#ifdef _FIX_ALLDOMAN
-	return;
-#else
 	int i , j , temp , temp1 , flag ; 
 	for ( i = 0 ; i < MAX_HERO_COLUMN ; i ++ ) {
 		if ( ( strcmp( Herolist[i][0] , ocdkey ) == 0 ) && ( strcmp( Herolist[i][1] , oname ) == 0 ) ) {
@@ -489,8 +386,6 @@ void NPC_Alldoman_S_WriteStele( char *ocdkey , char *oname , char *ncdkey ,
 	totalpage = countnum / 15 ;
 	if ( ( countnum % 15 ) != 0 )
 		totalpage ++ ; 
-
-#endif
 }
 
 #endif

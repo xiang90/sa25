@@ -3,6 +3,8 @@
 
 #include <sys/time.h>
 
+#include "common.h"
+
 #undef EXTERN
 #ifdef __HANDLETIME_C__
 #define EXTERN

@@ -481,7 +481,7 @@ void defPlayerGold( int meindex , int flg)
 					}else if( (EndTypedef[End_type].m_IN - 100 ) == 12 )	{
 						snprintf( buff, sizeof( buff),"£±£±£­£²£°");
 					}
-					sprintf( token,"%s%s", "  Î§", buff );
+					sprintf( token,"%s%s", "·¶Î§", buff );
 					Codef_Gold( meindex, toindex, gamble_num, 0, token );
 				}else	{	//Ã»ÖÐ	¿Û»ý·Ö
 					if( (player_type>>16) == EndTypedef[End_type].m_type || 
@@ -499,8 +499,8 @@ void defPlayerGold( int meindex , int flg)
 							sprintf( token,"%s", "Ñº×¢ Êý×Ö00 Ã»ÖÐ");
 						}else if( player_type >= roulette51 && player_type <= roulette53 )	{	//ºáÁÐ
 							sprintf( token,"%s", "Ñº×¢ ºáÁÐ Ã»ÖÐ");
-						}else if( player_type >= roulette61 && player_type <= roulette62 )	{	//  Î§
-							sprintf( token,"%s", "Ñº×¢   Î§ Ã»ÖÐ");
+						}else if( player_type >= roulette61 && player_type <= roulette62 )	{	//·¶Î§
+							sprintf( token,"%s", "Ñº×¢ ·¶Î§ Ã»ÖÐ");
 						}else if( player_type > (1<<16) )	{	//Ë«ºÅ
 							sprintf( token,"%s", "Ñº×¢ Ë«ºÅ Ã»ÖÐ");
 						}else	{	//Êý×Ö

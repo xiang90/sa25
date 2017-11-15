@@ -182,7 +182,7 @@ BOOL ItemchangeMan_GetMenuStr( int meindex, int toindex, char *npcarg, char *tok
 
 		if( NPC_Util_GetStrFromStrWithDelim( buf1, "CHANGEITEM", buf2, sizeof( buf2)) != NULL  ){
 			addID = atoi( buf2);
-			if( (ItemName = ITEM_getNameFromNumber( addID)) == NULL ){
+			if( (ItemName = ITEM_getNameFromNumber( addID)) == "\0" ){
 				sprintf( buf3, "   %s\n", NullName);
 			}else{
 				sprintf( buf3, "   %s\n", ItemName);
@@ -225,7 +225,7 @@ BOOL ItemchangeMan_GetNeedStr( int meindex, int toindex, char *npcarg, char *tok
 
 			addID = atoi( buf1);
 			FINDS = TRUE;
-			if( (ItemName = ITEM_getNameFromNumber( addID)) == NULL ){
+			if( (ItemName = ITEM_getNameFromNumber( addID)) == "\0" ){
 				sprintf( buf3, "%s  ", NullName);
 			}else{
 				sprintf( buf3, "%s  ", ItemName);

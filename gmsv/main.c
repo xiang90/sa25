@@ -4,7 +4,7 @@
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
-
+#include <pthread.h>
 
 #include "init.h"
 #include "net.h"
@@ -18,46 +18,18 @@
 #include "petmail.h"
 #include "autil.h"
 #include "family.h"
-#include "defend.h"
 #include "trade.h"
 
-#ifdef _NPCSERVER_NEW
-#include "npcserver.h"
-#endif
-
-#ifdef _RECAL_SEND_COUNT		// WON 传送GS资讯 
-#include "mclient.h"
-#endif
-
-#ifdef _DEATH_CONTEND
-#include "deathcontend.h"
-#endif
-#ifdef _CHATROOMPROTOCOL			// (不可开) Syu ADD 聊天室频道
-#include "chatroom.h"
-#endif
 
 static void ShutdownProc( void);
 void mainloop( void );
 struct  tm tmNow, tmOld;
 void family_proc();
-// Terry add 2001/10/11
-#ifdef _SERVICE
-extern int g_nServiceSocket;
+#ifdef _GMSV_DEBUG
+extern char *DebugMainFunction;
 #endif
 
-#ifdef _CHANNEL_MODIFY
-extern int InitOccChannel(void);
-#endif
-
-#ifdef _ANGEL_SUMMON
-#define ANGELTIMELIMIT	3*24*60*60 // 完成任务时限(秒)
-int AngelReady =0;
-int AngelTimelimit = ANGELTIMELIMIT;
-time_t AngelNextTime;
-void AngelReadyProc();
-#endif
-
-#include "genver.h"
+//#include "genver.h"
 
 void warplog_proc();
 
@@ -65,20 +37,21 @@ int main( int argc , char** argv, char** env )
 {
     /*  午曰丐尹内凛棉毛涩烂仄化云仁    */
     setNewTime();
-
+/*
     if ( argc > 1 && 0==strcmp(argv[1],"-v"))
     {
         printf("%s",genver);
         exit(0);
     }
     else fprintf(stderr,"%s",genver);
+*/
 
     EXITWITHEXITCODEIFFALSE( util_Init() , 1);
 
     LoadAnnounce();	// Arminius 7.12 loginannounce
 
-	/* 赓渝涩烂 */
-	memcpy( &tmOld, localtime( (time_t *)&NowTime.tv_sec), sizeof( tmNow ) );
+		/* 赓渝涩烂 */
+		memcpy( &tmOld, localtime( (time_t *)&NowTime.tv_sec), sizeof( tmNow ) );
 
     EXITWITHEXITCODEIFFALSE( init(argc , argv ,env ) , 1);
 
@@ -91,37 +64,27 @@ int main( int argc , char** argv, char** env )
 #ifdef _CFREE_petskill
 	Load_PetSkillCodes();
 #endif
-#ifdef _ITEM_PILEFORTRADE
-	TRADE_InitTradeList();
-#endif
 
-#ifdef _DEATH_CONTEND
-	if( PKLIST_InitPkTeamList( MAXTEAMNUM ) == -1 ) return 1;
-#endif
-
-#if USE_MTIO
-    /* 穴伙民旦伊永玉及午五反仇仇匹坌昴 */    
-    if( MTIO_setup() < 0 ){
-        print( "cannot setup MT environment\n" );
-        return 1;
-    }
-
-    /* 仇仇匹 join 仄化蔽   */
-    MTIO_join();
-#else
     mainloop();
-#endif
     
     return 0;
 }
 
 void mainloop( void )
-{
+{	
+    print("初始化NPC...");
     NPC_generateLoop( 1 );
+    print("完成\n");
+    print("初始化signal1...");
     signal(SIGUSR1,sigusr1);
+    print("完成\n");
+    print("初始化signal2...");
     signal(SIGUSR2,sigusr2);
+    print("完成\n");
 #ifdef _MAP_WARPPOINT
+	print("初始化地图传送点...");
 	MAPPOINT_InitMapWarpPoint();
+	print("完成\n");
 	if( !MAPPOINT_loadMapWarpPoint() ){
 		return;
 	}
@@ -130,113 +93,99 @@ void mainloop( void )
 #ifdef _ASSESS_SYSEFFICACY
 	Assess_InitSysEfficacy();
 #endif
-
-#ifdef _CHECK_BATTLETIME
-	check_battle_com_init();
-#endif
-
-#ifdef _CHATROOMPROTOCOL			// (不可开) Syu ADD 聊天室频道
-	InitChatRoom();
-#endif
-
-#ifdef _CHANNEL_MODIFY
-	if(!InitOccChannel()) return;			// 初始化职业频道
-#endif
-
-#ifdef _GM_BROADCAST					// WON ADD 客服公告系统
-	Init_GM_BROADCAST( 0, 0, 0, "" );
-#endif
-
-#ifdef _DEATH_FAMILY_STRUCT		// WON ADD 家族战存放胜负资料
-	Init_FM_PK_STRUCT();			
-#endif
-
-#ifdef _ANGEL_SUMMON
-	AngelReady = 0;
-	AngelNextTime = time(NULL) + 1*60;
-#endif
-
 //#ifdef _ALLDOMAN
+//	print("初始化英雄表列...");
 //	InitHeroList();
+//	print("完成\n");
 //#endif
-    while(1){
+
+	int itime=0;
+	while(1){
+		if(getCpuUse()!=-1){
+			itime++;
+			if(itime>getCpuUse()){
+				itime=0;
+				usleep(1);
+			}
+		}
 #ifdef _ASSESS_SYSEFFICACY
-		Assess_SysEfficacy( 0 );
+Assess_SysEfficacy( 0 );
 #endif
-        setNewTime();
-        memcpy(&tmNow, localtime( (time_t *)&NowTime.tv_sec),
+
+    setNewTime();
+    memcpy(&tmNow, localtime( (time_t *)&NowTime.tv_sec),
                sizeof( tmNow ) );
 		if( tmOld.tm_hour != getLogHour( ) && tmNow.tm_hour == getLogHour( ) ){
+#ifdef _GMSV_DEBUG
+			DebugMainFunction="backupAllLogFile";
+#endif
 			backupAllLogFile( &tmOld );
 		}
-        setNewTime();
 
+    setNewTime();
 #ifdef _ASSESS_SYSEFFICACY_SUB //显示LOOP时间
 Assess_SysEfficacy_sub( 0, 1);
-        netloop_faster();
+#ifdef _GMSV_DEBUG
+	  DebugMainFunction="netloop_faster";
+#endif
+	  netloop_faster();
 Assess_SysEfficacy_sub( 1, 1);
 
-//Assess_SysEfficacy_sub( 0, 2);
-        NPC_generateLoop( 0 );
-//Assess_SysEfficacy_sub( 1, 2);
+Assess_SysEfficacy_sub( 0, 2);
+#ifdef _GMSV_DEBUG
+    DebugMainFunction="NPC_generateLoop";
+#endif
+    NPC_generateLoop( 0 );
+Assess_SysEfficacy_sub( 1, 2);
 
 Assess_SysEfficacy_sub( 0, 3);
-        BATTLE_Loop();
+#ifdef _GMSV_DEBUG
+    DebugMainFunction="BATTLE_Loop";
+#endif
+    BATTLE_Loop();
 Assess_SysEfficacy_sub( 1, 3);
-
+		
 Assess_SysEfficacy_sub( 0, 4);
-        CHAR_Loop();
+#ifdef _GMSV_DEBUG
+   DebugMainFunction="CHAR_Loop";
+#endif
+   CHAR_Loop();
 Assess_SysEfficacy_sub( 1, 4);
 
-//Assess_SysEfficacy_sub( 0, 5);
-        PETMAIL_proc();
-//Assess_SysEfficacy_sub( 1, 5);
-
-//Assess_SysEfficacy_sub( 0, 6);
-        family_proc();
-//Assess_SysEfficacy_sub( 1, 6);
-
-//Assess_SysEfficacy_sub( 0, 7);
-        chardatasavecheck();
-//Assess_SysEfficacy_sub( 1, 7);
-#ifdef _GM_BROADCAST					// WON ADD 客服公告系统
-//Assess_SysEfficacy_sub( 0, 8);
-		GM_BROADCAST();
-//Assess_SysEfficacy_sub( 1, 8);
+#ifdef _GMSV_DEBUG
+   DebugMainFunction="PETMAIL_proc";
 #endif
+   PETMAIL_proc();
 
-#else	//不显示LOOP时间
-        netloop_faster();
-        NPC_generateLoop( 0 );
-        BATTLE_Loop();
-        CHAR_Loop();
-        PETMAIL_proc();
-        family_proc();
-        chardatasavecheck();
-#ifdef _GM_BROADCAST					// WON ADD 客服公告系统
-		GM_BROADCAST();
+#ifdef _GMSV_DEBUG
+   DebugMainFunction="family_proc";
 #endif
-#endif
+   family_proc();
 
-#ifdef _ANGEL_SUMMON
-		AngelReadyProc();
+#ifdef _GMSV_DEBUG
+   DebugMainFunction="chardatasavecheck";
 #endif
-
+   chardatasavecheck();
+		tmOld = tmNow;
 		if( tmOld.tm_sec != tmNow.tm_sec ) {
+#ifdef _GMSV_DEBUG
+			DebugMainFunction="CHAR_checkEffectLoop";
+#endif
 			CHAR_checkEffectLoop();
 		}
-        if( SERVSTATE_getShutdown()> 0 ) {
-            ShutdownProc();
-        }
-
-		tmOld = tmNow;
-#ifdef _ASSESS_SYSEFFICACY
-		Assess_SysEfficacy( 1);
+    if( SERVSTATE_getShutdown()> 0 ) {
+      ShutdownProc();
+#ifdef _GMSV_DEBUG
+      DebugMainFunction="ShutdownProc";
 #endif
     }
-#ifdef _SERVICE
-    close(g_nServiceSocket);
-#endif    
+		tmOld = tmNow;
+
+#ifdef _ASSESS_SYSEFFICACY
+Assess_SysEfficacy( 1 );
+#endif
+#endif
+  }
 }
 
 static void sendmsg_toall( char *msg )
@@ -252,8 +201,8 @@ static void sendmsg_toall( char *msg )
 }
 static void ShutdownProc( void)
 {
-#define		SYSINFO_SHUTDOWN_MSG		"再过 %d 分钟後，即开始进行server系统维护。请各位提前登出，以免档案损坏！"
-#define		SYSINFO_SHUTDOWN_MSG_COMP	"server已关闭。"
+#define		SYSINFO_SHUTDOWN_MSG		"%d 分钟后开始进行系统停机维护, 请大家提前下线以免数据丢失。"
+#define		SYSINFO_SHUTDOWN_MSG_COMP	"服务器已关闭。"
 	int diff,hun;
 
 	diff = NowTime.tv_sec - SERVSTATE_getShutdown();
@@ -278,10 +227,6 @@ static void ShutdownProc( void)
 		SERVSTATE_setShutdown(0);
 		SERVSTATE_setDsptime(0);
 		SERVSTATE_setLimittime(0);
-#ifdef _KILL_12_STOP_GMSV      // WON ADD 下sigusr2後关闭GMSV
-		//andy_reEdit 2003/04/28不准开...
-//		system("./stop.sh"); 
-#endif
 	}
 	
 }
@@ -291,23 +236,6 @@ void family_proc()
 	static	unsigned long gettime = 0;
 	static  unsigned long checktime = 0;
 	static  unsigned long proctime = 0;
-
-#ifdef _CK_ONLINE_PLAYER_COUNT    // WON ADD 计算线上人数	
-	static	unsigned long player_count_time = 0;
-    int PLAYER_COUNT_TIME = 60*5;	  // 30秒传一次人数至 AC
-#endif
-
-#ifdef _RECAL_SEND_COUNT		// WON 传送GS资讯 
-	static	unsigned long recal_count_time = 0;
-    int RECAL_COUNT_TIME = 60;	  
-	if( (unsigned long)NowTime.tv_sec > recal_count_time  ){
-		recal_get_count();
-#ifdef _GSERVER_RUNTIME //传送GSERVER执行多少时间给MSERVER
-	    gserver_runtime();
-#endif
-		recal_count_time = (unsigned long)NowTime.tv_sec + RECAL_COUNT_TIME;
-	}
-#endif
 
 	if( time(NULL) < proctime ) return;
 	proctime = time(NULL)+5;
@@ -319,18 +247,8 @@ void family_proc()
 
 	if( (unsigned long)NowTime.tv_sec > checktime ){
 		checkFamilyIndex();
-#ifdef _ADD_FAMILY_TAX			   // WON ADD 增加庄园税收	
-		GS_ASK_TAX();			   // GS 向 AC 要求庄园税率
-#endif
 		checktime = (unsigned long)NowTime.tv_sec + 60*30;
 	}
-
-#ifdef _CK_ONLINE_PLAYER_COUNT    // WON ADD 计算线上人数
-	if( (unsigned long)NowTime.tv_sec > player_count_time  ){
-		GS_SEND_PLAYER_COUNT();
-		player_count_time = (unsigned long)NowTime.tv_sec + PLAYER_COUNT_TIME;
-	}
-#endif
 }
 
 void warplog_proc()
@@ -343,39 +261,3 @@ void warplog_proc()
 	}
 }
 
-#ifdef _ANGEL_SUMMON
-
-extern int player_online;
-
-void AngelReadyProc()
-{
-	//static time_t lastCreateTime = time(NULL);
-	time_t nowTime;
-	//static unsigned long AngelNextTime = 30*60;
-	struct tm *temptime;
-	char msg[1024];
-
-	nowTime = time(NULL);
-
-	if( nowTime < AngelNextTime )
-		return;
-
-	if( player_online <= 10 )
-	{
-		//print(" ANGEL:线上人数不足=%d ", player_online);
-		return;
-	}
-
-	AngelReady = 1;
-	//AngelNextTime = min( (int)(10000/player_online), 100)*60 + (unsigned long)nowTime;
-	AngelNextTime = min( (int)(5000/player_online), 100)*60 + (unsigned long)nowTime;
-
-	temptime = localtime( &AngelNextTime );
-	sprintf( msg, " ANGEL:产生一位缺额  下次产生时间=(%d/%d %d:%d) 目前人数=%d ",
-		temptime->tm_mon+1, temptime->tm_mday, temptime->tm_hour, temptime->tm_min, player_online );
-	print( msg);
-	//LogAngel( msg);
-	
-}
-
-#endif

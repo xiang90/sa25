@@ -72,7 +72,7 @@ void ITEM_useImprecate( int charaindex, int toNo, int haveitemindex )
     if(!ITEM_CHECKINDEX(itemindex)) return;
 
 	arg = ITEM_getChar(itemindex, ITEM_ARGUMENT );
-	if( arg == NULL ){
+	if( arg == "\0" ){
 		print( "ANDY ITEM id:%d=>arg err\n", ITEM_getInt( itemindex, ITEM_ID));
 		return;
 	}
@@ -134,23 +134,10 @@ void ITEM_useMRecovery_Battle( int charaindex, int toNo, int haveitemindex )
 	if( IsBATTLING( charaindex ) == TRUE ){
 		int i, status=-1;
 		char *magicarg=NULL, *pszP=NULL;
-#ifdef _PREVENT_TEAMATTACK //光镜守..不得使用敌方
-		int battleindex = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEINDEX );
-		if( CHAR_getInt( charaindex, CHAR_WHICHTYPE ) == CHAR_TYPEPLAYER
-			//&& BattleArray[battleindex].type != BATTLE_TYPE_P_vs_P 
-			){
-			if( BATTLE_CheckSameSide( charaindex, toNo) == 0 ){//不同边
-				int battleindex = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEINDEX );
-				BATTLE_NoAction( battleindex, BATTLE_Index2No( battleindex, charaindex) );
-				CHAR_talkToCli( charaindex, -1, "光镜守..不得施予非玩家敌方。", CHAR_COLORYELLOW);
-				return;
-			}
-		}
-#endif
-		
+
 		magicarg = MAGIC_getChar( marray, MAGIC_OPTION );
 		pszP = magicarg;
-		for( ;status == -1 && pszP[0] != 0; pszP++ ){
+		for( ;status == -1 && pszP[0] != '\0'; pszP++ ){
 			for( i = 1; i < BATTLE_MD_END; i ++ ){
 				if( strncmp( pszP, aszMagicDef[i], 2 ) == 0 ){
 					status = i;
@@ -236,30 +223,13 @@ void ITEM_useMagic_Battle( int charaindex, int toNo, int haveitemindex )
 
 void ITEM_useRecovery_Battle( int charaindex, int toNo, int haveitemindex )
 {
-#ifdef _CHANGEITEMUSE	 // Syu ADD 调整战斗中使用料理设定
-	int power1 = 0;
-#endif
 	int power = 0, per = 0, HealedEffect=0;
 	int battleindex, attackNo,itemindex, kind = BD_KIND_HP;
 	char *p = NULL, *arg;
     itemindex = CHAR_getItemIndex( charaindex, haveitemindex);
     if(!ITEM_CHECKINDEX(itemindex)) return;
 	arg = ITEM_getChar(itemindex, ITEM_ARGUMENT );
-#ifdef _CHANGEITEMUSE	 // Syu ADD 调整战斗中使用料理设定
-	if( ((p = strstr( arg, "体" )) != NULL) && ((p = strstr( arg,"气")) != NULL))
-	{
-		kind = BD_KIND_HP_MP;
-		p = strstr( arg,"气");
-		if( sscanf( p+2, "%d", &power1 ) != 1 )
-		{
-			power1 = 0;
-		}
-		p = strstr( arg,"体");
-	}
-	else if( (p = strstr( arg, "体" )) != NULL )
-#else
 	if( (p = strstr( arg, "体" )) != NULL )
-#endif
 	{
 		kind = BD_KIND_HP;
 	}
@@ -318,14 +288,7 @@ void ITEM_useRecovery_Battle( int charaindex, int toNo, int haveitemindex )
 	battleindex = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEINDEX );
 	attackNo = BATTLE_Index2No( battleindex, charaindex );
 	if( attackNo < 0 )return;
-
-#ifdef _CHANGEITEMUSE	 // Syu ADD 调整战斗中使用料理设定
-	BATTLE_MultiRecovery( battleindex, attackNo, toNo,
-		kind, power, per, SPR_item3, HealedEffect , power1);
-#else
-	BATTLE_MultiRecovery( battleindex, attackNo, toNo,
-		kind, power, per, SPR_item3, HealedEffect );
-#endif
+	BATTLE_MultiRecovery( battleindex, attackNo, toNo,kind, power, per, SPR_item3, HealedEffect );
 	{
 		LogItem(
 			CHAR_getChar( charaindex, CHAR_NAME ),
@@ -593,7 +556,7 @@ void ITEM_useFieldChange_Battle(
 	pArg = ITEM_getChar(itemindex, ITEM_ARGUMENT );
 
 	// 由仿丢□正  中及匹撩  
-	if( pArg == NULL )return ;
+	if( pArg == "\0" )return ;
 
 	BATTLE_FieldAttChange( charaindex, pArg );
 
@@ -716,7 +679,7 @@ void ITEM_useCaptureUp_Battle(
 	pArg = ITEM_getChar(itemindex, ITEM_ARGUMENT );
 
 	// 由仿丢□正  中及匹撩  
-	if( pArg == NULL )return ;
+	if( pArg == "\0" )return ;
 
 	if( sscanf( pArg, "%d", &pow ) != 1 ){
 		// 窒禾奶件玄荚汊允月井＂
@@ -858,19 +821,6 @@ void ITEM_useAddexp_Effect( charaindex, toindex, haveitemindex)
 		point += (power * vtime);
 		point = min( point, 72000);
 		vtime = (int)(point / power);
-#ifdef _LOG_OTHER
-		sprintf( szBuffer, "使用智慧之果 %d\t累积效果= 分数%d 能力%d％ 时间%d分 ",
-				ITEM_getInt( itemindex, ITEM_ID ), point, power, vtime);
-		LogOther( 
-			CHAR_getChar( charaindex, CHAR_CDKEY),
-			CHAR_getChar( charaindex, CHAR_NAME),
-			szBuffer );
-#endif
-		//CHAR_setInt( charaindex, CHAR_ADDEXPPOWER, power);
-		//CHAR_setInt( charaindex, CHAR_ADDEXPTIME,vtime*60 );
-
-		//sprintf(szBuffer, "测试讯息：目前分数%d 时间%d秒。", point, vtime*60);
-		//CHAR_talkToCli(charaindex,-1,szBuffer,CHAR_COLORRED);
 	}
 #endif
 	CHAR_setWorkInt( charaindex, CHAR_WORKITEM_ADDEXP, power);
@@ -879,7 +829,7 @@ void ITEM_useAddexp_Effect( charaindex, toindex, haveitemindex)
 	//清除道具
 	BATTLE_ItemUseDelete(charaindex,haveitemindex);
 	//sprintf(szBuffer, "学习经验的能力提升了%d％", power);
-	sprintf(szBuffer, "学习经验的能力提升了%d％，时效剩馀%d分钟。", power, vtime);
+	sprintf(szBuffer, "学习经验的能力提升了%d％，时效剩余%d分钟。", power, vtime);
 	CHAR_talkToCli(charaindex,-1,szBuffer,CHAR_COLORYELLOW);
 
 }
@@ -940,7 +890,7 @@ void ITEM_useFirecracker_Battle( charaindex, toindex, haveitemindex)
 		petid = CHAR_getInt(index2,CHAR_PETID);
 	}
 
-	if( (buff1 = ITEM_getChar( itemindex, ITEM_ARGUMENT)) == NULL ) return;
+	if( (buff1 = ITEM_getChar( itemindex, ITEM_ARGUMENT)) == "\0" ) return;
 
 	memset( token, 0, sizeof( token));
 	if( NPC_Util_GetStrFromStrWithDelim( buff1, "KPET", token, sizeof( token) ) == NULL) {
@@ -1051,18 +1001,6 @@ void ITEM_ResAndDef( int charaindex, int toindex, int haveitemindex )
     sprintf(magicarg4,"%s %s %s",magicarg,magicarg2,magicarg3);
 	magicarg = (char*)magicarg4;
 
-	//光镜守..不得使用敌方
-	battleindex = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEINDEX );
-	if( CHAR_getInt( charaindex, CHAR_WHICHTYPE ) == CHAR_TYPEPLAYER
-		//&& BattleArray[battleindex].type != BATTLE_TYPE_P_vs_P 
-		){
-		if( BATTLE_CheckSameSide( charaindex, toindex) == 0 ){//不同边
-			battleindex = CHAR_getWorkInt( charaindex, CHAR_WORKBATTLEINDEX );
-			BATTLE_NoAction( battleindex, BATTLE_Index2No( battleindex, charaindex) );
-			CHAR_talkToCli( charaindex, -1, "光镜守..不得施予非玩家敌方。", CHAR_COLORYELLOW);
-			return;
-		}
-	}
 
 	//在气绝状态回复耐力
 	if( strstr( pszP, "%" ) ){

@@ -38,25 +38,6 @@ typedef enum
 #ifdef _ITEM_CHECKWARES
 	ITEM_WARES,			//货物
 #endif
-
-#ifdef _ITEM_EQUITSPACE
-	ITEM_WBELT,			//腰带
-	ITEM_WSHIELD,		//盾
-	ITEM_WSHOES,		//鞋子
-#endif
-#ifdef _EQUIT_NEWGLOVE 
-	ITEM_WGLOVE,		//手套
-#endif
-
-#ifdef _ALCHEMIST
-	ITEM_ALCHEMIST =30,
-#endif
-
-#ifdef _ANGEL_SUMMON
-	//ITEM_ANGELTOKEN,
-	//ITEM_HEROTOKEN,
-#endif
-
     ITEM_CATEGORYNUM,
     
 }ITEM_CATEGORY;
@@ -83,19 +64,9 @@ typedef enum
     ITEM_BASEIMAGENUMBER,
     ITEM_COST,
     ITEM_TYPE,
-	ITEM_ABLEUSEFIELD,
-	ITEM_TARGET,
+		ITEM_ABLEUSEFIELD,
+		ITEM_TARGET,
     ITEM_LEVEL,                     /*  LEVEL  */
-
-#ifdef _READ_ITEM3FORMAT
-	ITEM_DAMAGEBREAK,
-	ITEM_DAMAGECRUSHE,
-	ITEM_MAXDAMAGECRUSHE,
-	ITEM_OTHERDAMAGE,
-	ITEM_OTHERDEFC,
-	ITEM_SUITCODE,
-#endif
-
 #ifdef _ITEM_MAXUSERNUM
 	ITEM_DAMAGEBREAK,				//物品使用次数
 #endif
@@ -103,6 +74,7 @@ typedef enum
 #ifdef _ITEMSET4_TXT
 	ITEM_USEPILENUMS,				//物品堆叠次数
 	ITEM_CANBEPILE,					//是否可堆叠
+
 	ITEM_NEEDSTR,
 	ITEM_NEEDDEX,
 	ITEM_NEEDTRANS,
@@ -195,10 +167,6 @@ typedef enum
     ITEM_SECRETNAME,                /*    蟆    凳今木月第  岭  曰    */
     ITEM_EFFECTSTRING,              /*  躲绊  侬    */
     ITEM_ARGUMENT,                  /*  失奶  丞及娄醒  */
-#ifdef _READ_ITEM3FORMAT
-	ITEM_TYPECODE,
-	ITEM_INLAYCODE,
-#endif
 #ifdef _ITEM_INSLAY
 	ITEM_TYPECODE,
 	ITEM_INLAYCODE,
@@ -265,20 +233,9 @@ typedef enum
 									 */
 #endif
 
-#ifdef _CONTRACT
-	ITEM_CONTRACTTIME,
-	ITEM_CONTRACTARG,
-#endif
-
     ITEM_LASTFUNCTION,
 
     ITEM_DATACHARNUM = ITEM_LASTFUNCTION,
-
-#ifdef _ANGEL_SUMMON
-	ITEM_ANGELMISSION = ITEM_INGNAME0,
-	ITEM_ANGELINFO = ITEM_INGNAME1,
-	ITEM_HEROINFO = ITEM_INGNAME2,
-#endif
 
 }ITEM_DATACHAR;
 
@@ -286,11 +243,6 @@ typedef enum
 {
     ITEM_WORKOBJINDEX,
     ITEM_WORKCHARAINDEX,
-#ifdef _MARKET_TRADE
-	ITEM_WORKTRADEINDEX,
-	ITEM_WORKTRADETYPE,
-	ITEM_WORKTRADESELLINDEX,
-#endif
 #ifdef _ITEM_ORNAMENTS
 	ITEM_CANPICKUP,
 #endif
@@ -313,11 +265,15 @@ typedef struct tagItem
 
 typedef struct tagITEM_table
 {
-    int         use; 
     ITEM_Item   itm;
     int         randomdata[ITEM_DATAINTNUM];
 }ITEM_table;
 
+typedef struct tagITEM_index
+{
+    BOOL         use; 
+    int         index;
+}ITEM_index;
 
 typedef struct tagITEM_exists
 {
@@ -325,24 +281,13 @@ typedef struct tagITEM_exists
     ITEM_Item   itm;
 }ITEM_exists;
 
-#ifdef _CONTRACT
-#define MAX_CONTRACTTABLE	10
-typedef struct tagITEM_contract
-{
-    int         used;
-    char		detail[2048];
-    int			argnum;
-}ITEM_contractTable;
-#endif
-
-
 #define		ITEM_CHECKINDEX(index)		\
 	_ITEM_CHECKINDEX( __FILE__, __LINE__, index)
 INLINE BOOL _ITEM_CHECKINDEX( char *file, int line, int index);
 
 
 BOOL ITEM_initExistItemsArray( int num );
-BOOL ITEM_endExistItemsArray( void );
+BOOL ITEM_endExistItemsArray( ITEM_table* ITEM_item );
 #define		ITEM_initExistItemsOne( itm) \
 	_ITEM_initExistItemsOne( __FILE__, __LINE__, itm)
 int _ITEM_initExistItemsOne( char *file, int line, ITEM_Item* itm );
@@ -428,29 +373,14 @@ BOOL ITEM_canuseMagic( int itemindex);
 // Nuke +1 08/23 : For checking the validity of item target
 int ITEM_isTargetValid( int charaindex, int itemindex, int toindex);
 
-
-#ifdef _IMPOROVE_ITEMTABLE
-BOOL ITEMTBL_CHECKINDEX( int ItemID);
-int ITEM_getSIndexFromTransList( int ItemID);
-int ITEM_getMaxitemtblsFromTransList( void);
-int ITEM_getTotalitemtblsFromTransList( void);
-#endif
-
 int ITEMTBL_getInt( int ItemID, ITEM_DATAINT datatype);
 char *ITEMTBL_getChar( int ItemID, ITEM_DATACHAR datatype);
 
 int ITEM_getItemDamageCrusheED( int itemindex);
 void ITEM_RsetEquit( int charaindex);//自动卸除装备位置错误之物品
-void ITEM_reChangeItemToPile( int itemindex);
-void ITEM_reChangeItemName( int itemindex);
-
 
 #ifdef _SIMPLIFY_ITEMSTRING
 void ITEM_getDefaultItemData( int itemID, ITEM_Item* itm);
-#endif
-
-#ifdef _CONTRACT
-BOOL ITEM_initContractTable( );
 #endif
 
 #endif

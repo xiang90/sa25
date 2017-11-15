@@ -63,7 +63,7 @@ BOOL NPC_FreePetSkillShopInit( int meindex )
 			if( PETSKILL_CHECKINDEX( skillarray) == FALSE ) continue;
 			if( PETSKILL_getInt( skillarray, PETSKILL_ILLEGAL) == 1){
 				if( NPC_Util_CheckAssignArgFile( meindex, filename) != NULL ){
-					print("PetSkillShop illegal skill:[%d-%s] ->file:%s",
+						print("\n宠物技能不规范:[%d-%s] ->文件:%s\n",
 						skillID,
 						PETSKILL_getChar( skillarray, PETSKILL_NAME),
 						filename );
@@ -73,8 +73,6 @@ BOOL NPC_FreePetSkillShopInit( int meindex )
 	}else{
 		return FALSE;
 	}
-
-
 
     return TRUE;
 }
@@ -365,8 +363,10 @@ BOOL NPC_FreePetSkillMakeStr(int meindex,int toindex,int select)
 			if( PETSKILL_getInt( skillarray, PETSKILL_ILLEGAL) == 1) continue;
 			cost = PETSKILL_getInt(skillarray,PETSKILL_COST);
 			cost = (int)cost*rate;
-			sprintf(token2,"|%s|%d|%s",	PETSKILL_getChar(skillarray, PETSKILL_NAME),
-				cost, PETSKILL_getChar(skillarray, PETSKILL_COMMENT) );
+
+			sprintf(token2,"|%s|%d|%s|0",	PETSKILL_getChar(skillarray, PETSKILL_NAME), 
+															cost, PETSKILL_getChar(skillarray, PETSKILL_COMMENT));
+
 			strcat(token,token2);
 			}
 		}

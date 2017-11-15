@@ -161,12 +161,6 @@ void NPC_SchedulemanWindowTalked(int meindex, int talkerindex,
       break;
     case WINDOW_BUTTONTYPE_OK:
 
-#ifdef _DEATH_FAMILY_CANT_SCHEDULE // WON ADD 家族战玩家不能自行约战
-	  CHAR_talkToCli(talkerindex, meindex, "此星球无法约战", CHAR_COLORWHITE);
-	  break;
-#endif
-
-
 #ifdef _FMVER21    
       if ((CHAR_getInt(talkerindex,CHAR_FMLEADERFLAG)==FMMEMBER_LEADER) &&
 #else

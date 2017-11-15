@@ -11,14 +11,6 @@
 #include "saacproto_serv.h"
 #include "main.h"
 
-#ifdef _RECAL_BACKUP_PLAYER			// WON 回溯功能
-#include "recv.h"
-#endif
-
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-#include "acfamily.h"
-#endif
-
 // Nuke : This 'fd' is not a socket, it's the index of structure connect
 int saacproto_ServerDispatchMessage( int fd , char *encoded, char *debugfun)
 {
@@ -30,9 +22,17 @@ int saacproto_ServerDispatchMessage( int fd , char *encoded, char *debugfun)
 	if( strcmp( funcname , "ACServerLogin" ) == 0 ){
 		char* servername;
 		char* serverpas;
+#ifdef _VIP
+		int checkvip;
+#endif
 		servername = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
 		serverpas = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		saacproto_ACServerLogin_recv( fd,servername,serverpas);
+#ifdef _VIP
+		checkvip = saacproto_demkstr_int( saacproto.token_list[4] );
+		saacproto_ACServerLogin_recv( fd,servername,serverpas,checkvip);
+#else
+	saacproto_ACServerLogin_recv( fd,servername,serverpas);
+#endif
 		return 0;
 	}
 
@@ -41,23 +41,6 @@ int saacproto_ServerDispatchMessage( int fd , char *encoded, char *debugfun)
 		saacproto_ACServerLogout_recv( fd);
 		return 0;
 	}
-
-#ifdef _ACNT_LOGIN
-	if( strcmp( funcname,"ACQueryAccount") == 0 ){
-	  char *id;
-	  char *pas;
-	  int mesgid;
-	  int servid;
-
-	  id = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-	  pas = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-	  mesgid = saacproto_demkstr_int( saacproto.token_list[4] );
-	  servid = saacproto_demkstr_int( saacproto.token_list[5] );
-	  saacproto_ACQueryAccount_recv(fd, id, pas, mesgid, servid);
-
-	  return 0;
-	}
-#endif
 
 	if( strcmp( funcname , "ACCharList" ) == 0 ){
 		char* id;
@@ -88,29 +71,6 @@ int saacproto_ServerDispatchMessage( int fd , char *encoded, char *debugfun)
 		return 0;
 	}
 
-#ifdef _RELOGIN
-	if( strcmp( funcname , "ACCharLoadII" ) == 0 ){
-		char* id;
-		char* pas;
-		char* charname;
-		int lock;
-		char* opt;
-		int mesgid;
-		int gs1;
-		int gs2;
-		id = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		pas = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		charname = saacproto_wrapStringAddr( saacproto_stringwrapper[3] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[4] ));
-		lock = saacproto_demkstr_int( saacproto.token_list[5] );
-		opt = saacproto_wrapStringAddr( saacproto_stringwrapper[5] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[6] ));
-		mesgid = saacproto_demkstr_int( saacproto.token_list[7] );
-		gs1 = saacproto_demkstr_int( saacproto.token_list[8] );
-		gs2 = saacproto_demkstr_int( saacproto.token_list[9] );
-		saacproto_ACCharLoadII_recv( fd,id,pas,charname,lock,opt,mesgid,gs1,gs2);
-		return 0;
-	}
-#endif
-
 	if( strcmp( funcname , "ACCharSave" ) == 0 ){
 		char* id;
 		char* charname;
@@ -136,31 +96,6 @@ int saacproto_ServerDispatchMessage( int fd , char *encoded, char *debugfun)
 #endif
 		return 0;
 	}
-
-#ifdef _RELOGIN
-	if( strcmp( funcname , "ACCharSaveII" ) == 0 ){
-		char* id;
-		char* charname;
-		char* opt;
-		char* charinfo;
-		int unlock;
-		int mesgid;
-		int charindex;
-		int gs1;
-		int gs2;
-		id = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		charname = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		opt = saacproto_wrapStringAddr( saacproto_stringwrapper[3] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[4] ));
-		charinfo = saacproto_wrapStringAddr( saacproto_stringwrapper[4] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[5] ));
-		unlock = saacproto_demkstr_int( saacproto.token_list[6] );
-		mesgid = saacproto_demkstr_int( saacproto.token_list[7] );
-		charindex = saacproto_demkstr_int( saacproto.token_list[8] );
-		charindex = saacproto_demkstr_int( saacproto.token_list[9] );
-		charindex = saacproto_demkstr_int( saacproto.token_list[10] );
-		saacproto_ACCharSaveII_recv( fd,id,charname,opt,charinfo,unlock,mesgid,charindex,gs1,gs2);
-		return 0;
-	}
-#endif
 
 	if( strcmp( funcname , "ACCharDelete" ) == 0 ){
 		char* id;
@@ -197,68 +132,6 @@ int saacproto_ServerDispatchMessage( int fd , char *encoded, char *debugfun)
 		clifd = saacproto_demkstr_int( saacproto.token_list[3] );
 		flg = saacproto_demkstr_int( saacproto.token_list[4] );
 		saacproto_ACKick_recv( fd, id, flg, clifd);
-		return 0;
-	}
-#endif
-
-#ifdef _NEW_PLAYERGOLD
-	if( strcmp( funcname , "LoadNEWPlayer" ) == 0 ){
-		char* filename;	//欲踢的帐号
-		int charaindex;
-		charaindex = saacproto_demkstr_int( saacproto.token_list[2] );
-		filename = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		saacproto_LoadNEWPlayer_recv( fd, charaindex, filename);
-		return 0;
-	}
-
-#endif
-
-#ifdef _DEATH_CONTEND
-	if( strcmp( funcname , "PKLISTGETDATA" ) == 0 ){
-		int start=-1, count;
-		start = saacproto_demkstr_int( saacproto.token_list[2] );
-		count = saacproto_demkstr_int( saacproto.token_list[3] );
-		saacproto_PKLISTGETDATA_recv( fd, start, count);
-		return 0;
-	}
-
-	if( strcmp( funcname , "PKLISTUPDATE" ) == 0 ){
-		char *mecdkey, *tocdkey;
-		int menum, tonum, winer, flg;
-
-		mecdkey = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		tocdkey = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		menum = saacproto_demkstr_int( saacproto.token_list[4] );
-		tonum = saacproto_demkstr_int( saacproto.token_list[5] );
-		winer = saacproto_demkstr_int( saacproto.token_list[6] );
-		flg = saacproto_demkstr_int( saacproto.token_list[7] );
-
-		saacproto_PKLISTUPDATE_recv( fd, menum, mecdkey, tonum, tocdkey, winer, flg);
-		return 0;
-	}
-	if( strcmp( funcname , "PKLISTCHARTS" ) == 0 ){
-		int type, flg; //要求资讯
-		type = saacproto_demkstr_int( saacproto.token_list[2] );
-		flg = saacproto_demkstr_int( saacproto.token_list[3] );
-
-		saacproto_PKLISTCHARTS_recv( fd, type, flg);
-		return 0;
-	}
-#endif
-
-#ifdef _PAUCTION_MAN
-	if( strcmp( funcname , "AUCTIONADDITEM" ) == 0 ){
-		int ItemId=-1;
-		char *name;
-		char *data;
-		int flg, ret;
-	
-		name = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		data = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		ItemId = saacproto_demkstr_int( saacproto.token_list[4] );
-		ret = saacproto_demkstr_int( saacproto.token_list[5] );
-		flg = saacproto_demkstr_int( saacproto.token_list[6] );
-		saacproto_ACItemAuction_recv( fd, name, data, ItemId, ret, flg);
 		return 0;
 	}
 #endif
@@ -613,63 +486,10 @@ int saacproto_ServerDispatchMessage( int fd , char *encoded, char *debugfun)
 		saacproto_ACFMWriteMemo_recv(fd, fmname, fmindex, data, index);
 		return	0;
 	}
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-	// reload 家族资料
-	if ( strcmp( funcname, "ACRELOADFM") == 0){
-		int 	charindex = -1;
-	
-		charindex = saacproto_demkstr_int(saacproto.token_list[2]);
-
-		log("\n won test 40 ==> charindex(%d)", charindex );
-
-		saacproto_ACRELOADFM_recv( fd, charindex );
-
-		return	0;
-	}
-
-	if ( strcmp( funcname, "ACShowMemberList2") == 0){
-		int fm1 = -1, fm2 = -1, charindex = -1, time = -1, id = -1;
-	
-		charindex = saacproto_demkstr_int(saacproto.token_list[2]);
-		fm1 = saacproto_demkstr_int(saacproto.token_list[3]);
-		fm2 = saacproto_demkstr_int(saacproto.token_list[4]);
-		time = saacproto_demkstr_int(saacproto.token_list[5]);
-		id = saacproto_demkstr_int(saacproto.token_list[6]);
-
-		log("\n won test 40 ==> charindex(%d) fm1(%d) fm2(%d) time(%d) id(%d)", charindex, fm1, fm2, time, id );
-
-		saacproto_ACShowMemberList_2_recv(fd, charindex, fm1, fm2, time, id );
-
-		return	0;
-	}
-
-#endif
-
-
-#ifdef _DEATH_FAMILY_LOGIN_CHECK   // WON ADD 家族战登入检查
-	// 玩家login2
-	if ( strcmp( funcname, "ACFMCharLogin2") == 0){
-		int 	charindex = -1;
-		char	*char_id, *char_name;
-	
-		char_id = saacproto_wrapStringAddr(saacproto_stringwrapper[1], saacproto.workbufsize, saacproto_demkstr_string(saacproto.token_list[2]));
-		char_name = saacproto_wrapStringAddr(saacproto_stringwrapper[2], saacproto.workbufsize, saacproto_demkstr_string(saacproto.token_list[3]));		
-		charindex = saacproto_demkstr_int(saacproto.token_list[4]);
-
-		log("\n won test 4 ==> char_id(%s) char_name(%s) charindex(%d)", char_id, char_name, charindex );
-
-		saacproto_ACFMCharLogin2_recv(fd, char_id, char_name, charindex );
-
-		return	0;
-	}	
-#endif
 
 	// 玩家login
 	if ( strcmp( funcname, "ACFMCharLogin") == 0){
 		int 	fmindex, charlv, charfdid;
-#ifdef _FM_MODIFY
-		int gsnum;
-#endif
 		char	*fmname, *charname, *charid;
 #ifdef _FMVER21
 		int eventflag;
@@ -683,12 +503,7 @@ int saacproto_ServerDispatchMessage( int fd , char *encoded, char *debugfun)
 #ifdef _FMVER21
 		eventflag = saacproto_demkstr_int(saacproto.token_list[7]);
 		charfdid = saacproto_demkstr_int(saacproto.token_list[8]);
-	#ifdef _FM_MODIFY
-			gsnum = saacproto_demkstr_int(saacproto.token_list[9]);
-			saacproto_ACFMCharLogin_recv(fd, fmname, fmindex, charname,charid, charlv, eventflag, charfdid,gsnum);
-	#else
-			saacproto_ACFMCharLogin_recv(fd, fmname, fmindex, charname,charid, charlv, eventflag, charfdid);
-	#endif
+		saacproto_ACFMCharLogin_recv(fd, fmname, fmindex, charname,charid, charlv, eventflag, charfdid);
 #else
 		charfdid = saacproto_demkstr_int(saacproto.token_list[7]);
 		saacproto_ACFMCharLogin_recv(fd, fmname, fmindex, charname,charid, charlv, charfdid);
@@ -765,35 +580,6 @@ int saacproto_ServerDispatchMessage( int fd , char *encoded, char *debugfun)
 		return	0;
 	}
 
-#ifdef _ADD_FAMILY_TAX  // WON ADD 增加庄园税收
-
-	if ( strcmp( funcname, "GSASKTAX") == 0){
-		saacproto_GS_ACK_TAX_recv();
-		return 0;
-	}
-
-	if ( strcmp( funcname, "ACFMSetTAX") == 0){
-
-		int 	fm_tax, index, fmindex;
-		
-		fm_tax  = saacproto_demkstr_int(saacproto.token_list[2]);
-		index   = saacproto_demkstr_int(saacproto.token_list[3]);
-		fmindex = saacproto_demkstr_int(saacproto.token_list[4]);
-		saacproto_ACFMSetTAX_recv(fd, fm_tax, index, fmindex);
-
-		return	0;
-	}
-#endif
-
-#ifdef _CK_ONLINE_PLAYER_COUNT    // WON ADD 计算线上人数
-	if ( strcmp( funcname, "ACGSPCOUNT") == 0){
-		int playcount = 0;
-		playcount  = saacproto_demkstr_int(saacproto.token_list[2]);	
-		saacproto_GS_ACK_PLAYER_COUNT_recv( fd, playcount );	
-		return	0;
-	}
-#endif
-
 	// 申请家族据点
 	if (strcmp( funcname, "ACSetFMPoint") == 0){
 		int	fl, x, y, fmindex, index, fmpointindex, charfdid;
@@ -862,42 +648,6 @@ int saacproto_ServerDispatchMessage( int fd , char *encoded, char *debugfun)
 			data1, data2, charindex, charfdid);
 		return	0;
 	}
-#ifdef _FAMILYBANKSTONELOG
-	if (strcmp( funcname, "ACgetFMBankgold") ==0){
-		int	fmindex, charfdid, index, charindex;
-		char	*fmname;
-		fmname = saacproto_wrapStringAddr(saacproto_stringwrapper[1], saacproto.workbufsize, saacproto_demkstr_string(saacproto.token_list[2]));
-		fmindex = saacproto_demkstr_int(saacproto.token_list[3]);
-		index = saacproto_demkstr_int(saacproto.token_list[4]);
-		charindex = saacproto_demkstr_int(saacproto.token_list[5]);
-		charfdid = saacproto_demkstr_int(saacproto.token_list[6]);
-		saacproto_ACgetFMBankgold_recv(fd, fmname, fmindex, index, charindex, charfdid);
-		return	0;
-	}
-#endif
-
-#ifdef _DEATH_FAMILY_STRUCT		// WON ADD 家族战存放胜负资料
-	if (strcmp( funcname, "FMINITPKSTRUCT") == 0){
-		log("\n won test 300 ==>" );
-		set_fm_pk_score( "" );
-//		save_fm_pk_score();
-		return	0;
-	}	
-	
-	if (strcmp( funcname, "FMPKSTRUCT") == 0){
-		char *msg;
-
-		msg = saacproto_wrapStringAddr(saacproto_stringwrapper[1], saacproto.workbufsize, saacproto_demkstr_string(saacproto.token_list[2]));
-		
-		log("\n won test 54 ==> msg(%s)", msg );
-
-		set_fm_pk_score( msg );
-//		save_fm_pk_score();
-
-		return	0;
-	}
-#endif
-
 
 	// 家族ＰＫ後修正声望
 	if (strcmp( funcname, "ACFixFMPK") == 0){
@@ -947,16 +697,6 @@ int saacproto_ServerDispatchMessage( int fd , char *encoded, char *debugfun)
 		return 0;
 	}
 
-#ifdef _CHECKFMSCHEDULE	 // Syu ADD 透过AC确认家族挑战排程
-	if (strcmp( funcname,"ACCheckSchedule") ==0)
-	{
-		char *data;
-		data = saacproto_wrapStringAddr(saacproto_stringwrapper[1], saacproto.workbufsize, saacproto_demkstr_string(saacproto.token_list[2]));
-		saacproto_ACCheckSchedule_recv(fd,data);
-		return 0;
-	}
-#endif
-
 	if (strcmp( funcname,"ACreLoadFmData") ==0){
 		int type, data;
 		type = saacproto_demkstr_int(saacproto.token_list[2]);	
@@ -997,258 +737,28 @@ int saacproto_ServerDispatchMessage( int fd , char *encoded, char *debugfun)
 
 #endif
 
+	if( strcmp( funcname , "ACCharLogin" ) == 0 ){
+		int clifd;
+		char *id , *pas, *ip;
 
-
-#ifdef _RECAL_BACKUP_PLAYER			// WON 回溯功能
-
-	if (strcmp( funcname,"ACSendRecalPlayer") ==0)
-	{
-		char *uid, *id;
-		int userfdid, char_num, date, GmCliId, backup_flag;
-
-		uid = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		userfdid = saacproto_demkstr_int(saacproto.token_list[3]);	
-		GmCliId = saacproto_demkstr_int(saacproto.token_list[4]);	
-		id = saacproto_wrapStringAddr( saacproto_stringwrapper[4] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[5] ));
-		char_num = saacproto_demkstr_int(saacproto.token_list[6]);	
-		date = saacproto_demkstr_int(saacproto.token_list[7]);	
-		backup_flag = saacproto_demkstr_int(saacproto.token_list[8]);	
-			
-		saacproto_ACRecalPlayer_recv(fd, uid, userfdid, GmCliId, id, char_num, date, backup_flag);
-
-		return 0;
-	}
-
-	if (strcmp( funcname,"ACSendRecalBackup") ==0)
-	{
-		char *uid, *id, *char_data;
-		int userfdid, char_num, date, GmCliId, backup_flag;
-
-		uid = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		userfdid = saacproto_demkstr_int(saacproto.token_list[3]);	
-		GmCliId = saacproto_demkstr_int(saacproto.token_list[4]);	
-		id = saacproto_wrapStringAddr( saacproto_stringwrapper[4] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[5] ));
-		char_num = saacproto_demkstr_int(saacproto.token_list[6]);	
-		date = saacproto_demkstr_int(saacproto.token_list[7]);	
-		char_data = saacproto_wrapStringAddr( saacproto_stringwrapper[7] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[8] ));
-		backup_flag =  saacproto_demkstr_int(saacproto.token_list[9]);	
-		
-		saacproto_ACRecalBackup_recv(fd, uid, userfdid, GmCliId, id, char_num, date, char_data, backup_flag);
-
-		return 0;
-	}
-#endif // end RECAL_ASK_PLAYER
-
-#ifdef _AUCTIONEER
-	if (strcmp( funcname,"ACAuctionSold") == 0){
-		char *data;
-		data = saacproto_wrapStringAddr(saacproto_stringwrapper[1], saacproto.workbufsize, saacproto_demkstr_string(saacproto.token_list[2]));
-		saacproto_ACAuctionSold_recv(fd, data);
-		return 0;
-	}
-#endif
-
-#ifdef _NEW_PLAYERGOLD
-	if (strcmp( funcname,"ACNewPlayerList") == 0){
-		int	RunType=-1, userIndex=-1;
-		char *CdKey, *UserName;
-		CdKey = saacproto_wrapStringAddr(saacproto_stringwrapper[1], saacproto.workbufsize,
-				saacproto_demkstr_string(saacproto.token_list[2]));
-		UserName = saacproto_wrapStringAddr(saacproto_stringwrapper[2], saacproto.workbufsize,
-				saacproto_demkstr_string(saacproto.token_list[3]));
-		userIndex = saacproto_demkstr_int(saacproto.token_list[4]);
-		RunType = saacproto_demkstr_int(saacproto.token_list[5]);
-		saacproto_ACNewPlayerList_recv( fd, CdKey, UserName, userIndex, RunType);
-		return 0;
-	}
-
-#endif
-
-#ifdef _DEFEND_NEWUSERS
-	if( strcmp( funcname , "DEFENDLISTS" ) == 0 ){
-		char* data;
-		int type;
-		type = saacproto_demkstr_int(saacproto.token_list[2]);
-		data = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		saacproto_DefendList_recv( fd, type, data);
-
-		return 0;
-	}
-	if( strcmp( funcname , "CHECKDEFENDSCORE" ) == 0 ){
-		char *cdkey, *name;
-		int userindex;
-		cdkey = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		name = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		userindex = saacproto_demkstr_int(saacproto.token_list[4]);
-		saacproto_CheckDefendScore_recv( fd, userindex, cdkey, name);
-		return 0;
-	}
-#endif
-
-
-#ifdef _CHAR_POOLITEM
-	if( strcmp( funcname , "ACInsertPoolItem" ) == 0 ){
-		char *cdkey, *Pooldataarg;
-		int clifdid, userindex;
-
-		cdkey = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		Pooldataarg = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		userindex = saacproto_demkstr_int( saacproto.token_list[4] );
-		clifdid = saacproto_demkstr_int( saacproto.token_list[5] );
-		saacproto_ACCharInsertPoolItem_recv( fd, cdkey, userindex, clifdid, Pooldataarg);
-		return 0;
-	}
-	if( strcmp( funcname , "ACSavePoolItem" ) == 0 ){
-		char *cdkey, *Pooldataarg;
-		int clifdid, userindex;
-
-		cdkey = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		Pooldataarg = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		userindex = saacproto_demkstr_int( saacproto.token_list[4] );
-		clifdid = saacproto_demkstr_int( saacproto.token_list[5] );
-		saacproto_ACCharSavePoolItem_recv( fd, cdkey, userindex, clifdid, Pooldataarg);
-		return 0;
-	}
-
-	if( strcmp( funcname , "ACGetPoolItem" ) == 0 ){
-		char *cdkey;
-		int clifdid, userindex, npcid;
-		cdkey = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		userindex = saacproto_demkstr_int( saacproto.token_list[3] );
-		clifdid = saacproto_demkstr_int( saacproto.token_list[4] );
-		npcid = saacproto_demkstr_int( saacproto.token_list[5] );
-
-		saacproto_ACCharGetPoolItem_recv( fd, cdkey, userindex, clifdid, npcid);
-		return 0;
-	}
-#endif
-
-
-#ifdef _CHAR_POOLPET
-	if( strcmp( funcname , "ACInsertPoolPet" ) == 0 ){
-		char *cdkey, *Pooldataarg;
-		int clifdid, userindex;
-
-		cdkey = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		Pooldataarg = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		userindex = saacproto_demkstr_int( saacproto.token_list[4] );
-		clifdid = saacproto_demkstr_int( saacproto.token_list[5] );
-		saacproto_ACCharInsertPoolPet_recv( fd, cdkey, userindex, clifdid, Pooldataarg);
-		return 0;
-	}
-	if( strcmp( funcname , "ACSavePoolPet" ) == 0 ){
-		char *cdkey, *Pooldataarg;
-		int clifdid, userindex;
-
-		cdkey = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		Pooldataarg = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		userindex = saacproto_demkstr_int( saacproto.token_list[4] );
-		clifdid = saacproto_demkstr_int( saacproto.token_list[5] );
-		saacproto_ACCharSavePoolPet_recv( fd, cdkey, userindex, clifdid, Pooldataarg);
-		return 0;
-	}
-
-	if( strcmp( funcname , "ACGetPoolPet" ) == 0 ){
-		char *cdkey;
-		int clifdid, userindex, npcid;
-		cdkey = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		userindex = saacproto_demkstr_int( saacproto.token_list[3] );
-		clifdid = saacproto_demkstr_int( saacproto.token_list[4] );
-		npcid = saacproto_demkstr_int( saacproto.token_list[5] );
-
-		saacproto_ACCharGetPoolPet_recv( fd, cdkey, userindex, clifdid, npcid);
-		return 0;
-	}
-#endif
-
-
-
-#ifdef _UNIVERSE_CHATROOM
-	if( strcmp( funcname , "ACUniChatroom" ) == 0 ){
-		char *cdkey, *data;
-		int clifdid, userindex;
-		cdkey = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
-		data = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		userindex = saacproto_demkstr_int( saacproto.token_list[4] );
-		clifdid = saacproto_demkstr_int( saacproto.token_list[5] );
-
-		saacproto_ACUniChatroom_recv( fd, cdkey, data, userindex, clifdid );
-		return 0;
-	}
-#endif
-
-
-#ifdef _ANGEL_SUMMON
-	if( strcmp( funcname , "ACMissionTable" ) == 0 ){
-		int num;
-		int type;
-		char* data;
-		//int charaindex;
-		char* angelinfo;
-
-		num = saacproto_demkstr_int( saacproto.token_list[2] );
-		type = saacproto_demkstr_int( saacproto.token_list[3] );
-		data = saacproto_wrapStringAddr( saacproto_stringwrapper[3] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[4] ));
-		//charaindex = saacproto_demkstr_int( saacproto.token_list[5] );
-		angelinfo = saacproto_wrapStringAddr( saacproto_stringwrapper[4] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[5] ));
-
-		saacproto_ACMissionTable_recv( fd, num, type, data, angelinfo);
-		return 0;
-	}
-#endif
-
-#ifdef _TEACHER_SYSTEM
-	if( strcmp( funcname , "ACCheckCharacterOnLine" ) == 0 ){
-		int charaindex,flag;
-		char *id;
-		char *name;
-
-		charaindex = saacproto_demkstr_int( saacproto.token_list[2] );
+		clifd = saacproto_demkstr_int( saacproto.token_list[2] );
 		id = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		name = saacproto_wrapStringAddr( saacproto_stringwrapper[3] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[4] ));
-		flag = saacproto_demkstr_int( saacproto.token_list[5] );
-
-		saacproto_ACCheckCharacterOnLine_recv(fd,charaindex,id,name,flag);
+		pas = saacproto_wrapStringAddr( saacproto_stringwrapper[3] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[4] ));
+		ip = saacproto_wrapStringAddr( saacproto_stringwrapper[4] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[5] ));
+		saacproto_ACCharLogin_recv( fd, clifd, id, pas, ip );
 		return 0;
 	}
-#endif
-
-#ifdef _RACEMAN
-	if( strcmp( funcname , "ACRaceRecordandSort" ) == 0 ){
-		int charaindex,racetype,catchcnt,ranknum;
-		char *id;
-		char *name;
-		char *code;
-
-		charaindex = saacproto_demkstr_int( saacproto.token_list[2] );
-		code = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
-		id = saacproto_wrapStringAddr( saacproto_stringwrapper[3] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[4] ));
-		name = saacproto_wrapStringAddr( saacproto_stringwrapper[4] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[5] ));
-		racetype = saacproto_demkstr_int( saacproto.token_list[6] );	
-		catchcnt = saacproto_demkstr_int( saacproto.token_list[7] );	//玩家目前抓多少只
-		ranknum = saacproto_demkstr_int( saacproto.token_list[8] );		//server要排名到几个
-
-		saacproto_ACRaceRecordandSort_recv( fd , charaindex , code , id , name , racetype , catchcnt ,ranknum );		
+	
+	if( strcmp( funcname , "LockLogin" ) == 0 ){
+		int flag;
+		char *id , *ip;
+		id = saacproto_wrapStringAddr( saacproto_stringwrapper[1] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[2] ));
+		ip = saacproto_wrapStringAddr( saacproto_stringwrapper[2] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[3] ));
+		flag = saacproto_demkstr_int( saacproto.token_list[4] );
+		saacproto_LockLogin_recv( fd, id, ip, flag );
 		return 0;
 	}
-
-	if( strcmp( funcname , "ACRaceRecordfmdo" ) == 0 ){
-		int charaindex;
-		int	 fmid , bbi;
-		char *unicode , *petname;
-
-		charaindex = saacproto_demkstr_int( saacproto.token_list[2] );
-		fmid    = saacproto_demkstr_int( saacproto.token_list[3] );
-		bbi     = saacproto_demkstr_int( saacproto.token_list[4] );
-		unicode = saacproto_wrapStringAddr( saacproto_stringwrapper[4] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[5] ));
-		petname = saacproto_wrapStringAddr( saacproto_stringwrapper[5] , saacproto.workbufsize , saacproto_demkstr_string( saacproto.token_list[6] ));
-
-		saacproto_ACRaceRecordfmdo_recv( fd , charaindex , fmid , bbi , unicode , petname  );		
-		return 0;
-	}
-
-#endif
-
+	
 	sprintf( debugfun, "%s", funcname);
 
 	return -1;	
@@ -1261,18 +771,6 @@ void saacproto_ACServerLogin_send( int fd,char* result,char* data )
 	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( data ) ,saacproto.workbufsize );
 	saacproto_Send( fd , saacproto.work );
 }
-
-#ifdef _ACNT_LOGIN
-void saacproto_ACQueryAccount_send(int fd, char *result, char *output, int id)
-{
-  saacproto_CreateHeader(saacproto.work,"ACQueryAccount");
-  saacproto_strcatsafe(saacproto.work,saacproto_mkstr_string(result),saacproto.workbufsize);
-  saacproto_strcatsafe(saacproto.work,saacproto_mkstr_string(output),saacproto.workbufsize);
-  saacproto_strcatsafe(saacproto.work,saacproto_mkstr_int(id),saacproto.workbufsize);
-  saacproto_Send(fd,saacproto.work);
-}
-#endif
-
 
 void saacproto_ACCharList_send( int fd,char* result,char* output,int id )
 {
@@ -1292,7 +790,7 @@ void saacproto_ACCharLoad_send( int fd,char* result,char* data,int id )
 	if( strstr( result, "successful") != NULL && strlen( data) > CharDataLens ){
 		CharDataLens = strlen( data);
 		//andy_log
-		log("ANDY MaxDataLens:%d\n", CharDataLens );
+		log("最大数据长度:%d\n", CharDataLens );
 	}
 
 	saacproto_CreateHeader( saacproto.work , "ACCharLoad" );
@@ -1304,20 +802,6 @@ void saacproto_ACCharLoad_send( int fd,char* result,char* data,int id )
 #endif
 	saacproto_Send( fd , saacproto.work );
 }
-
-#ifdef _RELOGIN
-void saacproto_ACCharLoadII_send( int fd,char* result,char* data,int id,int charindex,int gs1,int gs2 )
-{
-	saacproto_CreateHeader( saacproto.work , "ACCharLoadII" );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( result ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( data ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( id ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( charindex ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( gs1 ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( gs2 ) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
 
 /*
 214 :  <li><a name="ACCharSaveS"><font color=blue>servertoclient ACCharSave( string result , string data,int id);<br></font></a>
@@ -1347,19 +831,6 @@ void saacproto_ACCharSave_send( int fd,char* result,char* data,int id )
 	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( id ) ,saacproto.workbufsize );
 	saacproto_Send( fd , saacproto.work );
 }
-
-#ifdef _RELOGIN
-void saacproto_ACCharSaveII_send( int fd,char* result,char* data,int id,int gs1,int gs2 )
-{
-	saacproto_CreateHeader( saacproto.work , "ACCharSaveII" );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( result ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( data ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( id ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( gs1 ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( gs2 ) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
 
 /*
 256 :  <li><a name="ACCharDeleteS"><font color=blue>servertoclient ACCharDelete(string result, string data,int id);<br></font></a>
@@ -1863,53 +1334,6 @@ void saacproto_ACShowFMList_send(int fd, char *result, int num, char *data)
 	saacproto_Send( fd , saacproto.work );
 }
 
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-void saacproto_ACRELOADFM_send( int fd, int charindex )
-{
-	saacproto_CreateHeader(saacproto.work , "ACRELOADFMOK");
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(charindex) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-
-void saacproto_ACSHOWMEMBERLIST_2_send( int fd, int charindex, int fm1, char *fm1_name, int fm2, char *fm2_name, int time, int id )
-{
-	saacproto_CreateHeader(saacproto.work , "ACSHOWMEMBERLIST2");
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(charindex) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(fm1) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_string(fm1_name) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(fm2) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_string(fm2_name) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(time) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(id) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-
-#endif
-
-
-
-#ifdef _DEATH_FAMILY_STRUCT		// WON ADD 家族战存放胜负资料
-void saacproto_ACFMPKSTRUCT_send( int fd, char *data )
-{
-	saacproto_CreateHeader(saacproto.work , "ACSendFmPkStruct");
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_string(data) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
-
-
-
-#ifdef _DEATH_FAMILY_LOGIN_CHECK   // WON ADD 家族战登入检查
-void saacproto_ACFMCharLogin2_send( int fd, char *result, int charindex, char *data )
-{
-	saacproto_CreateHeader(saacproto.work , "ACSendMemberList");
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_string(result) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(charindex) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_string(data) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
-
 // 列出成员列表
 void saacproto_ACShowMemberList_send(int fd, char *result, int index, int num,
 	int acceptflag, int fmjoinnum, char *data)
@@ -1954,9 +1378,6 @@ void saacproto_ACMemberLeaveFM_send(int fd, char *result, int charfdid)
 void saacproto_ACFMCharLogin_send(int fd, char *result, int index, int floor,
 	int fmpopular, int joinflag, int fmsetupflag, int flag, int charindex,
 	int charfame, int charfdid
-	#ifdef _NEW_MANOR_LAW
-	,int momentum
-	#endif
 	)
 #else
 void saacproto_ACFMCharLogin_send(int fd, char *result, int index, int floor,
@@ -1977,9 +1398,6 @@ void saacproto_ACFMCharLogin_send(int fd, char *result, int index, int floor,
 	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(charfame) ,saacproto.workbufsize );
 #endif
 	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(charfdid) ,saacproto.workbufsize );
-#ifdef _NEW_MANOR_LAW
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(momentum) ,saacproto.workbufsize );
-#endif
 	saacproto_Send( fd , saacproto.work );
 }
 // 加入家族之玩家logout
@@ -2018,27 +1436,6 @@ void saacproto_ACFMPointList_send(int fd, char *result, char *data)
 	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_string(data) ,saacproto.workbufsize );
 	saacproto_Send( fd , saacproto.work );
 }
-
-#ifdef _ADD_FAMILY_TAX  // WON ADD 增加庄园税收
-
-void saacproto_GS_ACK_TAX_send(int fd, int fm_tax, int fm_point)
-{
-	saacproto_CreateHeader(saacproto.work , "GSASKTAX");
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(fm_tax) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(fm_point) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-
-void saacproto_ACFMSetTAX_send(int fd, char *result, int fm_tax, int fm_point, int index)
-{
-	saacproto_CreateHeader(saacproto.work , "ACFMSetTAX");
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_string(result) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(fm_tax) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(fm_point) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(index) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
 
 // 申请家族据点
 void saacproto_ACSetFMPoint_send(int fd, char *result, int r, int charfdid)
@@ -2082,18 +1479,7 @@ void saacproto_ACShowTopFMList_send(int fd, char *result, int kindflag,
 	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_string(data) ,saacproto.workbufsize );
 	saacproto_Send( fd , saacproto.work );
 }
-// 修正家族资料
-#ifdef _FAMILYBANKSTONELOG
 
-void saacproto_ACgetFMBankgold_send(int fd,int charfdid, int r)
-
-{
-	saacproto_CreateHeader(saacproto.work , "ACgetFMBankgold");
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(charfdid) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(r)		,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
 void saacproto_ACFixFMData_send(int fd, char *result, int kindflag, char *data1,
 	char *data2, int charfdid)
 {
@@ -2155,15 +1541,6 @@ void saacproto_ACManorPKAck_send(int fd, char *data)
 	saacproto_Send( fd , saacproto.work );
 }
 
-#ifdef _CHECKFMSCHEDULE	 // Syu ADD 透过AC确认家族挑战排程
-void saacproto_ACCheckSchedule_send(int fd,char *data)
-{
-	saacproto_CreateHeader(saacproto.work , "ACCheckSchedule");
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_string(data) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
-
 #ifdef _AC_SEND_FM_PK		 // WON ADD 庄园对战列表储存在AC
 void saacproto_ACLoadFmPk_send(int fd, char *data)
 {
@@ -2183,37 +1560,6 @@ void saacproto_ACSendFmPk_send( int fd, int userindex, int flg)
 
 #endif
 
-#ifdef _RECAL_BACKUP_PLAYER			// WON 回溯功能
-void saacproto_ACRecalPlayer_send(int fd, char *uid, int userfdid, int GmCliId, char *id, int char_num, int date, char *char_data, int backup_flag)
-{
-	if(backup_flag==1)		saacproto_CreateHeader(saacproto.work , "ACRecalBackupDate");	// 回传备份日期
-	else if(backup_flag==2)	saacproto_CreateHeader(saacproto.work , "ACRecalPlayer");		// 回传线上人物资料
-	else if(backup_flag==3)	saacproto_CreateHeader(saacproto.work , "ACRecalBackupPlayer");	// 回传备份人物资料
-	else if(backup_flag==4)	saacproto_CreateHeader(saacproto.work , "ACRecalAllBackupOK");	// 回传回溯ok讯息
-
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_string(uid) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(userfdid) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(GmCliId) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_string(id) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(char_num) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_int(date) ,saacproto.workbufsize );
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_string(char_data) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
-
-
-
-// 通知委托人已卖出拍卖物
-#ifdef _AUCTIONEER
-void saacproto_ACAuctionSold_send(int fd, char *data)
-{
-	saacproto_CreateHeader(saacproto.work , "ACAuctionSold");
-	saacproto_strcatsafe(saacproto.work , saacproto_mkstr_string(data) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
-
 #ifdef _WAEI_KICK
 void saacproto_ACKick_send( int fd, int act, char* data,int id )
 {
@@ -2221,57 +1567,6 @@ void saacproto_ACKick_send( int fd, int act, char* data,int id )
 	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( act ) ,saacproto.workbufsize );
 	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( data ) ,saacproto.workbufsize );
 	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( id ) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
-
-#ifdef _NEW_PLAYERGOLD
-void saacproto_LoadNEWPlayer_send( int fd, int charaindex, char* data)
-{
-	saacproto_CreateHeader( saacproto.work , "LoadNEWPlayer" );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( charaindex ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( data ) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
-
-#ifdef _PAUCTION_MAN
-void saacproto_ACItemAuction_send( int fd, char *ITEMNAME, char *data, int itemID, int ret, int flg)
-{
-	log("ACItemAuction( %d, %s, %s, %d, %d)\n", fd, ITEMNAME, data, itemID, flg);
-	saacproto_CreateHeader( saacproto.work , "AUCTIONADDITEM" );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( ITEMNAME ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( data ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( itemID ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( ret ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( flg ) ,saacproto.workbufsize );
-
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
-
-
-#ifdef _NEW_PLAYERGOLD
-void saacproto_ACNewPlayerList_send( int fd, char *CdKey, char* UserName, int UserIndex, int RunType)
-{
-	saacproto_CreateHeader( saacproto.work , "ACNewPlayerList" );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( CdKey ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( UserName ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( UserIndex ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( RunType ) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-
-#endif
-
-#ifdef _GM_BROADCAST					// WON ADD 客服公告系统
-void saacproto_GmBroadcast_send(int fd, int time, int loop, int wait, char *post_msg)
-{
-	saacproto_CreateHeader(saacproto.work , "GMBROADCAST");
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( time ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( loop ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( wait ) ,saacproto.workbufsize );	
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( post_msg ) ,saacproto.workbufsize );
 	saacproto_Send( fd , saacproto.work );
 }
 #endif
@@ -2285,131 +1580,13 @@ void saacproto_SendEffect_send(int fd, char *effect)
 }
 #endif
 
-#ifdef _DEFEND_NEWUSERS
-void saacproto_DefendList_send( int fd, int type, char *data)
+void saacproto_ACCharLogin_send( int fd, int clifd, int flag )
 {
-	saacproto_CreateHeader(saacproto.work , "DEFENDLISTS");
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( type ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( data ) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-
-void saacproto_CheckDefendScore_send( int fd, char *fromname, int userindex, int score)
-{
-	saacproto_CreateHeader(saacproto.work , "CHECKDEFENDSCORE");
-
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( fromname ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( userindex ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( score ) ,saacproto.workbufsize );
-
-	saacproto_Send( fd , saacproto.work );
-
-}
-#endif
-
-#ifdef _CHAR_POOLITEM
-void saacproto_ACCharSavePoolItem_send( int fd, char *Acces ,
-									   char *Pooldataarg, int clifdid )
-{
-	saacproto_CreateHeader( saacproto.work , "ACSavePoolItem" );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( Acces ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( Pooldataarg ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( clifdid ) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-
-void saacproto_ACCharGetPoolItem_send( int fd, char *Acces, char *Pooldataarg, int clifdid, int npcid)
-{
-	saacproto_CreateHeader( saacproto.work , "ACGetPoolItem" );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( Acces ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( Pooldataarg ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( clifdid ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( npcid ) ,saacproto.workbufsize );
-
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
-
-
-#ifdef _CHAR_POOLPET
-void saacproto_ACCharSavePoolPet_send( int fd, char *Acces ,
-									   char *Pooldataarg, int clifdid )
-{
-	saacproto_CreateHeader( saacproto.work , "ACSavePoolPet" );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( Acces ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( Pooldataarg ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( clifdid ) ,saacproto.workbufsize );
-	saacproto_Send( fd , saacproto.work );
-}
-
-void saacproto_ACCharGetPoolPet_send( int fd, char *Acces, char *Pooldataarg, int clifdid, int npcid)
-{
-	saacproto_CreateHeader( saacproto.work , "ACGetPoolPet" );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( Acces ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( Pooldataarg ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( clifdid ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( npcid ) ,saacproto.workbufsize );
-
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
-
-
-
-#ifdef _UNIVERSE_CHATROOM
-void saacproto_ACUniChatroom_send( int fd, char *cdkey, char *result, char *data, int userindex, int clifdid )
-{
-	//andy_log
-	log( "_ACUniChatroom_send:[%s,%s]\n", result, data)
-	saacproto_CreateHeader( saacproto.work , "ACUniChatroom" );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( result ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( data ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( cdkey ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( userindex ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( clifdid ) ,saacproto.workbufsize );
-
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
-
-
-#ifdef _ANGEL_SUMMON
-//void saacproto_ACMissionTable_send( int fd, int num, int type, char *data, int charaindex)
-void saacproto_ACMissionTable_send( int fd, int num, int type, char *data, char* angelinfo)
-{
-	saacproto_CreateHeader( saacproto.work , "ACMissionTable" );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( num ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( type ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( data ) ,saacproto.workbufsize );
-	//saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( charaindex ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( angelinfo ) ,saacproto.workbufsize );
-
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
-
-#ifdef _TEACHER_SYSTEM
-void saacproto_ACCheckCharacterOnLine_send( int fd, int charaindex, int iOnline,char *data,int flag)
-{
-	saacproto_CreateHeader( saacproto.work , "ACCheckCharacterOnLine" );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( charaindex ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( iOnline ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( data ) ,saacproto.workbufsize );
+	saacproto_CreateHeader( saacproto.work , "ACCharLogin" );
+	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( clifd ) ,saacproto.workbufsize );
 	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( flag ) ,saacproto.workbufsize );
-	
-	saacproto_Send( fd , saacproto.work );
-}
-#endif
-
-#ifdef _RACEMAN 
-void saacproto_ACRaceRecordandSort_send( int fd, int charaindex , int racetype , char *data )
-{
-	saacproto_CreateHeader( saacproto.work , "ACRaceRecordandSort" );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( charaindex ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_int( racetype ) ,saacproto.workbufsize );
-	saacproto_strcatsafe( saacproto.work , saacproto_mkstr_string( data ) ,saacproto.workbufsize );
 
 	saacproto_Send( fd , saacproto.work );
 }
-#endif
+
 /* end of the generated server code */

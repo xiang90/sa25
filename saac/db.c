@@ -232,7 +232,7 @@ reallocDB( void )
                                          sizeof( struct dbentry) );
     /* 丢乒伉凶曰卅中   */
     if( newbuf == NULL ){
-        log( "reallocDB: memory shortage!!! new_dbsize: %d\n", new_dbsize );
+        log( "重新分配数据: 内存不足!!! 新数据大小: %d\n", new_dbsize );
         return -1;
     }
 
@@ -258,7 +258,7 @@ reallocDB( void )
     dbsize = new_dbsize;
     master_buf = newbuf;
     
-    log( "reallocDB: new_dbsize:%d Old address: %x New address:%x\n",
+    log( "重新分配数据: 新数据大小:%d 旧地址: %x 新地址:%x\n",
          new_dbsize , (unsigned int)previous, (unsigned int)newbuf );
 
     return 0;
@@ -295,14 +295,14 @@ dbAllocNode()
             return dbent_finder;
         }
     }
-    log( "dbAllocNode: dbentry array full. reallocating....\n" );
+    log( "数据进入队列失败. 重新分配中....\n" );
     if( reallocDB() < 0 ){
-        log( "dbAllocNode: reallocation fail\n" );
+        log( "重新分配失败\n" );
     } else {
         //return dbAllocNode( type );
         // Spock 2000/10/13
         master_buf[dbent_finder].use = 1;
-        log( "dbAllocNode: dbent_finder=%d\n" , dbent_finder );
+        log( "数据探测=%d\n" , dbent_finder );
         return dbent_finder;
         // Spock end
     }
@@ -329,7 +329,7 @@ dbShowLink( int topind )
 {
     int cur = topind;
 
-    log( "dbShowLink start from %d\n", cur );
+    log( "开始从 %d 链接数据\n", cur );
     
     /* Spock deleted 2000/10/19
     for(;;){
@@ -363,7 +363,7 @@ reallocHash( int dbi )
     newbuf = (struct hashentry* ) calloc( 1, new_hashsize *
                                          sizeof( struct hashentry) );
     if( newbuf == NULL ){
-        log( "reallocHash: memory shortage!!! new_hashsize: %d\n", new_hashsize );
+        log( "重新分配无用信息: 内存不足!!! 新无用信息大小: %d\n", new_hashsize );
         return -1;
     }
 
@@ -382,7 +382,7 @@ reallocHash( int dbi )
     dbt[dbi].hashsize = new_hashsize;
     dbt[dbi].hashtable = newbuf;
     
-    log( "reallocHash: new_hashsize:%d Old address: %x New address:%x\n",
+    log( "重新分配无用信息: 新无用信息大小:%d 旧地址: %x 新地址:%x\n",
          new_hashsize , (unsigned int)previous, (unsigned int)newbuf );
 
     return 0;
@@ -675,7 +675,7 @@ dbGetTableIndex( char *tname , DBTYPE type )
             // Spock 2000/10/16
             if ( reallocHash( i ) < 0 )
             {
-            	log( "dbGetTableIndex: reallocHash fail\n");
+            	log( "重新分配无用信息失败\n");
             	return -2;
             }
             dbt[i].ent_finder = HASH_PRIME;
@@ -685,7 +685,7 @@ dbGetTableIndex( char *tname , DBTYPE type )
             // Spock +1 2000/10/16
             topind = dbAllocNode();
             if( topind < 0 ){
-                log( "dbGetTableIndex: dbAllocNode fail\n" );
+                log( "数据分配节点失败\n" );
                 return -2;
             }
             /* Spock deleted 2000/10/16
@@ -901,7 +901,7 @@ dbDeleteEntryInt( char *table, char *key )
     }
     // Spock +1 2000/10/19
     dbt[dbi].updated = 1;
-    log( "deleted key %s from table %s\n", key, table );
+    log( "删除人物 %s 来至表 %s\n", key, table );
     return 0;
 }
 
@@ -1084,8 +1084,7 @@ dbGetEntryRankRange( char *table,
     return 0;
 }
 
-int
-dbFlush( char *dir )
+int dbFlush( char *dir )
 {
     int i;
 
@@ -1113,8 +1112,7 @@ dbFlush( char *dir )
         
         fp = fopen( filename, "w" );
         if( fp == NULL ){
-            log( "cannot open file: %s %s\n",
-                     filename, strerror( errno ));
+            log( "cannot open file: %s %s\n", filename, strerror( errno ));
             continue;
         }
 
@@ -1163,11 +1161,11 @@ int dbRead( char *dir )
         char tmp[1024];
         snprintf( tmp, sizeof( tmp ), "%s/int" , dir );
         if( mkdir( tmp, 0755 )==0){
-            log( "created %s\n", tmp );
+            log( "创建 %s\n", tmp );
         }
         snprintf( tmp, sizeof( tmp ), "%s/string" , dir );
         if( mkdir( tmp, 0755 )==0){
-            log( "created %s\n", tmp );
+            log( "创建 %s\n", tmp );
         }        
     }
         
@@ -1175,7 +1173,7 @@ int dbRead( char *dir )
               "%s/int" , dir );
     d = opendir(dirname);
     if( d == NULL ){
-        log( "cannot open %s\n", dirname );
+        log( "不能打开文件 %s\n", dirname );
         return -1;
     }
 
@@ -1187,7 +1185,7 @@ int dbRead( char *dir )
             FILE *fp;
             struct stat s;
             snprintf( filename, sizeof(filename),"%s/%s",dirname, de->d_name );
-			log( "ANDY READ db:%s\n..", filename);
+			log( "读取数据:%s\n..", filename);
             if( stat( filename, &s ) < 0 ){
                 continue;
             }
@@ -1197,7 +1195,7 @@ int dbRead( char *dir )
             
             fp = fopen( filename, "r" );            
             if( fp == NULL ){
-                log( "cannot open file %s %s\n",
+                log( "不能打开文件 %s %s\n",
                          filename, strerror( errno ));
                 continue;
             }
@@ -1221,7 +1219,7 @@ int dbRead( char *dir )
     snprintf( dirname, sizeof( dirname), "%s/string" , dir );
     d = opendir( dirname );
     if( d == NULL ){
-        log( "cannot open %s\n", dirname );
+        log( "不能打开文件 %s\n", dirname );
         return -1;
     }
     while(1){
@@ -1232,7 +1230,7 @@ int dbRead( char *dir )
             FILE *fp;
             struct stat s;
             snprintf( filename, sizeof( filename),"%s/%s",dirname,de->d_name );
-			log( "ANDY READ db:%s\n..", filename);
+			log( "读取数据:%s\n..", filename);
 
             if( stat( filename, &s ) < 0 ){
                 continue;
@@ -1242,7 +1240,7 @@ int dbRead( char *dir )
             }
             fp = fopen( filename, "r" );
             if( fp == NULL ){
-                log( "cannot open file %s %s\n",
+                log( "不能打开文件 %s %s\n",
                      filename, strerror(errno ));
                 continue;
             }
@@ -1478,6 +1476,6 @@ dbDeleteEntryString( char *table, char *key )
         return -1;
     }
     dbt[dbi].updated = 1;
-    log( "deleted key %s from table %s\n", key, table );
+    log( "删除人物 %s 来至表 %s\n", key, table );
     return 0;
 }

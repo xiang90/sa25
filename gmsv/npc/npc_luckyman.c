@@ -80,8 +80,7 @@ static void NPC_LuckyMan_selectWindow( int meindex, int toindex, int num,char *m
 
 	switch( num){
 		case 1:
-			sprintf(token ,
-					"              ☆今日的运势☆  "
+			sprintf(token ,"　　　　　　　☆今日的运势☆　"
 					"\n\n%s",msg
 				);
 				buttontype = WINDOW_BUTTONTYPE_OK;
@@ -90,8 +89,7 @@ static void NPC_LuckyMan_selectWindow( int meindex, int toindex, int num,char *m
 		break;
 	
 		case 2:
-			sprintf(token, 
-					"                ☆占卜师☆  "
+			sprintf(token, "　　　　　　　　☆占卜师☆　"
 					"\n\n%s",msg
 				);
 				buttontype = WINDOW_BUTTONTYPE_YESNO;
@@ -100,8 +98,7 @@ static void NPC_LuckyMan_selectWindow( int meindex, int toindex, int num,char *m
 		break;
 
 		case 3:
-			sprintf(token, 
-					"                ☆占卜师☆  "
+			sprintf(token, "　　　　　　　　☆占卜师☆　"
 					"\n\n%s",msg
 				);
 				buttontype = WINDOW_BUTTONTYPE_OK;

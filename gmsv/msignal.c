@@ -17,8 +17,6 @@
 #include "petmail.h"
 
 /*------------------------------------------------------------
- * lsprotocol 及伐□平件弘    毛荸  允月楮醒毛裟少［
- * 娄醒｝忒曰袄
  *  卅仄
  ------------------------------------------------------------*/
 static void endlsprotocol( void )
@@ -29,59 +27,78 @@ static void endlsprotocol( void )
 
 /*------------------------------------------------------------
  * 允屯化及忡绣仄卅仃木壬卅日卅中犯□正毛母件皿允月楮醒
- * 公木冗木及乒斥亘□伙及楮醒毛裟少及心［
- * 娄醒｝忒曰袄
  *  卅仄
  ------------------------------------------------------------*/
 static void allDataDump( void )
 {
-    closeAllLogFile();
-#ifndef _SIMPLIFY_ITEMSTRING
-	storeObjects( getStoredir() );
-	storePetmail();
-#endif
+  closeAllLogFile();
 	storeCharaData();
 }
 
 /*------------------------------------------------------------
- * 皿夫弘仿丞及蔽  质  及凶户卞裟太请今木月［
- * 娄醒｝忒曰袄
  *  卅仄
  ------------------------------------------------------------*/
 void shutdownProgram( void )
 {
-    close( acfd );
-    close( bindedfd );
-    endlsprotocol();
-    endConnect();
+    printf("关闭SAAC连接:%d\n",close( acfd ));
+    printf("关闭绑定端口:%d\n",close( bindedfd ));
     memEnd();
 }
-
-char *DebugFunctionName = NULL;
-int DebugPoint = 0;
-
+#ifdef _GMSV_DEBUG
+char *DebugMainFunction = NULL;
+extern time_t initTime;
+#endif
+extern int player_online;
+extern int player_maxonline;
+char saacfunc[255]="";
 void sigshutdown( int number )
 {
-
-
-#if USE_MTIO
-    {
-        void MTIO_join(void);
-        MTIO_join();
-    }
-#endif        
-    print( "Received signal : %d\n" , number  );
-    if( number == 0 )print( "\ngmsv normal down\n" );
-    print( "\nDebugPoint (%d)\n", DebugPoint );
-    print( "\nLastFunc (%s)\n", DebugFunctionName );
-
-	remove( "gmsvlog.err2");
-	rename( "gmsvlog.err1", "gmsvlog.err2" );
-	rename( "gmsvlog.err", "gmsvlog.err1" );
-	rename( "gmsvlog", "gmsvlog.err" );
+		if( number == 0 ){
+			print( "\nGMSV正常关闭\n" );
+		}else{
+			print( "\n=========以下是服务器出错原因=========\n");
+	    print( "标准信息: %d\n" , number  );
+#ifdef _GMSV_DEBUG
+			print( "主 函 数: %s\n", DebugMainFunction );
+#endif
+			print( "在线人数: %d\n", player_online);
+			print( "最高在线: %d\n", player_maxonline);
+			print( "SAAC函数: %s\n", saacfunc);
+#ifdef _GMSV_DEBUG
+	    {
+	    	time_t new_t;
+	    	int dd,hh,mm,ss;
+	    	char buf[128];
+	    	time(&new_t);
+	    	if(initTime==0){
+	    		print( "运行时间: 尚未初始化完\n" );
+	    	}else{
+		    	new_t-=initTime;
+			
+					dd=(int) new_t / 86400; new_t=new_t % 86400;
+		   		hh=(int) new_t / 3600;  new_t=new_t % 3600;
+		      mm=(int) new_t / 60;    new_t=new_t % 60;
+		      ss=(int) new_t;
+		      
+					if (dd>0) {
+		      	snprintf( buf, sizeof( buf ) , "服务器共运行了 %d 日 %d 小时 %d 分 %d 秒。",dd,hh,mm,ss);
+		      } else if (hh>0) {
+		      	snprintf( buf, sizeof( buf ) , "服务器共运行了 %d 小时 %d 分 %d 秒。",hh,mm,ss);
+		      } else {
+		       	snprintf( buf, sizeof( buf ) , "服务器共运行了 %d 分 %d 秒。",mm,ss);
+		      }
+		      print( "运行时间: %s\n", buf );
+	    	}
+			}
+#endif
+			print( "=========以上是服务器出错原因=========\n");
+		}
+		remove( "gmsvlog.err2");
+		rename( "gmsvlog.err1", "gmsvlog.err2" );
+		rename( "gmsvlog.err", "gmsvlog.err1" );
+		rename( "gmsvlog", "gmsvlog.err" );
 
     allDataDump();
-    
 
     signal( SIGINT , SIG_IGN );
     signal( SIGQUIT, SIG_IGN );
@@ -89,7 +106,6 @@ void sigshutdown( int number )
     signal( SIGSEGV, SIG_IGN );
     signal( SIGPIPE, SIG_IGN );
     signal( SIGTERM, SIG_IGN );
-
 
     shutdownProgram();
     exit(number);
@@ -100,14 +116,14 @@ void sigshutdown( int number )
 void signalset( void )
 {
     // CoolFish: Test Signal 2001/10/26
-    print("\nCoolFish Get Signal..\n");
+    print("\n开始获取信号..\n");
 
-	print("SIGINT:%d\n", SIGINT);
-	print("SIGQUIT:%d\n", SIGQUIT);
-	print("SIGKILL:%d\n", SIGKILL);
-	print("SIGSEGV:%d\n", SIGSEGV);
-	print("SIGPIPE:%d\n", SIGPIPE);
-	print("SIGTERM:%d\n", SIGTERM);
+		print("SIGINT:%d\n", SIGINT);
+		print("SIGQUIT:%d\n", SIGQUIT);
+		print("SIGKILL:%d\n", SIGKILL);
+		print("SIGSEGV:%d\n", SIGSEGV);
+		print("SIGPIPE:%d\n", SIGPIPE);
+		print("SIGTERM:%d\n", SIGTERM);
     
     signal( SIGINT , sigshutdown );
     signal( SIGQUIT, sigshutdown );

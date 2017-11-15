@@ -77,7 +77,7 @@ static void NPC_Bus_walk( int meindex);
 *********************************/
 BOOL NPC_BusInit( int meindex )
 {
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	int i;
 	char	buf[256];
 	int	routenum;
@@ -219,36 +219,6 @@ void NPC_BusTalked( int meindex , int talkerindex , char *szMes ,
 				}
 			}
 		}
-#if 0
-		else if( strstr( szMes, "Í£Ö¹" )  ||
-			strstr( szMes, "Í£Ö¹" )  ||
-			strstr( szMes, "stop" )  ||
-			strstr( szMes, "Stop" ))
-		{
-			CHAR_setWorkInt( meindex, NPC_WORK_MODE,2);
-
-			/* »ï¡õÃóèúÐÑ¼°ÄÌ¼þÕý¡õÌï»ïÃ«ÄôÈÊÔÊÔÂ  */
-			CHAR_setInt( meindex, CHAR_LOOPINTERVAL, 
-						NPC_BUS_WAITINGMODE_WAITTIME);
-		    /* òØ»þ¼°ÁÝÃÞÃ«±¾ÓÀÐþ */
-		    CHAR_setWorkInt( meindex, NPC_WORK_CURRENTTIME, NowTime.tv_sec);
-		}
-		else if( strstr( szMes, NPC_BUS_DEBUGROUTINTG )) {
-			/* ·¸ÌïÓÀºëåÃ */
-			char *p = strstr( szMes,NPC_BUS_DEBUGROUTINTG);
-			char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
-
-			NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
-			if( p) {
-				int a = atoi( p+strlen(NPC_BUS_DEBUGROUTINTG));
-				if( a <0 ) a = 1;
-				CHAR_setWorkInt( meindex, NPC_WORK_CURRENTROUTE, a);
-			}
-			//print( "route:%d\n",CHAR_getWorkInt( meindex, NPC_WORK_CURRENTROUTE));
-			/* »ï¡õÐþÃ«±¾ÓÀÐþÔÊÔÂ */
-			NPC_BusSetPoint( meindex, argstr);
-		}
-#endif
 	}
 }
 /**************************************
@@ -310,7 +280,7 @@ void NPC_BusLoop( int meindex)
 		if( CHAR_getWorkInt( meindex, NPC_WORK_CURRENTTIME) + 3
 			< NowTime.tv_sec)
 		{
-			char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+			char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 
 			NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
 			/* »ï¡õÃóèúÐÑ¼°ôÄÇëØÆÃ«ÔÞÈÊÔÊÔÂ */
@@ -374,7 +344,7 @@ static void NPC_Bus_walk( int meindex)
 	/* ²÷ååØÆÐ×¼°Æ¥ÆÝ¼°ºÌÄÌ¼þÐþ±å */
 	if( start.x == end.x && start.y == end.y ) {
 		int add = 1;
-		char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+		char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 
 		NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
 
@@ -558,7 +528,7 @@ BOOL NPC_BusCheckAllowItem( int meindex, int charaindex, BOOL pickupmode)
 	char	buf[1024];
 	BOOL	found = TRUE;
 	BOOL	pickup = FALSE;
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	
 	NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
 	
@@ -637,7 +607,7 @@ static int NPC_BusCheckStone( int meindex, int charaindex, char *argstr)
  **************************************/
 static void NPC_BusSendMsg( int meindex, int talkerindex, int tablenum)
 {
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	char	buf[256];
 	char	msg[256];
 	if( tablenum < 0 || tablenum >= arraysizeof( busmsg)) return;
@@ -683,7 +653,7 @@ static int NPC_BusGetRoutePointNum( int meindex, char *argstr )
 BOOL NPC_BusCheckJoinParty( int meindex, int charaindex, BOOL msgflg)
 {
     //int		fd;
-	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE];
+	char	argstr[NPC_UTIL_GETARGSTR_BUFSIZE - 1024 * 20];
 	int		ret;
 	NPC_Util_GetArgStr( meindex, argstr, sizeof( argstr));
 

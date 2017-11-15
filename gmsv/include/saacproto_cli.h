@@ -28,15 +28,13 @@ void saacproto_S_UpdataStele_recv( int i , char *ocdkey , char *oname , char *nc
 #endif
 
 void saacproto_ACGmsvDownRequest_recv( int fd,int min ) ; /* ../../doc/saacproto.html line 80 */
+#ifdef _VIP_ALL
+void saacproto_ACServerLogin_send( int fd,char* servername,char* serverpas,int checkvip ) ; /* ../../doc/saacproto.html line 90 */
+#else
 void saacproto_ACServerLogin_send( int fd,char* servername,char* serverpas ) ; /* ../../doc/saacproto.html line 90 */
+#endif
 void saacproto_ACServerLogin_recv( int fd,char* result,char* data ) ; /* ../../doc/saacproto.html line 101 */
 void saacproto_ACServerLogout_send( int fd ) ; /* ../../doc/saacproto.html line 114 */
-
-#ifdef _ACNT_LOGIN
-void saacproto_ACQueryAccount_send (int fd, char *id, char *pas, int mesgid, int servid);
-void saacproto_ACQueryAccount_recv (int, char *, char *, int);
-
-#endif
 
 #ifdef _PKSEVER_VER
 void saacproto_ACCharList_send( int fd,char* id,char* pas,int mesgid, int star);
@@ -164,9 +162,6 @@ void saacproto_ACFMCharLogin_send(int fd, char *fmname, int fmindex, char *charn
 void saacproto_ACFMCharLogin_recv(int fd, char *result, int index, int floor,
 	int fmdp, int joinflag, int fmsetupflag, int flag, int charindex,
 	int charfame, int charfdid
-#ifdef _NEW_MANOR_LAW
-	,int momentum
-#endif
 	);
 #else
 void saacproto_ACFMCharLogin_recv(int fd, char *result, int index, int floor,
@@ -188,17 +183,6 @@ void saacproto_ACFMWriteMemo_recv(int fd, char *result, int index);
 // 列出家族据点
 void saacproto_ACFMPointList_send(int fd);
 void saacproto_ACFMPointList_recv(int fd, char *result, char *data);
-
-#ifdef _ADD_FAMILY_TAX  // WON ADD 增加庄园税收
-void saacproto_GS_ASK_TAX_send(int acfd);
-void saacproto_GS_ASK_TAX_recv(int fd, int fm_tax, int fm_point);
-void saacproto_ACFMSetTAX_send(int fd, int tax, int index, int fmindex);
-void saacproto_ACFMSetTAX_recv(int fd, char *result, int fm_tax, int fm_point, int index);
-#endif
-
-#ifdef _CK_ONLINE_PLAYER_COUNT    // WON ADD 计算线上人数
-void saacproto_GS_PLAYER_COUNT_SEND( int acfd, int num );
-#endif
 
 // 申请家族据点
 void saacproto_ACSetFMPoint_send(int fd, char* fmname, int fmindex, int index,
@@ -223,12 +207,6 @@ void saacproto_ACShowTopFMList_recv(int fd, char *result, int kindflag,
 // flag 1:acceptjoinflag 2:dpchanged 3:change fmpet 4:change fminfo 5:predel FM Time
 void saacproto_ACFixFMData_send(int fd, char *fmname, int fmindex, int index,
 	int kindflag,char *data1,char *data2,int charindex, int charfdid);
-
-#ifdef _FAMILYBANKSTONELOG
-void saacproto_ACgetFMBankgold_send(int fd, char *fmname, int fmindex, int index,
-	int charindex, int charfdid);
-void saacproto_ACgetFMBankgold_recv(int fd,int charfdid,int r);
-#endif
 
 void saacproto_ACFixFMData_recv(int fd, char *result, int kindflag, char *data1,
 	char *data2, int charfdid);
@@ -264,17 +242,6 @@ void saacproto_ACLoadFmPk_send(int fd, int fmpks_pos);
 void saacproto_ACSendFmPk_recv( int fd, int toindex, int flg);
 void saacproto_ACSendFmPk_send(int fd, int toindex, int PkFlg, int fmpks_pos, char *msg);
 #endif
-
-#ifdef _RECAL_ASK_PLAYER			// WON 要求人物资料
-void saacproto_Recal_Player_send(int acfd, char *uid, int userfdid, int GmCliId, char *id, int char_num, int date, int backup_flag);
-void saacproto_ACRecalPlayer_recv(char *uid, int userfdid, int GmCliId, char *id, int char_num, int date, char *char_data);	
-void saacproto_ACRecalBackupPlayer_recv(char *uid, int userfdid, int GmCliId, char *id, int char_num, int date, char *char_data);	
-void saacproto_ACRecalAllBackupOK_recv(char *uid, int userfdid, int GmCliId, char *id, int char_num, int date, char *char_data);
-void saacproto_ACRecalBackupDate_recv(char *uid, int userfdid, int GmCliId, char *id, int char_num, int date, char *char_data);
-void saacproto_Recal_Backup_send(int acfd, char *uid, int userfdid, int GmCliId, char *id, int char_num, int date, char *char_data, int backup_flag);
-#endif // end RECAL_ASK_PLAYER
-
-
 void saacproto_ACAuctionSold_send(int fd, char *data);
 void saacproto_ACAuctionSold_recv(int fd, char *data);
 
@@ -282,112 +249,10 @@ void saacproto_ACAuctionSold_recv(int fd, char *data);
 void saacproto_ACKick_send( int fd, char* kickid,int kickfd, int flg);
 void saacproto_ACKick_recv(int fd , int act, char* data ,int retfd);
 #endif
+void saacproto_ACCharLogin_send( int fd, int clifd, char* id,char* pas,char* ip );
+void saacproto_ACCharLogin_recv(int fd , int clifd, int flag); 
 
-#ifdef _NEW_PLAYERGOLD
-void saacproto_LoadNEWPlayer_recv(int fd , int charaindex, char *data);
-void saacproto_LoadNEWPlayer_send( int fd, int charaindex, char *filename);
-#endif
-
-#ifdef _PAUCTION_MAN
-void saacproto_ACItemAuction_recv( int fd, char *ITEMNAME, char *data, int itemID, int ret, int flg);
-void saacproto_ACItemAuction_send( int fd, char *ITEMNAME, char *data, int itemID, int ret, int flg);
-//ACAddItemAuction_send( int fd, int itemID, char *ITEMNAME, char* SECRETNAME, char *EFFECTSTRING);
-#endif
-
-#ifdef _NEW_PLAYERGOLD
-enum{
-	NEW_ERR=0,
-	NEW_DELOK,
-	NEW_DELERR,
-	NEW_ADDOK=11,
-	NEW_ADDERR,
-	NEW_LISTFULL,
-};
-void saacproto_ACNEWPlayerList_recv( int fd, char *CdKey, char *UserName, int charaindex, int RunType);
-void saacproto_ACNEWPlayerList_send( int fd, char *CdKey, char *UserName, int charaindex, int RunType);
-#endif
-
-#ifdef _DEATH_CONTEND
-void saacproto_LoadPkTeamListData_recv(int fd , char* result, char* data, int ti );
-void saacproto_LoadPkTeamListData_send(int fd , int start, int count );
-
-void saacproto_PkListUpDate_send( int fd , char *mycdkey, char *tocdkey,
-										 int mynum, int tonum, int winer, int flg );
-
-void saacproto_PKLISTCHARTS_recv( int fd, char *data, int type, int flg);
-void saacproto_PKLISTCHARTS_send( int fd, int type, int flg );
-#endif
-
-
-
-#ifdef _CHAR_POOLITEM
-void saacproto_ACCharInsertPoolItem_send( int acfd, int charaindex, int clifdid, char *CdKey, char *Pooldataarg, int TYPE);
-
-void saacproto_ACCharSavePoolItem_recv(int fd ,char* result, char* data,int retfd);
-void saacproto_ACCharSavePoolItem_send( int acfd, int charaindex, int clifdid, char *CdKey, char *Pooldataarg);
-
-void saacproto_ACCharGetPoolItem_recv(int fd ,char* result, char* data,int retfd, int meindex);
-void saacproto_ACCharGetPoolItem_send( int acfd, int meindex, int charaindex, int clifdid, char * CdKey);
-#endif
-
-#ifdef _CHAR_POOLPET
-void saacproto_ACCharInsertPoolPet_send( int acfd, int charaindex, int clifdid, char *CdKey, char *Pooldataarg, int TYPE);
-
-void saacproto_ACCharSavePoolPet_recv(int fd ,char* result, char* data,int retfd);
-void saacproto_ACCharSavePoolPet_send( int acfd, int charaindex, int clifdid, char *CdKey, char *Pooldataarg);
-
-void saacproto_ACCharGetPoolPet_recv(int fd ,char* result, char* data,int retfd, int meindex);
-void saacproto_ACCharGetPoolPet_send( int acfd, int meindex, int charaindex, int clifdid, char * CdKey);
-#endif
-
-
-
-#ifdef _DEATH_FAMILY_LOGIN_CHECK   // WON ADD 家族战登入检查
-void saacproto_new_ACFM_Login_send( int acfd, int charaindex, char *char_id, char *char_name );
-void saacproto_ACSendMember_recv(int fd, char *result, char *data, int charindex );
-#endif
-
-#ifdef _DEATH_FAMILY_GM_COMMAND	// WON ADD 家族战GM指令
-void saacproto_ReloadFamily_send( int acfd, int charaindex );
-void saacproto_ACRELOADFMOK_recv( int fd, int charindex );
-void saacproto_ACShowMemberList_2_send( int fd, int charaindex, int fm1, int fm2, int time, int id );
-void saacproto_ACSHOWMEMBERLIST2_recv( int fd, int charaindex, int fm1, char *fm1_id, int fm2, char *fm2_id, int time, int id );
-#endif
-
-#ifdef _DEATH_FAMILY_STRUCT		// WON ADD 家族战存放胜负资料
-void saacproto_Init_FM_PK_STRUC_send( int fd );
-void saacproto_FM_PK_STRUCT_send( int fd, char *msg );
-void saacproto_ACSendFmPkStruct_recv( int fd, char *data );
-#endif
-
-#ifdef _UNIVERSE_CHATROOM
-void saacproto_ACUniChatroom_recv( int acfd, int charaindex, int clifdid, char *result,
-									   char *CdKey, char *data);
-void saacproto_ACUniChatroom_send( int acfd, int charaindex, int clifdid, char *CdKey, char *data);
-#endif
-
-
-#ifdef _ANGEL_SUMMON
-void saacproto_ACMissionTable_recv( int fd, int num, int type, char *data, char* angelinfo);
-void saacproto_ACMissionTable_send( int fd, int num, int type, char *data, char* angelinfo);
-#endif
-
-#ifdef _TEACHER_SYSTEM
-// RETURN_FUNCTION -> R_F_XXXXXXX
-enum{
-	R_F_TEACHER_SYSTEM,
-	R_F_END
-};
-void saacproto_ACCheckCharacterOnLine_recv( int acfd, int charaindex, int iOnline,char *data,int flag);
-void saacproto_ACCheckCharacterOnLine_send( int acfd, int charaindex, char *id, char *name, int flag);
-#endif
-
-#ifdef _RACEMAN
-void saacproto_ACRaceRecordandSort_recv(int fd,int charaindex,int racetype,char *data);
-void saacproto_ACRaceRecordandSort_send(int fd,int charaindex,char *code ,char *id,char *name,int racetype,int catchcnt,int ranknum );
-void saacproto_ACRaceRecordfmdo_send(int fd,int charaindex, int fmid , int bbi , char *unicode, char *petname );
-#endif
-
+void saacproto_LockLogin_send( int fd, char* id, char* ip, int flag );
 #endif
 /* end of the generated client header code */
 

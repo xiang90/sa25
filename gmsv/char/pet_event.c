@@ -17,14 +17,6 @@
 #include "npc_exchangeman.h"
 #include "npc_eventaction.h"
 
-#ifdef _MARKET_TRADE
-#include "item_trade.h"
-#endif
-
-
-
-
-
 #ifdef _PET_TALK
 //BOOL PetTalk_CheckFree( int meindex, int  toindex, char *buf);
 BOOL PetTalk_CheckFree( int meindex, int talker, char *buf);
@@ -130,12 +122,10 @@ void PET_Talkfunc( int meindex, int talkerindex, char *msg, int color)
   int petid=-1;
   char tempNo[32], buf1[10240];
 #endif
-
   int fd = getfdFromCharaIndex( talkerindex);
 #define RAND(x,y)   ((x-1)+1+ (int)( (double)(y-(x-1))*rand()/(RAND_MAX+1.0)) )
   windowtype = WINDOW_MESSAGETYPE_MESSAGE;
   buttontype = WINDOW_BUTTONTYPE_OK;
-
   if( NPC_Util_isFaceToFace( meindex ,talkerindex , 2) == FALSE) 	{
 		if( NPC_Util_isFaceToChara( talkerindex, meindex, 1) == FALSE)
 			return;
@@ -197,16 +187,13 @@ void PET_Talkfunc( int meindex, int talkerindex, char *msg, int color)
 		}
 		if( NPC_Util_GetStrFromStrWithDelim( buf2, "FREE", buf3, sizeof( buf3) ) == NULL)continue;
 		if( NPC_ActionPassCheck( meindex, talkerindex, buf3) == FALSE )	continue;//判断玩家FREE条件
-
 //		if( ActionNpc_CheckFree( meindex, talkerindex, buf2, 0) == FALSE ) continue; 
-
 		if( PetTalk_CheckPetEvent( meindex, talkerindex, buf2) == FALSE )continue;
 		FREEs = TRUE;  //条件成立
 		strcpy( AllTalk[j++], buf2 );
 		if( j > PETTALK_MAXID-1 ) break;
 	}
 	talkNo = 0;
-
 	if( FREEs == FALSE)	{	//如果全部条件都不成立
 		j=0;
 #ifdef _PET_TALKPRO
@@ -223,7 +210,6 @@ void PET_Talkfunc( int meindex, int talkerindex, char *msg, int color)
 			break;
 		}
 	}
-
   if( j > 0 )	{
   	strcpy( buf2, AllTalk[ RAND( 0, (j-1) ) ] );
 	if( PetTalk_RunEvent( meindex, talkerindex, buf2) == FALSE )	{
@@ -237,7 +223,7 @@ void PET_Talkfunc( int meindex, int talkerindex, char *msg, int color)
 	}
 
 	lssproto_WN_send( fd, windowtype, buttontype, 0,
-		CHAR_getWorkInt( meindex, CHAR_WORKOBJINDEX), buf3 );                                      
+		CHAR_getWorkInt( meindex, CHAR_WORKOBJINDEX), buf3 );         
   }
   
 }
@@ -735,9 +721,6 @@ int PET_CleanPetdeletetime( int objmeindex)
 	if( OBJECT_getType(objmeindex) != OBJTYPE_CHARA ) return 0;
 	pindex = OBJECT_getIndex( objmeindex);
 	if( CHAR_getInt( pindex, CHAR_WHICHTYPE) != CHAR_TYPEPET) return 0;
-#ifdef _MARKET_TRADE
-	if( CHAR_getWorkInt( pindex, CHAR_WORKTRADETYP) == TRADETYPE_SELL) return 0;
-#endif
 	if( CHAR_getInt( pindex, CHAR_MAILMODE) != CHAR_PETMAIL_NONE) {
 	}else if( CHAR_getWorkInt( pindex, CHAR_WORKPETFOLLOWMODE) == CHAR_PETFOLLOW_NOW ){
 	}else {
@@ -802,9 +785,6 @@ void PET_Watchfunc( int objmeindex, int objmoveindex, CHAR_ACTION act, int x, in
 	petindex = OBJECT_getIndex( objmeindex);
 	petputtime = CHAR_getInt( petindex, CHAR_PUTPETTIME);
 
-#ifdef _MARKET_TRADE
-	if( CHAR_getWorkInt( petindex, CHAR_WORKTRADETYP) != TRADETYPE_SELL)	{
-#endif
 		if( CHAR_getInt( petindex, CHAR_MAILMODE) != CHAR_PETMAIL_NONE) {
 			//宠邮不处理
 		}else if( CHAR_getWorkInt( petindex, CHAR_WORKPETFOLLOWMODE) == CHAR_PETFOLLOW_NOW ){
@@ -853,9 +833,6 @@ void PET_Watchfunc( int objmeindex, int objmoveindex, CHAR_ACTION act, int x, in
 		}else{
 			PET_CHECKFreePetIsIt( petindex);
 		}
-#ifdef _MARKET_TRADE
-	}
-#endif
 	if( CHAR_getInt( petindex, CHAR_MAILMODE) == CHAR_PETMAIL_IDLE3 ||
 		CHAR_getInt( petindex, CHAR_MAILMODE) == CHAR_PETMAIL_IDLE2){
 		if( act == CHAR_ACTATTACK) {
@@ -895,19 +872,7 @@ void PET_Watchfunc( int objmeindex, int objmoveindex, CHAR_ACTION act, int x, in
 			}
 		}
 	}else {
-/*
-#ifdef _MARKET_TRADE
-		if( CHAR_getWorkInt( petindex, CHAR_WORKTRADETYP) != TRADETYPE_SELL)	{
-#endif
-			if( CHAR_getWorkInt( petindex, CHAR_WORKPETFOLLOWMODE) != CHAR_PETFOLLOW_NOW ){
-				if( RAND(0,30) == 1 ) {
-					CHAR_walk( petindex,RAND( 0,7),0);
-				}
-			}
-#ifdef _MARKET_TRADE
-		}
-#endif
-*/
+
 	}
 	return;
 }
