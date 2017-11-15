@@ -278,6 +278,11 @@ BOOL init(int argc , char** argv , char** env )
 	print("出生配套骑宠: %s\n", getPlayerRide());
 #endif
 	print("出生拥有宠物: NO1:%d NO2:%d NO3:%d NO4:%d NO5:%d\n",getNewplayergivepet(0),
+	      getNewplayergivepet(1),
+	      getNewplayergivepet(2),
+	      getNewplayergivepet(3),
+	      getNewplayergivepet(4));
+	    
 	print("出生拥有物品: ITEM1:%d ITEM2:%d ITEM3:%d ITEM4:%d ITEM5:%d\n"
 							"　　　　　　　ITEM1:%d ITEM2:%d ITEM3:%d ITEM4:%d ITEM5:%d\n"
 							"　　　　　　　ITEM1:%d ITEM2:%d ITEM3:%d ITEM4:%d ITEM5:%d\n"
