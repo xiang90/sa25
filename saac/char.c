@@ -212,8 +212,9 @@ int charSave( int ti ,  char *id ,
 		if( (fp=fopen( "badpetstring.txt", "a+")) != NULL ){
 			fprintf( fp, "%s\n", charinfo);
 			fclose( fp);
+		} else {
+			log( "failed to open badpetstring.txt:%s[%s] !\n", id, charname);
 		}
-		log( "err add batpetstring.txt:%s[%s] !\n", id, charname);
 	}
 	
 	if( unlock ){
@@ -268,8 +269,7 @@ void  charListCallback( int ti , int auth , char *c0 , char *c1 ,
 	char *id = c0;
 	int mesgid = i0;
 	
-	//log(" 档案列表回溯:%s:%d \n", id, auth);
-	
+	//log(" 档案列表回溯:%s:%d \n", id, auth)
 	if( auth != 0 ){
 		char data[100];
 		snprintf( data, sizeof( data ) , "%d" , auth );
