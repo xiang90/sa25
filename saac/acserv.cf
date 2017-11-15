@@ -1,7 +1,7 @@
 sql_IP 127.0.0.1
 sql_Port 3306
 sql_ID root
-sql_PS 123456
+sql_PS 123456xx
 sql_DataBase sa25
 sql_Table account
 sql_LOCK user_lock
