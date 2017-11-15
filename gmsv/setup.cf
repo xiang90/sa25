@@ -3,7 +3,7 @@
 runlevel=0
 
 #性能调节，诺想CPU使用率大些的请把值设大些
-CPUUSE=10
+CPUUSE=0
 
 #recvbuffer表示每个玩家接收缓冲区大小 范围0K-128K
 recvbuffer=64
@@ -149,7 +149,7 @@ FLOOR4=30695
 FLOOR5=60034
 
 #禁止使用以下人物名称
-NAME1=极度无聊
+NAME1=
 NAME2=
 NAME3=
 NAME4=
@@ -183,8 +183,8 @@ LV=1
 #自定义出生宠物(1为送虎，2为送雷，3为送虎加雷)
 NPRIDE=3
 #自定义出生宠物
-PET1=101152
-PET2=20004
+PET1=
+PET2=
 PET3=
 PET4=
 
@@ -221,7 +221,6 @@ usememoryunitnum=2500000
 
 #GMSV启动占用内存总量公式为 (usememoryunit*usememoryunitnum)/(1024*1024) 兆
 
-
 # Account Server Name
 # 帐号服务器 SAAC的服务器IP地址
 acserv=127.0.0.1
@@ -234,14 +233,12 @@ acservport=9300
 # 连接到帐号服务器 SAAC的密码
 acpasswd=test
 
-QQ=246912
-
 # Game Server Name
 # 服务器名字
-gameservname=极度1线
+gameservname=Xiang's SA25
 
 # 服务器的ID
-gameservid=极度1线
+gameservid=Xiang's SA25
 
 ==================================================
 以下内容作废 对服务器无任何影响
@@ -300,10 +297,10 @@ saacreadnum=10000
 
 # Max fds, should be larger than online ppls
 # 最大在线人数
-fdnum=10
+fdnum=100
 # Max pets numbers
 # 最大在线宠数
-petnum=100
+petnum=1000
 # Max other char numbers
 # 其他最大数目 包含NPC数目+玩家数目
 othercharnum=10000
@@ -517,5 +514,3 @@ itemquitparty=./data/itemquitparty.txt
 #ifdef _MUSEUM
 #   { "museum",            NULL , 0 , (void*)&config.museum ,            INT},
 #endif
-
-
