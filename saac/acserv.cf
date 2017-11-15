@@ -1,12 +1,12 @@
 sql_IP 127.0.0.1
 sql_Port 3306
 sql_ID root
-sql_PS Qq120848369
-sql_DataBase sa
-sql_Table user_table
+sql_PS 123456
+sql_DataBase sa25
+sql_Table account
 sql_LOCK user_lock
-sql_NAME Name
-sql_PASS Pass
+sql_NAME username
+sql_PASS passowrd
 AutoReg 1
 
 ##############################
