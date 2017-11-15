@@ -6,7 +6,7 @@ sql_DataBase sa25
 sql_Table account
 sql_LOCK user_lock
 sql_NAME username
-sql_PASS passowrd
+sql_PASS password
 AutoReg 1
 
 ##############################
