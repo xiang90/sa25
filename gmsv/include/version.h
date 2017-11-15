@@ -77,12 +77,12 @@ Game Server 游戏环境:
 #define _GMRELOAD                // (可开放) CoolFish: 2001/11/12 
 // -------------------------------------------------------------------
 // 专案：伊甸大陆	人员：彦豪、阿民、小瑜
-// #define _GAMBLE_ROULETTE         // (可开放) 彦豪 赌场轮盘	宝宝小猪  
-// #define _FIX_GAMBLENUM           // (可开放) 轮盘修正 : 下线扣积分 
-// #define _GAMBLE_BANK             // (可开放) 彦豪  赌场银行  
-// #define _DROPSTAKENEW            // (可开放) CoolFish:  赌场下注  
-// #define _PETRACE                 // (可开放) CoolFish: 2001/12/3 宠物竞速场  
-// #define _NEWEVENT                // (可开放) CoolFish: 2001/12/5 新的任务旗标  
+#define _GAMBLE_ROULETTE         // (可开放) 彦豪 赌场轮盘	宝宝小猪  
+#define _FIX_GAMBLENUM           // (可开放) 轮盘修正 : 下线扣积分 
+#define _GAMBLE_BANK             // (可开放) 彦豪  赌场银行  
+#define _DROPSTAKENEW            // (可开放) CoolFish:  赌场下注  
+#define _PETRACE                 // (可开放) CoolFish: 2001/12/3 宠物竞速场  
+#define _NEWEVENT                // (可开放) CoolFish: 2001/12/5 新的任务旗标  
 // -------------------------------------------------------------------
 //专案：鞭炮制作	人员：晓威
 #define _ITEM_FIRECRACKER        // (可开放) 战斗中使用鞭炮可以把年兽吓走
@@ -104,7 +104,7 @@ Game Server 游戏环境:
 #define _ITEM_MAXUSERNUM         // (可开放) 新 itemset1.txt ITEM 使用次数
 // -------------------------------------------------------------------
 //新功能：伊甸二期    人员：彦豪
-// #define _PET_TALKPRO             // (可开放) 宠物对话加强  & 改 END
+#define _PET_TALKPRO             // (可开放) 宠物对话加强  & 改 END
 #define _PRO_NPCFIX              // (可开放) NPC功能加强
 #define _PRO_BATTLEENEMYSKILL    // (可开放) 战斗加强  提升NPC的AI技能
 #define _NEW_WARPPOINT           // (可开放) 传送点多重条件判断WARP
