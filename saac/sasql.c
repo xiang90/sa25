@@ -119,7 +119,7 @@ BOOL sasql_init(void)
 		exit(1);
 		return FALSE;
 	}
-	printf("\bip=%s id=%s ps=%s database=%s port=%d",
+	printf("\nip=%s id=%s ps=%s database=%s port=%d",
 	       config.sql_IP, config.sql_ID, config.sql_PS, config.sql_DataBase,
 	       config.sql_Port);
 
