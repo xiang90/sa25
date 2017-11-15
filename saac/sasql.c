@@ -119,7 +119,7 @@ BOOL sasql_init(void)
 		exit(1);
 		return FALSE;
 	}
-	printf("ip=%s id=%s ps=%s database=%s port=%d",
+	printf("\bip=%s id=%s ps=%s database=%s port=%d",
 	       config.sql_IP, config.sql_ID, config.sql_PS, config.sql_DataBase,
 	       config.sql_Port);
 
@@ -127,7 +127,7 @@ BOOL sasql_init(void)
 				config.sql_PS,	//密码
 				config.sql_DataBase,	//选择的资料库
 				config.sql_Port, NULL, 0)) {
-		printf("\nmysql_real_connect=fail 数据库连接失败！\n");
+		printf("\n数据库连接失败！\n");
 		return FALSE;
 	}
 
@@ -180,7 +180,6 @@ int sasql_query(char *nm, char *pas)
 BOOL sasql_register(char *id, char *ps)
 {
 	char sqlstr[256];
-//      if(AutoReg!=1)return FALSE;
 	sprintf(sqlstr,
 		"INSERT INTO %s (%s,%s,RegTime,Path) VALUES (BINARY'%s','%s',NOW(),'char/0x%x')",
 		config.sql_Table, config.sql_NAME, config.sql_PASS, id, ps,
