@@ -3,7 +3,7 @@
 runlevel=0
 
 #性能调节，诺想CPU使用率大些的请把值设大些
-CPUUSE=0
+CPUUSE=10
 
 #recvbuffer表示每个玩家接收缓冲区大小 范围0K-128K
 recvbuffer=64
