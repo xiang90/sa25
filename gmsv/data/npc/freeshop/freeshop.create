@@ -1,0 +1,15 @@
+NPCCREATE
+
+
+#卡村机暴t字技
+{
+floorid=2000
+borncorner=72,38,72,38
+time=0
+createnum=1
+graphicname=16096
+name=专属技能饲育员
+dir=6
+ignoreinvincible=1
+enemy=FreePetSkill|file:freeshop/freeshop02.arg
+}

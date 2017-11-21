@@ -13,9 +13,9 @@ stone_msg:携带的钱太多了。
 level_msg:等级不足以使用那个。
 realy_msg:这样就可以了吗？
 itemfull_msg:不好意思、道具已经满了。
-ItemList:12089,12181,12197
+ItemList:12089,12181,12197,1600
 LimitItemType:
-LimitItemNo:12089,12181,12197
+LimitItemNo:12089,12181,12197,1600
 special_rate:1.5
 special_item:
 

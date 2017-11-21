@@ -18,4 +18,22 @@ FreeMsg:\n我是商店警卫！你要进入吗？
 PartyMsg:无法以团队入场。\n\n请把团队解散之后再个别入场。
 OVER
 
+###　邀请函　###
+TALKEVENT2
+FREE:ITEM=19004
+WARP:4037,0,6
+DelItem:19004*1
+FreeMsg:\n我是商店警卫！你要进入吗？
+PartyMsg:无法以团队入场。\n\n请把团队解散之后再个别入场。
+OVER
+
+###　通行证　###
+TALKEVENT3
+FREE:ITEM=19333
+WARP:4037,0,6
+DelItem:19333*1
+FreeMsg:\n我是商店警卫！你要进入吗？
+PartyMsg:无法以团队入场。\n\n请把团队解散之后再个别入场。
+OVER
+
 

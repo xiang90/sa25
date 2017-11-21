@@ -10,8 +10,8 @@ EVENT:LV>0&ITEM=2701&ITEM=2707&ITEM=2735&ITEM=2770
 AcceptMsg:\n\n真是不虏洙\n你居然可以带着精灵给你的信物来到这里。
 ThanksMsg:\n\n这是给妥善保管这些信物的你\n一点小小的敜洁\n来收下吧。
 ItemFullMsg:\n\n\n你身上东西太多了，所以装不下哦。
-GetItem:20570,20571,20572
-DelItem:2701*1,2702*1,2703*1,2704*1
+GetItem:2775
+DelItem:2701*1,2707*1,2735*1,2770*1
 Charm:1
 EndSetFlg:53
 EventEnd

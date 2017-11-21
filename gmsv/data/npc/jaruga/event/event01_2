@@ -3,6 +3,25 @@ NomalMainMsg:好不容易终于来到这里，如何？这里的景色很不错吧！
 #希望玩家找药
 EventNo:-1
 TYPE:MESSAGE
+EVENT:ITEM=22657
+NomalWindowMsg:草药已经确实交给你啦，尽快把这草药送给病患吧！
+EventEnd
+
+####接任务给标##
+EventNo:-1
+TYPE:REQUEST
+EVENT:LV>129&TRANS=5&ITEM=22656&NOWEV=240
+RequestMsg1:很多年前，这里的确出现过1个男子。但是昏倒在那，他醒来已经什么都不记得了！
+RequestMsg2:我就收留了他。现在应该在塔姆塔姆的医院里！你去找他吧！
+ThanksMsg:啊，那你就顺便把这包药给他带去吧！麻烦你了！
+GetItem:22657*1     #得到医生的草药
+ItemFullMsg:你身上的东西是不是满了？
+EventEnd
+
+
+#希望玩家找药
+EventNo:-1
+TYPE:MESSAGE
 EVENT:ITEM=2401
 NomalWindowMsg:草药已经确实交给你啦，尽快把这草药送给病患吧！
 EventEnd

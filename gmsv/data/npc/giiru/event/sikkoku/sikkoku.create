@@ -69,13 +69,26 @@ enemy=changeevent|file:giiru/event/sikkoku05
 
 ###### 精灵王 ######
 {
-name=精灵王
+name=光明精灵王
 floorid=32021
 dir=4
 createnum=1
 time=0
 graphicname=100444
 borncorner=31,28,31,28
+ignoreinvincible=1
+enemy=npc_transmigration|file:777/ten.arg
+}
+
+###### 精灵王 ######
+{
+name=黑暗精灵王
+floorid=777
+dir=4
+createnum=1
+time=0
+graphicname=100444
+borncorner=26,8,26,8
 ignoreinvincible=1
 enemy=npc_transmigration|file:777/ten.arg
 }

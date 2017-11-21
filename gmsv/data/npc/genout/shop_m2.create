@@ -1450,20 +1450,6 @@ name=素材店
 enemy=npcgen_shop|file:genout/ss_1302_12_15
 }
 
-#line 496
-{
-floorid=1310
-borncorner=16,16,16,16
-time=0
-createnum=1
-dir=4
-ignoreinvincible=1
-graphicname=16064
-name=营养剂研究名人
-enemy=npcgen_shop|file:genout/ss_1310_18_15
-}
-
-
 #line 499
 {
 floorid=1402

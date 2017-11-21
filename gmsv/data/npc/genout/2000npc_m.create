@@ -13,7 +13,7 @@ graphicname=16039
 name=´åÃñ
 dir=5
 ignoreinvincible=1
-enemy=changeevent|file:genout/msg_2000_99_78
+enemy=npcgen_man|file:genout/msg_2000_99_78
 
 }
 #line 10
@@ -103,7 +103,6 @@ name=¾¯ÎÀ
 dir=4
 ignoreinvincible=1
 enemy=npcgen_man|file:genout/msg_2000_55_52
-
 }
 #line 39
 {
@@ -116,7 +115,6 @@ name=¾¯ÎÀ
 dir=4
 ignoreinvincible=1
 enemy=npcgen_man|file:genout/msg_2000_59_52
-
 }
 #line 43
 {
@@ -183,7 +181,7 @@ enemy=npcgen_dengon
 #line 56
 {
 floorid=2000
-borncorner=70,60,70,60
+borncorner=73,69,73,69
 time=0
 createnum=1
 dir=6

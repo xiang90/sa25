@@ -23,8 +23,7 @@ AcceptMsg:上回托你找的贝壳，有着落了吗？\n可是！仅此一个而已\n真的可以给我吗？
 ThanksMsg:太感激你了！\n将仅有一个的贝壳给我，你真的是个大好人\n就以我抓到的宠物\n做为谢礼送给你吧！\n你可要用心照顾它喔！
 DelItem:2414*1
 GetPet:47
-PetFullMsg:看情形，我的宠物\n你大概是很难带走\n你的道具袋已经满了    
-
+PetFullMsg:看情形，我的宠物\n你大概是很难带走\n你的道具袋已经满了
 EndSetFlg:6
 EventEnd
 

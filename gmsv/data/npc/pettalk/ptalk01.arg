@@ -78,8 +78,7 @@ TalkMsg:那个叫萨姆吉尔的，\n现在到哪里去了呢？\n\n还有那个海之精灵呢？OVER
 TALKRUN17:
 FREE:LV>0
 PET:LV>0&LV<10
-LimitLevel:79
-TalkMsg:你可以把我练到79级了！OVER
+TalkMsg:虽然新藏哥哥他们好像都很感激你的样子，\n\n可是我不认识你，\n\n还不知道你是不是好的人类喔。OVER
 
 TALKRUN18:
 FREE:LV>0

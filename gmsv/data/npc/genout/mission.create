@@ -68,7 +68,7 @@ enemy=npcgen_shop|file:genout/ss_2009_xx_1
 #line 210
 {
 floorid=2009
-borncorner=17,12,17,12
+borncorner=16,13,16,13
 time=0
 createnum=1
 dir=4
@@ -94,7 +94,7 @@ enemy=npcgen_shop|file:genout/ss_2009_xx_1
 #line 210
 {
 floorid=4009
-borncorner=17,12,17,12
+borncorner=13,14,13,14
 time=0
 createnum=1
 dir=4

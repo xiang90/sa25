@@ -52,16 +52,6 @@ GetItem:2433
 DelItem:2570*1,2572*1
 EventEnd
 
-EventNo:-1
-TYPE:ACCEPT
-EVENT:LV>0
-AcceptMsg:咦？\n你拿那个材料来希望我\n把它做成钓竿吗？
-ThanksMsg:嗯…等我一下喔！\n像这样刨木头…\n唰唰唰\n在木头的先端系上绳子…\n好了！完成了！
-ItemFullMsg:咦？东西已经装不下了啊…。
-KeyWord:楍
-GetItem:2291
-DelItem:2570*1,2573*1
-EventEnd
 
 EventNo:-1
 TYPE:ACCEPT
@@ -70,6 +60,20 @@ AcceptMsg:咦？\n你拿那个材料来希望我\n把它做成钓竿吗？
 ThanksMsg:嗯…等我一下喔！\n像这样刨木头…\n唰唰唰\n在木头的先端系上绳子…\n好了！完成了！
 ItemFullMsg:咦？东西已经装不下了啊…。
 GetItem:2433
+DelItem:2570*1,2573*1
+EventEnd
+
+
+EventNo:-1
+TYPE:ACCEPT
+EVENT:LV>0
+AcceptMsg:咦？\n你拿那个材料来希望我\n把它做成钓竿吗？
+ThanksMsg:嗯…等我一下喔！\n像这样刨木头…\n唰唰唰\n在木头的先端系上绳子…\n好了！完成了！
+ItemFullMsg:咦？东西已经装不下了啊…。
+PetFullMsg:咦？东西已经装不下了啊…。
+KeyWord:小手
+GetItem:13026,17460,17959,15176,16674,18091,18092,18093,2759
+GetPet:1690
 DelItem:2570*1,2573*1
 EventEnd
 

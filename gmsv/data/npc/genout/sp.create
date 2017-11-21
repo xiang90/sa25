@@ -255,3 +255,15 @@ graphicname=10048
 name=天空之岛的储存点
 enemy=npcgen_savepoint|file:genout/sp_30691_87_60
 }
+#line 97
+{
+floorid=7012
+borncorner=6,4,6,4
+time=0
+createnum=1
+dir=4
+ignoreinvincible=1
+graphicname=16322
+name=莉雅
+enemy=npcgen_savepoint|file:genout/sp_7012_6_4
+}

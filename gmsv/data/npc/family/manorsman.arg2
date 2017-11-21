@@ -2,4 +2,4 @@ id:2
 loop:1000
 manorid:2
 challengewait:86400
-peacewait:172800
+peacewait:0

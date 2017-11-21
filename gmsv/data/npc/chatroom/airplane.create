@@ -10,6 +10,17 @@ graphicname=100259
 name=加美航空
 enemy=airplane|file:chatroom/airplane.arg
 }
+#######加美航空 米兰达～奇努伊##########
+{
+floorid=5543
+borncenter=20,24,1,1
+movecenter=20,24,20,24
+createnum=1
+dir=2
+graphicname=100259
+name=加美航空
+enemy=airplane|file:chatroom/airplane1.arg
+}
 #######加美航空 卡鲁他那～奇努伊##########
 {
 floorid=4000

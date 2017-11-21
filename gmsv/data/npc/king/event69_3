@@ -11,35 +11,35 @@ EventEnd
 EventNo:-1
 TYPE:MESSAGE
 EVENT:ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19629,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19630,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19631,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19632
-NomalWindowMsg:喔？你这条项炼上的宝石…\n我看看喔…\n\n这是很好的宝石呢！能得到这么好的宝石，你的运气真的不错喔！
+NomalWindowMsg:\n\n这是很好的宝石呢！能得到这么好的宝石，你的运气真的不错喔！
 EventEnd
 
 #确认玩家身上的还好灵石项炼
 EventNo:-1
 TYPE:MESSAGE
 EVENT:ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19672,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19676,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19680,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19684
-NomalWindowMsg:喔？你这条项炼上的宝石…\n我看看喔…\n\n还好嘛，害我以为是很稀奇的珍宝呢…
+NomalWindowMsg:\n\n还好嘛，害我以为是很稀奇的珍宝呢…
 EventEnd
 
 #确认玩家身上的普通灵石项炼
 EventNo:-1
 TYPE:MESSAGE
 EVENT:ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19673,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19677,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19681,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19685
-NomalWindowMsg:喔？你这条项炼上的宝石…\n我看看喔…\n\n普普通通的嘛，真让我失望啊。
+NomalWindowMsg:\n\n普普通通的嘛，真让我失望啊。
 EventEnd
 
 #确认玩家身上的稍差灵石项炼
 EventNo:-1
 TYPE:MESSAGE
 EVENT:ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19674,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19678,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19682,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19686
-NomalWindowMsg:喔？你这条项炼上的宝石…\n我看看喔…\n\n质地有点差，差强人意啦！
+NomalWindowMsg:\n\n质地有点差，差强人意啦！
 EventEnd
 
 #确认玩家身上的很差灵石项炼
 EventNo:-1
 TYPE:MESSAGE
 EVENT:ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19675,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19679,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19683,ENDEV=4&ENDEV=69&ENDEV=70&ITEM=19687
-NomalWindowMsg:喔？你这条项炼上的宝石…\n我看看喔…\n\n呃…虽然不好明讲，不过质地很差呢…
+NomalWindowMsg:\n\n呃…虽然不好明讲，不过质地很差呢…
 EventEnd
 
 #确认玩家接玛蕾菲雅

@@ -1100,19 +1100,19 @@ enemy=npcgen_shop|file:genout/ss_2004_17_13
 #line 362
 {
 floorid=2005
-borncorner=11,8,11,8
+borncorner=1,3,1,3
 time=0
 createnum=1
 dir=4
 ignoreinvincible=1
 graphicname=16012
 name=ÂêÀöÄÈË¿µÄ»¤Ê¿
-enemy=npcgen_winhealer|10|0.5|2.0|2
+enemy=npcgen_healer|1
 }
 #line 364
 {
 floorid=2005
-borncorner=15,7,15,7
+borncorner=4,2,4,2
 time=0
 createnum=1
 dir=4
@@ -1124,7 +1124,7 @@ enemy=npcgen_shop|file:genout/ss_2005_15_7
 #line 366
 {
 floorid=2005
-borncorner=18,7,18,7
+borncorner=8,2,8,2
 time=0
 createnum=1
 graphicname=16024
@@ -1137,7 +1137,7 @@ enemy=npcgen_man|file:genout/msg_2005_18_7
 #line 368
 {
 floorid=2005
-borncorner=19,15,19,15
+borncorner=28,4,28,4
 time=0
 createnum=1
 dir=6

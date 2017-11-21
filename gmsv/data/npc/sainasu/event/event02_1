@@ -3,7 +3,14 @@
 # 						担任者：西竹#
 ###########################################################
 
-NomalMainMsg:你好啊！
+NomalMainMsg:你好啊！我是弥生呀！
+
+EventNo:-1
+TYPE:ACCEPT
+EVENT:ITEM=21031
+AcceptMsg:很可惜啊，已经过了正月了，小白兔没有了。
+ThanksMsg:哎~~~~~~~~
+EventEnd
 
 EventNo:-1
 TYPE:CLEAN

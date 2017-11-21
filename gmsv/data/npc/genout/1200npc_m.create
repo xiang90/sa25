@@ -4,18 +4,18 @@ NPCCREATE
 #
 # infile : data/npc/sainasu/kuruku/1200npc_m.gen
 #line 8
-{
-floorid=2000
-borncorner=87,95,87,95
-time=0
-createnum=1
-graphicname=16209
-name=矿石研究者
-dir=6
-ignoreinvincible=1
-enemy=changeevent|file:genout/msg_1200_58_43
+#{
+#floorid=2000
+#borncorner=87,95,87,95
+#time=0
+#createnum=1
+#graphicname=16209
+#name=矿石研究者
+#dir=6
+#ignoreinvincible=1
+#enemy=changeevent|file:genout/msg_1200_58_43
+#}
 
-}
 #line 11
 {
 floorid=1200

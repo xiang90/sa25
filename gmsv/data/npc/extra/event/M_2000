@@ -126,3 +126,13 @@ StoneFullMsg:你的钱太多了，这样我无法给你喔！
 DelItem:20056*1,12926*4
 GetStone:4800
 EventEnd
+
+EventNo:-1
+TYPE:ACCEPT
+EVENT:ITEM=20057&ITEM=12808*3
+AcceptMsg:哦？你将料理任务Ｇ完成了吗？
+ThanksMsg:恭喜你完成任务！！！这是你应得的酬劳！
+StoneFullMsg:你的钱太多了，这样我无法给你喔！
+DelItem:20057*1,12808*3
+GetStone:3600
+EventEnd
