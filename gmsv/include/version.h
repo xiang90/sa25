@@ -292,7 +292,7 @@ Game Server 游戏环境:
 //2004/05/05
 #define _ITEM_CHECKDROPATLOGOUT  // (可开) Change 检查回纪录点时身上有无登出後消失道具,若有,不可回纪录点
 #define _FM_MODIFY               // 家族功能修改(开放)
-#define _STANDBYPET              // Robin 待机宠封包
+// #define _STANDBYPET              // Robin 待机宠封包
 #define  _PETSKILL_OPTIMUM       // Robin 宠物技能处理最佳化
 #define _MAGIC_OPTIMUM           // Robin Magic table 最佳化
 #define _AC_PIORITY              // Nuke 提高AC的优先权(可开)
