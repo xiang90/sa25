@@ -6724,16 +6724,6 @@ static int BATTLE_Battling( int battleindex )
 				}
 				BATTLE_PetIn( battleindex, attackNo );
 			}		
-			// shan 2002/01/14 Begin  ŒÂ÷ª≥Ë
-			{
-				int attackindex, petNo;
-
-				attackindex = BATTLE_No2Index( battleindex, attackNo );
-				petNo = CHAR_getWorkInt( attackindex, CHAR_WORKBATTLECOM2 );
-				if( CHAR_getWorkInt(charaindex, CHAR_WORK_PET0_STAT+petNo) != PET_STAT_SELECT)
-					break;				
-			}
-			// shan End
 			BATTLE_PetOut( battleindex, attackNo );
 			lssproto_KS_send(
 				getfdFromCharaIndex( charaindex ),
