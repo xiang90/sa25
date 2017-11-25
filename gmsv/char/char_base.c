@@ -2607,8 +2607,10 @@ INLINE int CHAR_AddMaxExp( int charaindex, int addexp)
 
 INLINE int CHAR_setMaxExpFromLevel( int charaindex, int level)
 {
-	CHAR_setInt( charaindex, CHAR_EXP, 0);
-	return 0;
+	int LVexp;
+	if( (LVexp = CHAR_GetLevelExp( level)) <  0 ) return -1;
+	CHAR_setInt( charaindex, CHAR_EXP, LVexp);
+	return LVexp;
 }
 
 INLINE int CHAR_setMaxExp( int charaindex, unsigned long int Setexp)
